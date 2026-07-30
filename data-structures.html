@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>data-structures — study://lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#131826; --border:#232b42; --text:#e7ecf6;
+    --muted:#8793b0; --dim:#5b6685; --accent:#6e56cf; --accent2:#f2b807;
+    --good:#4fd1a5; --bad:#ef6f6c;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace; --sans:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  a.back{font-family:var(--mono);font-size:13px;color:var(--dim);text-decoration:none;}
+  a.back:hover{color:var(--accent2);}
+  header{max-width:960px;margin:0 auto;padding:32px 24px 8px;}
+  h1{font-family:var(--mono);font-size:clamp(24px,4vw,32px);margin:12px 0 6px;}
+  h1 span{color:var(--accent2);}
+  p.sub{color:var(--muted);max-width:64ch;line-height:1.6;font-size:14px;margin-top:0;}
+  main{max-width:960px;margin:0 auto;padding:8px 24px 60px;}
+  .tabs{display:flex;gap:8px;margin:20px 0 16px;font-family:var(--mono);font-size:13px;flex-wrap:wrap;}
+  .tab{
+    background:var(--panel);border:1px solid var(--border);color:var(--muted);
+    padding:9px 14px;border-radius:6px;cursor:pointer;
+  }
+  .tab.active{border-color:var(--accent2);color:var(--accent2);}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px;font-family:var(--mono);font-size:13px;}
+  input, button{
+    background:var(--panel);border:1px solid var(--border);color:var(--text);
+    font-family:var(--mono);font-size:13px;padding:9px 12px;border-radius:6px;
+  }
+  input{width:90px;}
+  button{cursor:pointer;}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  button:hover{border-color:var(--accent2);}
+  .stage{
+    background:var(--panel);border:1px solid var(--border);border-radius:10px;
+    min-height:280px;padding:24px;display:flex;align-items:center;justify-content:center;
+    overflow:auto;
+  }
+  .view{display:none;width:100%;}
+  .view.active{display:block;}
+  .node{
+    font-family:var(--mono);font-size:14px;background:#0d1017;border:1px solid var(--border);
+    border-radius:6px;padding:10px 14px;color:var(--text);animation:pop .2s ease;
+  }
+  @keyframes pop{ from{transform:scale(.7);opacity:0;} to{transform:scale(1);opacity:1;} }
+  /* stack */
+  #stackView{display:flex;flex-direction:column-reverse;gap:6px;align-items:center;min-height:240px;justify-content:flex-start;}
+  /* queue */
+  #queueView{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  #queueView .arrow{color:var(--dim);}
+  /* linked list */
+  #listView{display:flex;gap:4px;flex-wrap:wrap;align-items:center;}
+  #listView .arrow{color:var(--dim);font-family:var(--mono);}
+  /* tree */
+  #treeView{width:100%;text-align:center;}
+  svg{max-width:100%;}
+  .tnode circle{fill:#0d1017;stroke:var(--border);}
+  .tnode text{fill:var(--text);font-family:var(--mono);font-size:12px;}
+  .tedge{stroke:var(--border);stroke-width:1.5;}
+  .hint{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:12px;}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="index.html">‹ study://lab</a>
+  <h1>data<span>-structures</span></h1>
+  <p class="sub">The same handful of operations, four different shapes. Push a stack, enqueue a queue, insert into a linked list, or drop a value into a binary search tree.</p>
+</header>
+<main>
+  <div class="tabs">
+    <div class="tab active" data-tab="stack">stack</div>
+    <div class="tab" data-tab="queue">queue</div>
+    <div class="tab" data-tab="list">linked list</div>
+    <div class="tab" data-tab="tree">binary tree</div>
+  </div>
+
+  <div class="controls">
+    <input type="number" id="val" placeholder="value" value="7">
+    <button class="primary" id="add">add</button>
+    <button id="remove">remove</button>
+    <button id="clear">clear</button>
+  </div>
+
+  <div class="stage">
+    <div class="view active" id="stackWrap"><div id="stackView"></div></div>
+    <div class="view" id="queueWrap"><div id="queueView"></div></div>
+    <div class="view" id="listWrap"><div id="listView"></div></div>
+    <div class="view" id="treeWrap"><div id="treeView"></div></div>
+  </div>
+  <div class="hint" id="hint">push(7) adds to the top · pop() removes from the top — LIFO</div>
+</main>
+<script>
+let mode = 'stack';
+let stack = [], queue = [], list = [], tree = null;
+
+const hints = {
+  stack: 'push(v) adds to the top · pop() removes from the top — LIFO',
+  queue: 'enqueue(v) adds to the back · dequeue() removes from the front — FIFO',
+  list: 'insert(v) appends a new node · remove() drops the tail node · each box points to the next',
+  tree: 'insert(v) walks left if smaller, right if larger, until it finds an empty spot (binary search tree)'
+};
+
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    mode = t.dataset.tab;
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById(mode==='stack'?'stackWrap':mode==='queue'?'queueWrap':mode==='list'?'listWrap':'treeWrap').classList.add('active');
+    document.getElementById('hint').textContent = hints[mode];
+  };
+});
+
+function renderStack(){
+  const el = document.getElementById('stackView');
+  el.innerHTML = stack.map(v=>`<div class="node">${v}</div>`).join('');
+}
+function renderQueue(){
+  const el = document.getElementById('queueView');
+  el.innerHTML = queue.map((v,i)=> `<div class="node">${v}</div>` + (i<queue.length-1?'<span class="arrow">→</span>':'')).join('');
+}
+function renderList(){
+  const el = document.getElementById('listView');
+  el.innerHTML = list.map((v,i)=> `<div class="node">${v}</div>` + (i<list.length-1?'<span class="arrow"> → </span>':' → <span class="arrow">null</span>')).join('') || '<span class="arrow">empty → null</span>';
+}
+
+function treeInsert(node, v){
+  if(!node) return {v, left:null, right:null};
+  if(v < node.v) node.left = treeInsert(node.left, v);
+  else if(v > node.v) node.right = treeInsert(node.right, v);
+  return node;
+}
+function renderTree(){
+  const el = document.getElementById('treeView');
+  if(!tree){ el.innerHTML = '<span style="color:var(--dim);font-family:var(--mono);font-size:13px;">empty tree</span>'; return; }
+  const positions = [];
+  function layout(node, depth, xMin, xMax){
+    if(!node) return;
+    const x = (xMin+xMax)/2;
+    const y = 40 + depth*70;
+    node._x = x; node._y = y;
+    positions.push(node);
+    layout(node.left, depth+1, xMin, x);
+    layout(node.right, depth+1, x, xMax);
+  }
+  layout(tree, 0, 20, 620);
+  let edges = '';
+  let nodes = '';
+  function draw(node){
+    if(!node) return;
+    if(node.left){ edges += `<line class="tedge" x1="${node._x}" y1="${node._y}" x2="${node.left._x}" y2="${node.left._y}"/>`; draw(node.left); }
+    if(node.right){ edges += `<line class="tedge" x1="${node._x}" y1="${node._y}" x2="${node.right._x}" y2="${node.right._y}"/>`; draw(node.right); }
+  }
+  draw(tree);
+  positions.forEach(n=>{
+    nodes += `<g class="tnode"><circle cx="${n._x}" cy="${n._y}" r="18"/><text x="${n._x}" y="${n._y+4}" text-anchor="middle">${n.v}</text></g>`;
+  });
+  const maxY = Math.max(...positions.map(n=>n._y)) + 40;
+  el.innerHTML = `<svg viewBox="0 0 640 ${maxY}" width="100%" height="${Math.min(maxY,320)}">${edges}${nodes}</svg>`;
+}
+
+document.getElementById('add').onclick = ()=>{
+  const v = document.getElementById('val').value || Math.floor(Math.random()*90);
+  if(mode==='stack'){ stack.push(v); renderStack(); }
+  else if(mode==='queue'){ queue.push(v); renderQueue(); }
+  else if(mode==='list'){ list.push(v); renderList(); }
+  else if(mode==='tree'){ tree = treeInsert(tree, +v); renderTree(); }
+};
+document.getElementById('remove').onclick = ()=>{
+  if(mode==='stack'){ stack.pop(); renderStack(); }
+  else if(mode==='queue'){ queue.shift(); renderQueue(); }
+  else if(mode==='list'){ list.pop(); renderList(); }
+  else if(mode==='tree'){ tree = null; renderTree(); } // BST deletion is out of scope; reset instead
+};
+document.getElementById('clear').onclick = ()=>{
+  stack=[]; queue=[]; list=[]; tree=null;
+  renderStack(); renderQueue(); renderList(); renderTree();
+};
+
+renderStack(); renderQueue(); renderList(); renderTree();
+</script>
+</body>
+</html>

@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>graph-algorithms — study://lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#131826; --border:#232b42; --text:#e7ecf6;
+    --muted:#8793b0; --dim:#5b6685; --accent:#6e56cf; --accent2:#f2b807;
+    --good:#4fd1a5; --bad:#ef6f6c;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace; --sans:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  a.back{font-family:var(--mono);font-size:13px;color:var(--dim);text-decoration:none;}
+  a.back:hover{color:var(--accent2);}
+  header{max-width:960px;margin:0 auto;padding:32px 24px 8px;}
+  h1{font-family:var(--mono);font-size:clamp(24px,4vw,32px);margin:12px 0 6px;}
+  h1 span{color:var(--accent2);}
+  p.sub{color:var(--muted);max-width:64ch;line-height:1.6;font-size:14px;margin-top:0;}
+  main{max-width:960px;margin:0 auto;padding:8px 24px 60px;}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 16px;font-family:var(--mono);font-size:13px;}
+  select, button{
+    background:var(--panel);border:1px solid var(--border);color:var(--text);
+    font-family:var(--mono);font-size:13px;padding:9px 12px;border-radius:6px;cursor:pointer;
+  }
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  button:hover{border-color:var(--accent2);}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+  .stage{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px;}
+  svg{width:100%;height:auto;display:block;}
+  .edge{stroke:var(--border);stroke-width:2;transition:stroke .2s ease, stroke-width .2s ease;}
+  .edge.consider{stroke:var(--accent2);stroke-width:3;}
+  .edge.used{stroke:var(--good);stroke-width:3;}
+  .edge.rejected{stroke:var(--bad);stroke-width:2;opacity:.5;}
+  .edgeLabel{fill:var(--muted);font-family:var(--mono);font-size:11px;}
+  .node circle{fill:#0d1017;stroke:var(--border);stroke-width:2;transition:stroke .2s ease;}
+  .node.visited circle{stroke:var(--good);}
+  .node.start circle{stroke:var(--accent2);stroke-width:3;}
+  .node text{fill:var(--text);font-family:var(--mono);font-size:13px;font-weight:600;}
+  .distlabel{fill:var(--accent2);font-family:var(--mono);font-size:11px;}
+  .status{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:12px;}
+  .status b{color:var(--text);}
+  .hint{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:6px;}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="index.html">‹ study://lab</a>
+  <h1>graph<span>-algorithms</span></h1>
+  <p class="sub">Same weighted graph, two different questions. Dijkstra finds the shortest path from one node to every other. Kruskal's finds the minimum-cost set of edges that connects every node with no cycles.</p>
+</header>
+<main>
+  <div class="controls">
+    <select id="algo">
+      <option value="dijkstra">Dijkstra — shortest path from A</option>
+      <option value="kruskal">Kruskal — minimum spanning tree</option>
+    </select>
+    <button class="primary" id="run">▶ Run</button>
+    <button id="regen">New graph</button>
+  </div>
+  <div class="stage"><svg id="svg" viewBox="0 0 640 400"></svg></div>
+  <div class="status" id="status">select an algorithm and hit run</div>
+  <div class="hint">edge labels are weights · green = finalized / included, amber = currently being considered</div>
+</main>
+<script>
+let nodes = [];
+let edges = []; // {a,b,w}
+
+function genGraph(){
+  const names = ['A','B','C','D','E','F','G','H'];
+  const n = 8;
+  nodes = names.slice(0,n).map((name,i)=>{
+    const angle = (i/n)*Math.PI*2 - Math.PI/2;
+    return { name, x: 320 + Math.cos(angle)*230, y: 210 + Math.sin(angle)*150 };
+  });
+  edges = [];
+  // ensure connectivity via a ring, then add random chords
+  for(let i=0;i<n;i++){
+    edges.push({a:i, b:(i+1)%n, w: 2+Math.floor(Math.random()*9)});
+  }
+  const extra = 5;
+  let added = 0, tries=0;
+  while(added<extra && tries<50){
+    tries++;
+    const a = Math.floor(Math.random()*n), b = Math.floor(Math.random()*n);
+    if(a===b) continue;
+    if(edges.some(e=>(e.a===a&&e.b===b)||(e.a===b&&e.b===a))) continue;
+    edges.push({a,b,w:2+Math.floor(Math.random()*9)});
+    added++;
+  }
+  drawGraph();
+}
+
+function drawGraph(){
+  const svg = document.getElementById('svg');
+  let content = '';
+  edges.forEach((e,i)=>{
+    const A = nodes[e.a], B = nodes[e.b];
+    const mx = (A.x+B.x)/2, my = (A.y+B.y)/2;
+    content += `<line class="edge" id="edge-${i}" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"/>`;
+    content += `<rect x="${mx-10}" y="${my-9}" width="20" height="15" fill="var(--bg)" opacity="0.85"/>`;
+    content += `<text class="edgeLabel" x="${mx}" y="${my+3}" text-anchor="middle">${e.w}</text>`;
+  });
+  nodes.forEach((node,i)=>{
+    content += `<g class="node" id="node-${i}"><circle cx="${node.x}" cy="${node.y}" r="20"/><text x="${node.x}" y="${node.y+5}" text-anchor="middle">${node.name}</text></g>`;
+    content += `<text class="distlabel" id="dist-${i}" x="${node.x}" y="${node.y-28}" text-anchor="middle"></text>`;
+  });
+  svg.innerHTML = content;
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+function adjacency(){
+  const adj = nodes.map(()=>[]);
+  edges.forEach((e,i)=>{
+    adj[e.a].push({to:e.b, w:e.w, idx:i});
+    adj[e.b].push({to:e.a, w:e.w, idx:i});
+  });
+  return adj;
+}
+
+async function runDijkstra(){
+  const adj = adjacency();
+  const dist = nodes.map(()=>Infinity);
+  const visited = new Array(nodes.length).fill(false);
+  dist[0] = 0;
+  document.getElementById(`dist-0`).textContent = '0';
+  document.getElementById('node-0').classList.add('start');
+
+  for(let step=0; step<nodes.length; step++){
+    let u = -1, best = Infinity;
+    for(let i=0;i<nodes.length;i++) if(!visited[i] && dist[i]<best){ best=dist[i]; u=i; }
+    if(u===-1) break;
+    visited[u] = true;
+    document.getElementById(`node-${u}`).classList.add('visited');
+    document.getElementById('status').innerHTML = `finalizing <b>${nodes[u].name}</b> at distance <b>${dist[u]}</b>`;
+    await sleep(500);
+    for(const {to,w,idx} of adj[u]){
+      const edgeEl = document.getElementById(`edge-${idx}`);
+      edgeEl.classList.add('consider');
+      await sleep(250);
+      if(dist[u]+w < dist[to]){
+        dist[to] = dist[u]+w;
+        document.getElementById(`dist-${to}`).textContent = dist[to];
+        edgeEl.classList.add('used');
+      }
+      edgeEl.classList.remove('consider');
+      if(!edgeEl.classList.contains('used')) edgeEl.classList.remove('used');
+    }
+  }
+  document.getElementById('status').innerHTML = `done — shortest distances from <b>${nodes[0].name}</b> shown above each node`;
+}
+
+async function runKruskal(){
+  const parent = nodes.map((_,i)=>i);
+  function find(x){ while(parent[x]!==x){ x=parent[x]; } return x; }
+  function union(a,b){ parent[find(a)] = find(b); }
+
+  const order = edges.map((e,i)=>({...e,i})).sort((a,b)=>a.w-b.w);
+  let totalWeight = 0, used = 0;
+  for(const e of order){
+    const edgeEl = document.getElementById(`edge-${e.i}`);
+    edgeEl.classList.add('consider');
+    document.getElementById('status').innerHTML = `considering ${nodes[e.a].name}–${nodes[e.b].name} (weight ${e.w})`;
+    await sleep(450);
+    edgeEl.classList.remove('consider');
+    if(find(e.a)!==find(e.b)){
+      union(e.a,e.b);
+      edgeEl.classList.add('used');
+      totalWeight += e.w;
+      used++;
+      document.getElementById('node-'+e.a).classList.add('visited');
+      document.getElementById('node-'+e.b).classList.add('visited');
+    } else {
+      edgeEl.classList.add('rejected');
+    }
+    if(used===nodes.length-1) break;
+  }
+  document.getElementById('status').innerHTML = `done — minimum spanning tree total weight: <b>${totalWeight}</b>`;
+}
+
+document.getElementById('run').onclick = async ()=>{
+  document.getElementById('run').disabled = true;
+  drawGraph();
+  const algo = document.getElementById('algo').value;
+  if(algo==='dijkstra') await runDijkstra(); else await runKruskal();
+  document.getElementById('run').disabled = false;
+};
+document.getElementById('regen').onclick = genGraph;
+
+genGraph();
+</script>
+</body>
+</html>

@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>dynamic-programming — study://lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#131826; --border:#232b42; --text:#e7ecf6;
+    --muted:#8793b0; --dim:#5b6685; --accent:#6e56cf; --accent2:#f2b807;
+    --good:#4fd1a5; --bad:#ef6f6c;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace; --sans:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  a.back{font-family:var(--mono);font-size:13px;color:var(--dim);text-decoration:none;}
+  a.back:hover{color:var(--accent2);}
+  header{max-width:960px;margin:0 auto;padding:32px 24px 8px;}
+  h1{font-family:var(--mono);font-size:clamp(24px,4vw,32px);margin:12px 0 6px;}
+  h1 span{color:var(--accent2);}
+  p.sub{color:var(--muted);max-width:64ch;line-height:1.6;font-size:14px;margin-top:0;}
+  main{max-width:960px;margin:0 auto;padding:8px 24px 60px;}
+  .tabs{display:flex;gap:8px;margin:20px 0 16px;font-family:var(--mono);font-size:13px;flex-wrap:wrap;}
+  .tab{background:var(--panel);border:1px solid var(--border);color:var(--muted);padding:9px 14px;border-radius:6px;cursor:pointer;}
+  .tab.active{border-color:var(--accent2);color:var(--accent2);}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:16px;font-family:var(--mono);font-size:13px;}
+  input, button{
+    background:var(--panel);border:1px solid var(--border);color:var(--text);
+    font-family:var(--mono);font-size:13px;padding:9px 12px;border-radius:6px;
+  }
+  input{width:80px;}
+  button{cursor:pointer;}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  button:hover{border-color:var(--accent2);}
+  .view{display:none;}
+  .view.active{display:block;}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;overflow:auto;}
+  table{border-collapse:collapse;font-family:var(--mono);font-size:13px;}
+  td, th{
+    border:1px solid var(--border);width:40px;height:34px;text-align:center;
+    color:var(--muted);transition:background .2s ease, color .2s ease;
+  }
+  th{color:var(--dim);background:#0d1017;}
+  td.filled{color:var(--text);}
+  td.active{background:var(--accent2);color:#0b0e14;font-weight:700;}
+  td.source{background:#2a2440;}
+  .status{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:12px;}
+  .status b{color:var(--text);}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="index.html">‹ study://lab</a>
+  <h1>dynamic<span>-programming</span></h1>
+  <p class="sub">DP solves a big problem by filling in a table of smaller subproblems once each, then reusing those answers instead of recomputing them. Watch the table fill in, cell by cell.</p>
+</header>
+<main>
+  <div class="tabs">
+    <div class="tab active" data-tab="fib">fibonacci (memoized)</div>
+    <div class="tab" data-tab="knapsack">0/1 knapsack</div>
+    <div class="tab" data-tab="edit">edit distance</div>
+  </div>
+
+  <div class="view active" id="fibView">
+    <div class="controls">
+      <label>n <input type="number" id="fibN" value="10" min="2" max="15"></label>
+      <button class="primary" id="runFib">▶ Fill table</button>
+    </div>
+    <div class="panel"><table id="fibTable"></table></div>
+    <div class="status" id="fibStatus"></div>
+  </div>
+
+  <div class="view" id="knapsackView">
+    <div class="controls">
+      <label>capacity <input type="number" id="cap" value="8" min="4" max="14"></label>
+      <button class="primary" id="runKnapsack">▶ Fill table</button>
+    </div>
+    <p style="font-family:var(--mono);font-size:12px;color:var(--dim);">items (weight/value): 2/3, 3/4, 4/5, 5/6</p>
+    <div class="panel"><table id="knapsackTable"></table></div>
+    <div class="status" id="knapsackStatus"></div>
+  </div>
+
+  <div class="view" id="editView">
+    <div class="controls">
+      <input type="text" id="wordA" value="kitten">
+      <input type="text" id="wordB" value="sitting">
+      <button class="primary" id="runEdit">▶ Fill table</button>
+    </div>
+    <div class="panel"><table id="editTable"></table></div>
+    <div class="status" id="editStatus"></div>
+  </div>
+</main>
+<script>
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById(t.dataset.tab+'View').classList.add('active');
+  };
+});
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+// ---------- Fibonacci ----------
+async function runFib(){
+  const n = Math.max(2, Math.min(15, +document.getElementById('fibN').value||10));
+  const table = document.getElementById('fibTable');
+  const dp = new Array(n+1).fill(null);
+  table.innerHTML = `<tr>${Array.from({length:n+1},(_,i)=>`<th>${i}</th>`).join('')}</tr><tr>${Array.from({length:n+1},(_,i)=>`<td id="fib-${i}"></td>`).join('')}</tr>`;
+  document.getElementById('runFib').disabled = true;
+  dp[0]=0; dp[1]=1;
+  document.getElementById('fib-0').textContent='0'; document.getElementById('fib-0').classList.add('filled');
+  document.getElementById('fib-1').textContent='1'; document.getElementById('fib-1').classList.add('filled');
+  document.getElementById('fibStatus').innerHTML = 'base cases: dp[0]=0, dp[1]=1';
+  await sleep(500);
+  for(let i=2;i<=n;i++){
+    document.getElementById(`fib-${i-1}`).classList.add('source');
+    document.getElementById(`fib-${i-2}`).classList.add('source');
+    document.getElementById('fibStatus').innerHTML = `dp[${i}] = dp[${i-1}] + dp[${i-2}] = ${dp[i-1]} + ${dp[i-2]}`;
+    await sleep(400);
+    dp[i] = dp[i-1]+dp[i-2];
+    const cell = document.getElementById(`fib-${i}`);
+    cell.textContent = dp[i];
+    cell.classList.add('filled','active');
+    await sleep(300);
+    cell.classList.remove('active');
+    document.getElementById(`fib-${i-1}`).classList.remove('source');
+    document.getElementById(`fib-${i-2}`).classList.remove('source');
+  }
+  document.getElementById('fibStatus').innerHTML = `done — fib(${n}) = <b>${dp[n]}</b>`;
+  document.getElementById('runFib').disabled = false;
+}
+
+// ---------- Knapsack ----------
+async function runKnapsack(){
+  const items = [{w:2,v:3},{w:3,v:4},{w:4,v:5},{w:5,v:6}];
+  const cap = Math.max(4, Math.min(14, +document.getElementById('cap').value||8));
+  const table = document.getElementById('knapsackTable');
+  const rows = items.length;
+  let header = `<tr><th>item\\cap</th>${Array.from({length:cap+1},(_,c)=>`<th>${c}</th>`).join('')}</tr>`;
+  let body = '';
+  for(let i=0;i<=rows;i++){
+    body += `<tr><th>${i===0?'-':items[i-1].w+'/'+items[i-1].v}</th>${Array.from({length:cap+1},(_,c)=>`<td id="ks-${i}-${c}"></td>`).join('')}</tr>`;
+  }
+  table.innerHTML = header+body;
+  document.getElementById('runKnapsack').disabled = true;
+
+  const dp = Array.from({length:rows+1},()=>new Array(cap+1).fill(0));
+  for(let c=0;c<=cap;c++){ document.getElementById(`ks-0-${c}`).textContent='0'; document.getElementById(`ks-0-${c}`).classList.add('filled'); }
+  await sleep(300);
+
+  for(let i=1;i<=rows;i++){
+    const {w,v} = items[i-1];
+    for(let c=0;c<=cap;c++){
+      const withoutCell = document.getElementById(`ks-${i-1}-${c}`);
+      withoutCell.classList.add('source');
+      let best = dp[i-1][c];
+      let usedTake = false;
+      if(w<=c){
+        const takeCell = document.getElementById(`ks-${i-1}-${c-w}`);
+        takeCell.classList.add('source');
+        const takeVal = dp[i-1][c-w]+v;
+        if(takeVal>best){ best=takeVal; usedTake=true; }
+        document.getElementById('knapsackStatus').innerHTML = `item ${i} (w${w}/v${v}), cap ${c}: max(skip=${dp[i-1][c]}, take=${takeVal})`;
+        await sleep(180);
+        takeCell.classList.remove('source');
+      } else {
+        document.getElementById('knapsackStatus').innerHTML = `item ${i} (w${w}/v${v}), cap ${c}: too heavy, carry forward ${dp[i-1][c]}`;
+        await sleep(140);
+      }
+      dp[i][c]=best;
+      const cell = document.getElementById(`ks-${i}-${c}`);
+      cell.textContent = best;
+      cell.classList.add('filled','active');
+      await sleep(60);
+      cell.classList.remove('active');
+      withoutCell.classList.remove('source');
+    }
+  }
+  document.getElementById('knapsackStatus').innerHTML = `done — best value with capacity ${cap}: <b>${dp[rows][cap]}</b>`;
+  document.getElementById('runKnapsack').disabled = false;
+}
+
+// ---------- Edit distance ----------
+async function runEdit(){
+  const a = (document.getElementById('wordA').value||'kitten').slice(0,10);
+  const b = (document.getElementById('wordB').value||'sitting').slice(0,10);
+  const table = document.getElementById('editTable');
+  let header = `<tr><th></th><th>ε</th>${b.split('').map(ch=>`<th>${ch}</th>`).join('')}</tr>`;
+  let body = '';
+  for(let i=0;i<=a.length;i++){
+    body += `<tr><th>${i===0?'ε':a[i-1]}</th>${Array.from({length:b.length+1},(_,j)=>`<td id="ed-${i}-${j}"></td>`).join('')}</tr>`;
+  }
+  table.innerHTML = header+body;
+  document.getElementById('runEdit').disabled = true;
+
+  const dp = Array.from({length:a.length+1},()=>new Array(b.length+1).fill(0));
+  for(let i=0;i<=a.length;i++){ dp[i][0]=i; document.getElementById(`ed-${i}-0`).textContent=i; document.getElementById(`ed-${i}-0`).classList.add('filled'); }
+  for(let j=0;j<=b.length;j++){ dp[0][j]=j; document.getElementById(`ed-0-${j}`).textContent=j; document.getElementById(`ed-0-${j}`).classList.add('filled'); }
+  await sleep(300);
+
+  for(let i=1;i<=a.length;i++){
+    for(let j=1;j<=b.length;j++){
+      const same = a[i-1]===b[j-1];
+      const cell = document.getElementById(`ed-${i}-${j}`);
+      const srcs = [`ed-${i-1}-${j}`, `ed-${i}-${j-1}`, `ed-${i-1}-${j-1}`];
+      srcs.forEach(id=>document.getElementById(id).classList.add('source'));
+      document.getElementById('editStatus').innerHTML = same
+        ? `'${a[i-1]}' == '${b[j-1]}' → copy diagonal: ${dp[i-1][j-1]}`
+        : `'${a[i-1]}' ≠ '${b[j-1]}' → 1 + min(delete ${dp[i-1][j]}, insert ${dp[i][j-1]}, replace ${dp[i-1][j-1]})`;
+      await sleep(140);
+      dp[i][j] = same ? dp[i-1][j-1] : 1+Math.min(dp[i-1][j], dp[i][j-1], dp[i-1][j-1]);
+      cell.textContent = dp[i][j];
+      cell.classList.add('filled','active');
+      await sleep(60);
+      cell.classList.remove('active');
+      srcs.forEach(id=>document.getElementById(id).classList.remove('source'));
+    }
+  }
+  document.getElementById('editStatus').innerHTML = `done — edit distance between "${a}" and "${b}": <b>${dp[a.length][b.length]}</b>`;
+  document.getElementById('runEdit').disabled = false;
+}
+
+document.getElementById('runFib').onclick = runFib;
+document.getElementById('runKnapsack').onclick = runKnapsack;
+document.getElementById('runEdit').onclick = runEdit;
+runFib();
+</script>
+</body>
+</html>

@@ -1,0 +1,281 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>pathfinding — study://lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#131826; --border:#232b42; --text:#e7ecf6;
+    --muted:#8793b0; --dim:#5b6685; --accent:#6e56cf; --accent2:#f2b807;
+    --good:#4fd1a5; --bad:#ef6f6c; --visited:#26314f; --frontier:#3a3560;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace; --sans:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  a.back{font-family:var(--mono);font-size:13px;color:var(--dim);text-decoration:none;}
+  a.back:hover{color:var(--accent2);}
+  header{max-width:960px;margin:0 auto;padding:32px 24px 8px;}
+  h1{font-family:var(--mono);font-size:clamp(24px,4vw,32px);margin:12px 0 6px;}
+  h1 span{color:var(--accent2);}
+  p.sub{color:var(--muted);max-width:64ch;line-height:1.6;font-size:14px;margin-top:0;}
+  main{max-width:960px;margin:0 auto;padding:8px 24px 60px;}
+  .controls{
+    display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 16px;
+    font-family:var(--mono);font-size:13px;
+  }
+  select, button{
+    background:var(--panel);border:1px solid var(--border);color:var(--text);
+    font-family:var(--mono);font-size:13px;padding:9px 12px;border-radius:6px;cursor:pointer;
+  }
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  button.primary:hover{filter:brightness(1.1);}
+  button:hover{border-color:var(--accent2);}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:14px;}
+  .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px;}
+  #grid{
+    display:grid;
+    gap:2px;
+    background:var(--border);
+    border:1px solid var(--border);
+    border-radius:8px;
+    overflow:hidden;
+    user-select:none;
+    touch-action:none;
+  }
+  .cell{background:var(--panel);aspect-ratio:1;transition:background .12s ease;cursor:pointer;}
+  .cell.wall{background:#0d1017;}
+  .cell.start{background:var(--good);}
+  .cell.end{background:var(--bad);}
+  .cell.visited{background:var(--visited);}
+  .cell.frontier{background:var(--frontier);}
+  .cell.path{background:var(--accent2);}
+  .stats{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:12px;}
+  .stats b{color:var(--text);}
+  .hint{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:6px;}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="index.html">‹ study://lab</a>
+  <h1>path<span>finding</span></h1>
+  <p class="sub">Drag to draw walls, then race BFS, DFS, Dijkstra, or A* from the green cell to the red one. Lighter cells were explored; the amber trail is the final path.</p>
+</header>
+<main>
+  <div class="controls">
+    <select id="algo">
+      <option value="bfs">BFS (unweighted shortest path)</option>
+      <option value="dfs">DFS (explores, doesn't guarantee shortest)</option>
+      <option value="dijkstra">Dijkstra (weighted shortest path)</option>
+      <option value="astar">A* (heuristic-guided)</option>
+    </select>
+    <button class="primary" id="run">▶ Run</button>
+    <button id="clearWalls">Clear walls</button>
+    <button id="maze">Random maze</button>
+    <button id="reset">Reset grid</button>
+  </div>
+  <div class="legend">
+    <span><span class="sw" style="background:var(--good)"></span>start</span>
+    <span><span class="sw" style="background:var(--bad)"></span>end</span>
+    <span><span class="sw" style="background:#0d1017"></span>wall</span>
+    <span><span class="sw" style="background:var(--frontier)"></span>frontier</span>
+    <span><span class="sw" style="background:var(--visited)"></span>visited</span>
+    <span><span class="sw" style="background:var(--accent2)"></span>path</span>
+  </div>
+  <div id="grid"></div>
+  <div class="stats" id="stats">cells visited: <b>0</b> · path length: <b>—</b></div>
+  <div class="hint">click-drag on empty cells to add/remove walls · drag the start or end cell to move them</div>
+</main>
+<script>
+const ROWS = 18, COLS = 32;
+const gridEl = document.getElementById('grid');
+gridEl.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
+
+let start = {r: 3, c: 3};
+let end = {r: 14, c: 26};
+let walls = new Set();
+let dragging = false, draggingSpecial = null; // 'start' | 'end' | null
+let running = false;
+
+function key(r,c){ return r+','+c; }
+function cellEl(r,c){ return gridEl.children[r*COLS+c]; }
+
+function buildGrid(){
+  gridEl.innerHTML = '';
+  for(let r=0;r<ROWS;r++){
+    for(let c=0;c<COLS;c++){
+      const d = document.createElement('div');
+      d.className = 'cell';
+      d.dataset.r = r; d.dataset.c = c;
+      gridEl.appendChild(d);
+    }
+  }
+  render();
+}
+
+function render(){
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    const el = cellEl(r,c);
+    el.className = 'cell';
+    if(walls.has(key(r,c))) el.classList.add('wall');
+    if(r===start.r && c===start.c) el.classList.add('start');
+    if(r===end.r && c===end.c) el.classList.add('end');
+  }
+}
+
+function inBounds(r,c){ return r>=0 && r<ROWS && c>=0 && c<COLS; }
+
+function handleCell(r,c, isDown){
+  if(running) return;
+  if(isDown){
+    if(r===start.r && c===start.c){ draggingSpecial='start'; return; }
+    if(r===end.r && c===end.c){ draggingSpecial='end'; return; }
+    dragging = true;
+    toggleWall(r,c);
+  } else if(draggingSpecial){
+    if((r===end.r&&c===end.c)||(r===start.r&&c===start.c)) return;
+    if(draggingSpecial==='start') start = {r,c}; else end = {r,c};
+    render();
+  } else if(dragging){
+    toggleWall(r,c, true);
+  }
+}
+
+let wallSetMode = null;
+function toggleWall(r,c, forced){
+  if((r===start.r&&c===start.c)||(r===end.r&&c===end.c)) return;
+  const k = key(r,c);
+  if(forced){
+    if(wallSetMode==='add') walls.add(k);
+    else if(wallSetMode==='remove') walls.delete(k);
+  } else {
+    if(walls.has(k)){ walls.delete(k); wallSetMode='remove'; }
+    else { walls.add(k); wallSetMode='add'; }
+  }
+  render();
+}
+
+gridEl.addEventListener('mousedown', e=>{
+  const t = e.target.closest('.cell'); if(!t) return;
+  handleCell(+t.dataset.r, +t.dataset.c, true);
+});
+gridEl.addEventListener('mouseover', e=>{
+  const t = e.target.closest('.cell'); if(!t) return;
+  handleCell(+t.dataset.r, +t.dataset.c, false);
+});
+window.addEventListener('mouseup', ()=>{ dragging=false; draggingSpecial=null; wallSetMode=null; });
+
+document.getElementById('clearWalls').onclick = ()=>{ if(running)return; walls.clear(); render(); };
+document.getElementById('reset').onclick = ()=>{
+  if(running)return;
+  walls.clear(); start={r:3,c:3}; end={r:14,c:26}; render();
+  document.getElementById('stats').innerHTML = 'cells visited: <b>0</b> · path length: <b>—</b>';
+};
+document.getElementById('maze').onclick = ()=>{
+  if(running)return;
+  walls.clear();
+  for(let r=0;r<ROWS;r++)for(let c=0;c<COLS;c++){
+    if((r===start.r&&c===start.c)||(r===end.r&&c===end.c)) continue;
+    if(Math.random()<0.28) walls.add(key(r,c));
+  }
+  render();
+};
+
+function neighbors(r,c){
+  return [[r-1,c],[r+1,c],[r,c-1],[r,c+1]].filter(([nr,nc])=>inBounds(nr,nc) && !walls.has(key(nr,nc)));
+}
+
+function heuristic(r,c){ return Math.abs(r-end.r) + Math.abs(c-end.c); }
+
+async function sleep(ms){ return new Promise(res=>setTimeout(res,ms)); }
+
+async function run(){
+  if(running) return;
+  running = true;
+  document.getElementById('run').disabled = true;
+  render();
+
+  const algo = document.getElementById('algo').value;
+  const cameFrom = {};
+  const visitedOrder = [];
+  let found = false;
+
+  if(algo==='bfs' || algo==='dfs'){
+    const seen = new Set([key(start.r,start.c)]);
+    const structure = [{r:start.r,c:start.c}];
+    while(structure.length){
+      const node = algo==='bfs' ? structure.shift() : structure.pop();
+      if(node.r===end.r && node.c===end.c){ found=true; break; }
+      visitedOrder.push(node);
+      for(const [nr,nc] of neighbors(node.r,node.c)){
+        const k = key(nr,nc);
+        if(!seen.has(k)){
+          seen.add(k);
+          cameFrom[k] = node;
+          structure.push({r:nr,c:nc});
+        }
+      }
+    }
+  } else {
+    // dijkstra / astar
+    const dist = { [key(start.r,start.c)]: 0 };
+    const pq = [{r:start.r,c:start.c,d:0,f: algo==='astar'? heuristic(start.r,start.c):0}];
+    const closed = new Set();
+    while(pq.length){
+      pq.sort((a,b)=>a.f-b.f);
+      const node = pq.shift();
+      const k = key(node.r,node.c);
+      if(closed.has(k)) continue;
+      closed.add(k);
+      if(node.r===end.r && node.c===end.c){ found=true; break; }
+      visitedOrder.push(node);
+      for(const [nr,nc] of neighbors(node.r,node.c)){
+        const nk = key(nr,nc);
+        const nd = node.d + 1;
+        if(dist[nk]===undefined || nd < dist[nk]){
+          dist[nk]=nd;
+          cameFrom[nk]={r:node.r,c:node.c};
+          const f = nd + (algo==='astar'? heuristic(nr,nc):0);
+          pq.push({r:nr,c:nc,d:nd,f});
+        }
+      }
+    }
+  }
+
+  const batch = Math.max(1, Math.floor(visitedOrder.length/120));
+  for(let i=0;i<visitedOrder.length;i++){
+    const {r,c} = visitedOrder[i];
+    if(!(r===start.r&&c===start.c)) cellEl(r,c).classList.add('visited');
+    if(i%batch===0) await sleep(4);
+  }
+
+  let path = [];
+  if(found){
+    let cur = key(end.r,end.c);
+    let node = {r:end.r,c:end.c};
+    while(cameFrom[cur]){
+      path.push(node);
+      node = cameFrom[cur];
+      cur = key(node.r,node.c);
+    }
+    for(let i=path.length-1;i>=0;i--){
+      const {r,c} = path[i];
+      if(!(r===end.r&&c===end.c)) cellEl(r,c).classList.add('path');
+      await sleep(10);
+    }
+  }
+
+  document.getElementById('stats').innerHTML =
+    `cells visited: <b>${visitedOrder.length}</b> · path length: <b>${found? path.length : 'no path found'}</b>`;
+  running = false;
+  document.getElementById('run').disabled = false;
+}
+
+document.getElementById('run').onclick = run;
+buildGrid();
+</script>
+</body>
+</html>

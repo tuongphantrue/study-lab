@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bitwise-ops — study://lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#131826; --border:#232b42; --text:#e7ecf6;
+    --muted:#8793b0; --dim:#5b6685; --accent:#6e56cf; --accent2:#f2b807;
+    --good:#4fd1a5; --bad:#ef6f6c;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace; --sans:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  a.back{font-family:var(--mono);font-size:13px;color:var(--dim);text-decoration:none;}
+  a.back:hover{color:var(--accent2);}
+  header{max-width:960px;margin:0 auto;padding:32px 24px 8px;}
+  h1{font-family:var(--mono);font-size:clamp(24px,4vw,32px);margin:12px 0 6px;}
+  h1 span{color:var(--accent2);}
+  p.sub{color:var(--muted);max-width:64ch;line-height:1.6;font-size:14px;margin-top:0;}
+  main{max-width:960px;margin:0 auto;padding:8px 24px 60px;}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 20px;font-family:var(--mono);font-size:13px;}
+  input, select, button{
+    background:var(--panel);border:1px solid var(--border);color:var(--text);
+    font-family:var(--mono);font-size:13px;padding:9px 12px;border-radius:6px;
+  }
+  input{width:80px;}
+  button{cursor:pointer;}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  button:hover{border-color:var(--accent2);}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:24px;}
+  .operand{margin-bottom:18px;}
+  .operand .label{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:8px;}
+  .bits{display:flex;gap:4px;}
+  .bit{
+    width:44px;height:52px;display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:18px;font-weight:600;border-radius:6px;
+    background:#0d1017;border:1px solid var(--border);color:var(--muted);
+    cursor:pointer;user-select:none;transition:all .15s ease;
+  }
+  .bit.on{color:var(--accent2);border-color:var(--accent2);}
+  .bit.result{background:var(--good);color:#0b0e14;border-color:var(--good);}
+  .bit.result.zero{background:#1c2740;color:var(--dim);border-color:var(--border);}
+  .opline{
+    text-align:center;font-family:var(--mono);font-size:22px;color:var(--accent2);
+    margin:6px 0 14px;
+  }
+  .divider{border:none;border-top:1px solid var(--border);margin:14px 0;}
+  .decimals{font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:16px;}
+  .decimals b{color:var(--text);}
+  .hint{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:10px;}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="index.html">‹ study://lab</a>
+  <h1>bitwise<span>-ops</span></h1>
+  <p class="sub">Click any bit to flip it, pick an operation, and watch the result form one bit at a time — the same logic your CPU runs on every integer, just at 8-bit scale.</p>
+</header>
+<main>
+  <div class="controls">
+    <label>A <input type="number" id="valA" value="203" min="0" max="255"></label>
+    <label>B <input type="number" id="valB" value="90" min="0" max="255"></label>
+    <select id="op">
+      <option value="and">AND</option>
+      <option value="or">OR</option>
+      <option value="xor">XOR</option>
+      <option value="not">NOT (A only)</option>
+      <option value="shl">A &lt;&lt; 1</option>
+      <option value="shr">A &gt;&gt; 1</option>
+    </select>
+    <button class="primary" id="run">▶ Compute</button>
+  </div>
+
+  <div class="panel">
+    <div class="operand">
+      <div class="label">A</div>
+      <div class="bits" id="bitsA"></div>
+    </div>
+    <div class="operand" id="bRow">
+      <div class="label">B</div>
+      <div class="bits" id="bitsB"></div>
+    </div>
+    <div class="opline" id="opline">AND</div>
+    <hr class="divider">
+    <div class="operand">
+      <div class="label">result</div>
+      <div class="bits" id="bitsR"></div>
+    </div>
+    <div class="decimals" id="decimals"></div>
+  </div>
+  <div class="hint">click bits in A or B to edit them directly before computing</div>
+</main>
+<script>
+function toBits(n){ return n.toString(2).padStart(8,'0').split('').map(Number); }
+function fromBits(bits){ return parseInt(bits.join(''),2); }
+
+let A = 203, B = 90;
+
+function renderOperand(id, value, editable){
+  const el = document.getElementById(id);
+  const bits = toBits(value & 255);
+  el.innerHTML = bits.map((b,i)=>`<div class="bit ${b?'on':''}" data-i="${i}">${b}</div>`).join('');
+  if(editable){
+    [...el.children].forEach(child=>{
+      child.onclick = ()=>{
+        const i = +child.dataset.i;
+        const current = toBits(id==='bitsA'?A:B);
+        current[i] = current[i]?0:1;
+        const newVal = fromBits(current);
+        if(id==='bitsA'){ A=newVal; document.getElementById('valA').value=A; }
+        else { B=newVal; document.getElementById('valB').value=B; }
+        renderOperand(id, id==='bitsA'?A:B, true);
+      };
+    });
+  }
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+const opLabels = {and:'AND', or:'OR', xor:'XOR', not:'NOT A', shl:'A << 1', shr:'A >> 1'};
+
+document.getElementById('op').addEventListener('change', ()=>{
+  const op = document.getElementById('op').value;
+  document.getElementById('bRow').style.display = (op==='not'||op==='shl'||op==='shr') ? 'none' : 'block';
+  document.getElementById('opline').textContent = opLabels[op];
+});
+
+async function compute(){
+  document.getElementById('run').disabled = true;
+  A = Math.max(0, Math.min(255, +document.getElementById('valA').value||0));
+  B = Math.max(0, Math.min(255, +document.getElementById('valB').value||0));
+  renderOperand('bitsA', A, true);
+  renderOperand('bitsB', B, true);
+  const op = document.getElementById('op').value;
+  document.getElementById('opline').textContent = opLabels[op];
+
+  const bitsA = toBits(A), bitsB = toBits(B);
+  let resultBits = new Array(8).fill(0);
+  const rEl = document.getElementById('bitsR');
+  rEl.innerHTML = Array.from({length:8},()=>`<div class="bit"></div>`).join('');
+  const rChildren = [...rEl.children];
+
+  for(let i=0;i<8;i++){
+    let bit;
+    if(op==='and') bit = bitsA[i] & bitsB[i];
+    else if(op==='or') bit = bitsA[i] | bitsB[i];
+    else if(op==='xor') bit = bitsA[i] ^ bitsB[i];
+    else if(op==='not') bit = bitsA[i] ? 0 : 1;
+    else if(op==='shl') bit = i<7 ? bitsA[i+1] : 0;
+    else if(op==='shr') bit = i>0 ? bitsA[i-1] : 0;
+    resultBits[i] = bit;
+    rChildren[i].textContent = bit;
+    rChildren[i].classList.add(bit? 'result' : 'result zero');
+    await sleep(160);
+  }
+
+  const rVal = fromBits(resultBits);
+  document.getElementById('decimals').innerHTML =
+    `A = <b>${A}</b>` + ((op!=='not'&&op!=='shl'&&op!=='shr') ? ` &nbsp; B = <b>${B}</b>` : '') +
+    ` &nbsp; result = <b>${rVal}</b>`;
+  document.getElementById('run').disabled = false;
+}
+
+document.getElementById('run').onclick = compute;
+renderOperand('bitsA', A, true);
+renderOperand('bitsB', B, true);
+compute();
+</script>
+</body>
+</html>

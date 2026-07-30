@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>hashtable — study://lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#131826; --border:#232b42; --text:#e7ecf6;
+    --muted:#8793b0; --dim:#5b6685; --accent:#6e56cf; --accent2:#f2b807;
+    --good:#4fd1a5; --bad:#ef6f6c;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace; --sans:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  a.back{font-family:var(--mono);font-size:13px;color:var(--dim);text-decoration:none;}
+  a.back:hover{color:var(--accent2);}
+  header{max-width:960px;margin:0 auto;padding:32px 24px 8px;}
+  h1{font-family:var(--mono);font-size:clamp(24px,4vw,32px);margin:12px 0 6px;}
+  h1 span{color:var(--accent2);}
+  p.sub{color:var(--muted);max-width:64ch;line-height:1.6;font-size:14px;margin-top:0;}
+  main{max-width:960px;margin:0 auto;padding:8px 24px 60px;}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 16px;font-family:var(--mono);font-size:13px;}
+  input, button{
+    background:var(--panel);border:1px solid var(--border);color:var(--text);
+    font-family:var(--mono);font-size:13px;padding:9px 12px;border-radius:6px;
+  }
+  input{width:140px;}
+  button{cursor:pointer;}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  button:hover{border-color:var(--accent2);}
+  .hashline{font-family:var(--mono);font-size:13px;color:var(--muted);margin-bottom:16px;min-height:20px;}
+  .hashline b{color:var(--accent2);}
+  .buckets{display:flex;flex-direction:column;gap:8px;}
+  .bucket{
+    display:flex;align-items:center;gap:10px;background:var(--panel);border:1px solid var(--border);
+    border-radius:8px;padding:10px 14px;transition:border-color .2s ease;
+  }
+  .bucket.active{border-color:var(--accent2);}
+  .bucket .idx{font-family:var(--mono);font-size:12px;color:var(--dim);width:26px;}
+  .chain{display:flex;gap:6px;flex-wrap:wrap;}
+  .entry{
+    font-family:var(--mono);font-size:12px;background:#0d1017;border:1px solid var(--border);
+    border-radius:5px;padding:5px 10px;color:var(--text);animation:pop .2s ease;
+  }
+  @keyframes pop{from{transform:scale(.7);opacity:0;}to{transform:scale(1);opacity:1;}}
+  .stats{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:14px;}
+  .stats b{color:var(--text);}
+  .hint{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:6px;}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="index.html">‹ study://lab</a>
+  <h1>hash<span>table</span></h1>
+  <p class="sub">A key gets hashed to a number, then dropped into <code>bucket = hash % size</code>. Two keys landing on the same bucket is a collision — this table resolves it by chaining, and resizes once it gets crowded.</p>
+</header>
+<main>
+  <div class="controls">
+    <input type="text" id="key" placeholder="key" value="apple">
+    <button class="primary" id="insert">insert</button>
+    <button id="reset">reset table</button>
+  </div>
+  <div class="hashline" id="hashline">type a key and hit insert</div>
+  <div class="buckets" id="buckets"></div>
+  <div class="stats" id="stats">size: <b>8</b> · entries: <b>0</b> · load factor: <b>0.00</b></div>
+  <div class="hint">load factor above 0.75 triggers a resize — every key gets rehashed into a bigger table</div>
+</main>
+<script>
+let size = 8;
+let table = [];
+function resetTable(){
+  size = 8;
+  table = Array.from({length:size}, ()=>[]);
+  render();
+  document.getElementById('hashline').textContent = 'type a key and hit insert';
+}
+
+function hashOf(str, mod){
+  let h = 0;
+  for(let i=0;i<str.length;i++) h = (h*31 + str.charCodeAt(i)) >>> 0;
+  return h % mod;
+}
+
+function totalEntries(){ return table.reduce((s,b)=>s+b.length,0); }
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+async function insert(key){
+  if(!key) return;
+  const raw = hashOf(key, 1000003); // stable-ish raw hash for display
+  const idx = raw % size;
+  document.getElementById('hashline').innerHTML =
+    `hash("${key}") = <b>${raw}</b> → bucket <b>${idx}</b> = ${raw} % ${size}`;
+
+  render();
+  const bucketEl = document.getElementById('bucket-'+idx);
+  bucketEl.classList.add('active');
+  await sleep(400);
+  bucketEl.classList.remove('active');
+
+  table[idx].push(key);
+  render();
+
+  const loadFactor = totalEntries()/size;
+  if(loadFactor > 0.75){
+    await sleep(300);
+    await growAndRehash();
+  }
+}
+
+async function growAndRehash(){
+  const oldEntries = table.flat();
+  size = size*2;
+  document.getElementById('hashline').innerHTML = `load factor exceeded 0.75 — resizing to <b>${size}</b> buckets and rehashing everything`;
+  table = Array.from({length:size}, ()=>[]);
+  render();
+  for(const key of oldEntries){
+    const raw = hashOf(key, 1000003);
+    const idx = raw % size;
+    table[idx].push(key);
+    render();
+    await sleep(120);
+  }
+}
+
+function render(){
+  const el = document.getElementById('buckets');
+  el.innerHTML = table.map((bucket,i)=>
+    `<div class="bucket" id="bucket-${i}">
+      <span class="idx">${i}</span>
+      <div class="chain">${bucket.map(k=>`<span class="entry">${k}</span>`).join('') || '<span style="color:var(--dim);font-family:var(--mono);font-size:12px;">empty</span>'}</div>
+    </div>`
+  ).join('');
+  const lf = (totalEntries()/size).toFixed(2);
+  document.getElementById('stats').innerHTML = `size: <b>${size}</b> · entries: <b>${totalEntries()}</b> · load factor: <b>${lf}</b>`;
+}
+
+document.getElementById('insert').onclick = ()=>{
+  const key = document.getElementById('key').value.trim();
+  insert(key);
+  document.getElementById('key').value = '';
+  document.getElementById('key').focus();
+};
+document.getElementById('key').addEventListener('keydown', e=>{ if(e.key==='Enter') document.getElementById('insert').click(); });
+document.getElementById('reset').onclick = resetTable;
+
+resetTable();
+['apple','banana','cherry'].forEach((k,i)=> setTimeout(()=>insert(k), i*500));
+</script>
+</body>
+</html>

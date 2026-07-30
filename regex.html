@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>regex-engine — study://lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#131826; --border:#232b42; --text:#e7ecf6;
+    --muted:#8793b0; --dim:#5b6685; --accent:#6e56cf; --accent2:#f2b807;
+    --good:#4fd1a5; --bad:#ef6f6c;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace; --sans:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  a.back{font-family:var(--mono);font-size:13px;color:var(--dim);text-decoration:none;}
+  a.back:hover{color:var(--accent2);}
+  header{max-width:960px;margin:0 auto;padding:32px 24px 8px;}
+  h1{font-family:var(--mono);font-size:clamp(24px,4vw,32px);margin:12px 0 6px;}
+  h1 span{color:var(--accent2);}
+  p.sub{color:var(--muted);max-width:64ch;line-height:1.6;font-size:14px;margin-top:0;}
+  main{max-width:960px;margin:0 auto;padding:8px 24px 60px;}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 8px;font-family:var(--mono);font-size:13px;}
+  input, button{
+    background:var(--panel);border:1px solid var(--border);color:var(--text);
+    font-family:var(--mono);font-size:13px;padding:9px 12px;border-radius:6px;
+  }
+  input{width:180px;}
+  button{cursor:pointer;}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  button:hover{border-color:var(--accent2);}
+  .note{font-family:var(--mono);font-size:12px;color:var(--dim);margin-bottom:16px;}
+  .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;}
+  .row{display:flex;gap:2px;flex-wrap:wrap;margin-bottom:10px;align-items:center;}
+  .rowlabel{font-family:var(--mono);font-size:11px;color:var(--dim);width:70px;}
+  .chip{
+    font-family:var(--mono);font-size:14px;min-width:26px;height:30px;display:flex;
+    align-items:center;justify-content:center;border-radius:4px;background:#0d1017;
+    border:1px solid var(--border);padding:0 4px;
+  }
+  .chip.cursor{background:var(--accent2);color:#0b0e14;font-weight:700;}
+  .chip.match{background:var(--good);color:#0b0e14;}
+  .chip.fail{background:var(--bad);color:#0b0e14;}
+  .chip.consumed{background:#1c2740;}
+  .log{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:14px;min-height:44px;line-height:1.7;}
+  .log b{color:var(--accent2);}
+  .result{font-family:var(--mono);font-size:14px;margin-top:10px;}
+  .result.ok{color:var(--good);}
+  .result.bad{color:var(--bad);}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="index.html">‹ study://lab</a>
+  <h1>regex<span>-engine</span></h1>
+  <p class="sub">A simplified engine supporting literals, <code>.</code> (any char), <code>*</code> (zero or more of the previous token), and <code>+</code> (one or more). Watch it try to match the pattern against the string, position by position.</p>
+</header>
+<main>
+  <div class="controls">
+    <input type="text" id="pattern" value="a.c*" placeholder="pattern">
+    <input type="text" id="text" value="abccc" placeholder="test string">
+    <button class="primary" id="run">▶ Step through</button>
+  </div>
+  <div class="note">supported syntax: literals, <b style="color:var(--accent2)">.</b> any character, <b style="color:var(--accent2)">*</b> zero-or-more, <b style="color:var(--accent2)">+</b> one-or-more (applies to the token before it)</div>
+  <div class="panel">
+    <div class="row" id="patternRow"></div>
+    <div class="row" id="textRow"></div>
+    <div class="log" id="log">enter a pattern and string, then step through</div>
+    <div class="result" id="result"></div>
+  </div>
+</main>
+<script>
+function tokenize(pattern){
+  const tokens = [];
+  for(let i=0;i<pattern.length;i++){
+    const ch = pattern[i];
+    if(ch==='*' || ch==='+'){
+      if(tokens.length) tokens[tokens.length-1].rep = ch;
+    } else {
+      tokens.push({ch, rep:null});
+    }
+  }
+  return tokens;
+}
+
+function matchToken(tok, ch){
+  if(tok==='.') return true;
+  return tok===ch;
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+function renderRow(id, items, cursorIdx, states){
+  const el = document.getElementById(id);
+  el.innerHTML = items.map((it,i)=>{
+    let cls = 'chip';
+    if(states && states[i]) cls += ' '+states[i];
+    if(i===cursorIdx) cls += ' cursor';
+    return `<div class="${cls}">${it}</div>`;
+  }).join('');
+}
+
+let running = false;
+async function run(){
+  if(running) return;
+  running = true;
+  document.getElementById('run').disabled = true;
+  const pattern = document.getElementById('pattern').value;
+  const text = document.getElementById('text').value;
+  const tokens = tokenize(pattern);
+  const logEl = document.getElementById('log');
+  const resultEl = document.getElementById('result');
+  resultEl.textContent = '';
+  resultEl.className = 'result';
+
+  renderRow('patternRow', tokens.map(t=>t.ch+(t.rep||'')), -1);
+  renderRow('textRow', text.split(''), -1);
+
+  // recursive matcher with step logging (backtracking style, like a real regex engine)
+  const textStates = new Array(text.length).fill(null);
+
+  async function matchFrom(ti, si){
+    if(ti===tokens.length){
+      return si===text.length ? si : -1; // success marker (not used further here)
+    }
+    const tok = tokens[ti];
+    if(tok.rep==='*' || tok.rep==='+'){
+      let count = 0;
+      let positions = [si];
+      let s = si;
+      // greedily consume as many as possible first
+      while(s<text.length && matchToken(tok.ch, text[s])){
+        s++; count++;
+        positions.push(s);
+      }
+      const minCount = tok.rep==='+' ? 1 : 0;
+      // try longest match first, backtrack shorter
+      for(let take=count; take>=minCount; take--){
+        const endPos = positions[take];
+        logEl.innerHTML = `trying <b>${tok.ch}${tok.rep}</b> to consume ${take} char(s) (positions ${si}–${endPos-1})`;
+        for(let k=si; k<endPos; k++) textStates[k]='consumed';
+        renderRow('textRow', text.split(''), endPos, textStates);
+        await sleep(500);
+        const ok = await matchFrom(ti+1, endPos);
+        if(ok!==-1) return ok;
+        for(let k=si; k<endPos; k++) textStates[k]=null;
+      }
+      return -1;
+    } else {
+      if(si<text.length && matchToken(tok.ch, text[si])){
+        logEl.innerHTML = `token <b>${tok.ch}</b> matches "<b>${text[si]}</b>" at position ${si}`;
+        textStates[si]='match';
+        renderRow('textRow', text.split(''), si+1, textStates);
+        await sleep(450);
+        return await matchFrom(ti+1, si+1);
+      } else {
+        logEl.innerHTML = `token <b>${tok.ch}</b> does not match position ${si} — dead end`;
+        if(si<text.length){ textStates[si]='fail'; renderRow('textRow', text.split(''), si, textStates); }
+        await sleep(450);
+        if(si<text.length) textStates[si]=null;
+        return -1;
+      }
+    }
+  }
+
+  // try matching starting at every position (unanchored search), left to right
+  let matchedAt = -1;
+  for(let start=0; start<=text.length; start++){
+    for(let i=0;i<textStates.length;i++) textStates[i]=null;
+    logEl.innerHTML = `attempting match starting at position <b>${start}</b>`;
+    renderRow('textRow', text.split(''), start, textStates);
+    await sleep(400);
+    const res = await matchFrom(0, start);
+    if(res!==-1){ matchedAt = start; break; }
+  }
+
+  if(matchedAt!==-1){
+    resultEl.textContent = `✓ pattern found starting at position ${matchedAt}`;
+    resultEl.className = 'result ok';
+  } else {
+    resultEl.textContent = `✗ no match anywhere in the string`;
+    resultEl.className = 'result bad';
+  }
+  running = false;
+  document.getElementById('run').disabled = false;
+}
+
+document.getElementById('run').onclick = run;
+</script>
+</body>
+</html>

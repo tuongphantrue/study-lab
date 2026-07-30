@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>recursion — study://lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0b0e14; --panel:#131826; --border:#232b42; --text:#e7ecf6;
+    --muted:#8793b0; --dim:#5b6685; --accent:#6e56cf; --accent2:#f2b807;
+    --good:#4fd1a5; --bad:#ef6f6c;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace; --sans:'Inter',system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
+  a.back{font-family:var(--mono);font-size:13px;color:var(--dim);text-decoration:none;}
+  a.back:hover{color:var(--accent2);}
+  header{max-width:960px;margin:0 auto;padding:32px 24px 8px;}
+  h1{font-family:var(--mono);font-size:clamp(24px,4vw,32px);margin:12px 0 6px;}
+  h1 span{color:var(--accent2);}
+  p.sub{color:var(--muted);max-width:64ch;line-height:1.6;font-size:14px;margin-top:0;}
+  main{max-width:960px;margin:0 auto;padding:8px 24px 60px;}
+  .tabs{display:flex;gap:8px;margin:20px 0 16px;font-family:var(--mono);font-size:13px;flex-wrap:wrap;}
+  .tab{background:var(--panel);border:1px solid var(--border);color:var(--muted);padding:9px 14px;border-radius:6px;cursor:pointer;}
+  .tab.active{border-color:var(--accent2);color:var(--accent2);}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px;font-family:var(--mono);font-size:13px;}
+  input, button, select{
+    background:var(--panel);border:1px solid var(--border);color:var(--text);
+    font-family:var(--mono);font-size:13px;padding:9px 12px;border-radius:6px;
+  }
+  input{width:70px;}
+  button{cursor:pointer;}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  button:hover{border-color:var(--accent2);}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+  .view{display:none;}
+  .view.active{display:block;}
+  .stack-panel{
+    background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;
+  }
+  .stack-panel h2{font-family:var(--mono);font-size:14px;margin:0 0 10px;color:var(--accent2);}
+  #callStack{display:flex;flex-direction:column-reverse;gap:4px;min-height:60px;font-family:var(--mono);font-size:12px;}
+  .frame{background:#0d1017;border:1px solid var(--border);border-radius:4px;padding:6px 10px;animation:pop .15s ease;}
+  @keyframes pop{from{transform:scale(.85);opacity:0;}to{transform:scale(1);opacity:1;}}
+  #tree{width:100%;overflow:auto;}
+  svg text{fill:var(--text);font-family:var(--mono);font-size:11px;}
+  .tnode rect{fill:#0d1017;stroke:var(--border);}
+  .tnode.done rect{stroke:var(--good);}
+  .tedge{stroke:var(--border);stroke-width:1.2;}
+  #board{display:inline-grid;gap:2px;background:var(--border);border:1px solid var(--border);}
+  .sq{width:38px;height:38px;background:var(--panel);display:flex;align-items:center;justify-content:center;font-size:18px;}
+  .sq.try{background:var(--frontier,#3a3560);}
+  .sq.queen{background:var(--good);}
+  .sq.reject{background:var(--bad);}
+  .status{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:10px;}
+  .status b{color:var(--text);}
+</style>
+</head>
+<body>
+<header>
+  <a class="back" href="index.html">‹ study://lab</a>
+  <h1>recur<span>sion</span></h1>
+  <p class="sub">Recursion is a function calling itself, with a stack quietly keeping track of every unfinished call. Watch the stack for fibonacci, and watch backtracking undo bad guesses in N-Queens.</p>
+</header>
+<main>
+  <div class="tabs">
+    <div class="tab active" data-tab="fib">fibonacci call tree</div>
+    <div class="tab" data-tab="queens">N-Queens backtracking</div>
+  </div>
+
+  <div class="view active" id="fibView">
+    <div class="controls">
+      <label>n <input type="number" id="fibN" value="5" min="1" max="8"></label>
+      <button class="primary" id="runFib">▶ Run fib(n)</button>
+    </div>
+    <div class="stack-panel">
+      <h2>call stack (live)</h2>
+      <div id="callStack"></div>
+    </div>
+    <div class="stack-panel">
+      <h2>call tree (each node is one function call)</h2>
+      <div id="tree"></div>
+    </div>
+    <div class="status" id="fibStatus">total calls: <b>0</b></div>
+  </div>
+
+  <div class="view" id="queensView">
+    <div class="controls">
+      <label>board size <input type="number" id="qN" value="6" min="4" max="8"></label>
+      <button class="primary" id="runQueens">▶ Solve</button>
+    </div>
+    <div id="board"></div>
+    <div class="status" id="qStatus">placements tried: <b>0</b></div>
+  </div>
+</main>
+<script>
+document.querySelectorAll('.tab').forEach(t=>{
+  t.onclick = ()=>{
+    document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+    document.getElementById(t.dataset.tab==='fib'?'fibView':'queensView').classList.add('active');
+  };
+});
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+// ---------- Fibonacci ----------
+let fibCalls = 0;
+let treeNodes = [];
+let stackFrames = [];
+
+function pushFrame(label){
+  stackFrames.push(label);
+  renderStack();
+}
+function popFrame(){
+  stackFrames.pop();
+  renderStack();
+}
+function renderStack(){
+  document.getElementById('callStack').innerHTML =
+    stackFrames.map(f=>`<div class="frame">${f}</div>`).join('');
+}
+
+async function fib(n, id, parent, depth, x0, x1){
+  fibCalls++;
+  const label = `fib(${n})`;
+  pushFrame(label);
+  const node = {id, label, depth, x:(x0+x1)/2, done:false};
+  treeNodes.push(node);
+  renderTree();
+  document.getElementById('fibStatus').innerHTML = `total calls: <b>${fibCalls}</b>`;
+  await sleep(260);
+
+  let result;
+  if(n<=1){ result = n; }
+  else {
+    const mid = (x0+x1)/2;
+    const left = await fib(n-1, id+'L', id, depth+1, x0, mid);
+    const right = await fib(n-2, id+'R', id, depth+1, mid, x1);
+    result = left + right;
+  }
+  node.done = true;
+  renderTree();
+  await sleep(120);
+  popFrame();
+  return result;
+}
+
+function renderTree(){
+  const el = document.getElementById('tree');
+  const w = 900, rowH = 60;
+  const maxDepth = Math.max(...treeNodes.map(n=>n.depth), 0);
+  let edges='', nodes='';
+  const byId = Object.fromEntries(treeNodes.map(n=>[n.id,n]));
+  treeNodes.forEach(n=>{
+    const parentId = n.id.length>1 ? n.id.slice(0,-1) : null;
+    if(parentId && byId[parentId]){
+      const p = byId[parentId];
+      edges += `<line class="tedge" x1="${p.x*w}" y1="${p.depth*rowH+30}" x2="${n.x*w}" y2="${n.depth*rowH+30}"/>`;
+    }
+    nodes += `<g class="tnode ${n.done?'done':''}"><rect x="${n.x*w-22}" y="${n.depth*rowH+12}" width="44" height="24" rx="4"/><text x="${n.x*w}" y="${n.depth*rowH+28}" text-anchor="middle">${n.label}</text></g>`;
+  });
+  const h = (maxDepth+1)*rowH + 20;
+  el.innerHTML = `<svg viewBox="0 0 ${w} ${h}" width="100%" height="${Math.min(h,360)}">${edges}${nodes}</svg>`;
+}
+
+document.getElementById('runFib').onclick = async ()=>{
+  const n = Math.max(1, Math.min(8, +document.getElementById('fibN').value || 5));
+  document.getElementById('runFib').disabled = true;
+  fibCalls = 0; treeNodes = []; stackFrames = [];
+  renderStack(); renderTree();
+  await fib(n, 'r', null, 0, 0, 1);
+  document.getElementById('runFib').disabled = false;
+};
+
+// ---------- N-Queens ----------
+let qTries = 0;
+async function solveQueens(n){
+  const cols = new Array(n).fill(-1);
+  qTries = 0;
+  drawBoard(n, cols);
+
+  async function place(row){
+    if(row===n) return true;
+    for(let col=0; col<n; col++){
+      qTries++;
+      document.getElementById('qStatus').innerHTML = `placements tried: <b>${qTries}</b>`;
+      cols[row]=col;
+      drawBoard(n, cols, {row,col,state:'try'});
+      await sleep(140);
+      let ok = true;
+      for(let r=0;r<row;r++){
+        if(cols[r]===col || Math.abs(cols[r]-col)===row-r){ ok=false; break; }
+      }
+      if(ok){
+        drawBoard(n, cols, {row,col,state:'queen'});
+        if(await place(row+1)) return true;
+      } else {
+        drawBoard(n, cols, {row,col,state:'reject'});
+        await sleep(100);
+      }
+      cols[row]=-1;
+    }
+    return false;
+  }
+  await place(0);
+  drawBoard(n, cols);
+}
+
+function drawBoard(n, cols, highlight){
+  const el = document.getElementById('board');
+  el.style.gridTemplateColumns = `repeat(${n}, 38px)`;
+  el.innerHTML = '';
+  for(let r=0;r<n;r++){
+    for(let c=0;c<n;c++){
+      const sq = document.createElement('div');
+      sq.className = 'sq';
+      if(highlight && highlight.row===r && highlight.col===c) sq.classList.add(highlight.state);
+      if(cols[r]===c && !(highlight && highlight.row===r && highlight.state==='reject')) sq.textContent = '♛';
+      el.appendChild(sq);
+    }
+  }
+}
+
+document.getElementById('runQueens').onclick = async ()=>{
+  const n = Math.max(4, Math.min(8, +document.getElementById('qN').value || 6));
+  document.getElementById('runQueens').disabled = true;
+  await solveQueens(n);
+  document.getElementById('runQueens').disabled = false;
+};
+
+drawBoard(6, new Array(6).fill(-1));
+</script>
+</body>
+</html>
