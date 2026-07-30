@@ -8,9 +8,9 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0b0e14; --panel:#131826; --border:#232b42; --text:#e7ecf6;
-    --muted:#8793b0; --dim:#5b6685; --accent:#6e56cf; --accent2:#f2b807;
-    --good:#4fd1a5; --bad:#ef6f6c;
+    --bg:#0a0a0a; --panel:#151515; --border:#2e2e2e; --text:#f5f5f5;
+    --muted:#9a9a9a; --dim:#666666; --accent:#ffffff; --accent2:#d0d0d0;
+    --good:#ffffff; --bad:#555555;
     --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace; --sans:'Inter',system-ui,sans-serif;
   }
   *{box-sizing:border-box;}
@@ -29,7 +29,7 @@
   }
   input{width:80px;}
   button{cursor:pointer;}
-  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  button.primary{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600;}
   button:hover{border-color:var(--accent2);}
   .panel{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:24px;}
   .operand{margin-bottom:18px;}
@@ -38,12 +38,12 @@
   .bit{
     width:44px;height:52px;display:flex;align-items:center;justify-content:center;
     font-family:var(--mono);font-size:18px;font-weight:600;border-radius:6px;
-    background:#0d1017;border:1px solid var(--border);color:var(--muted);
+    background:#0d0d0d;border:1px solid var(--border);color:var(--muted);
     cursor:pointer;user-select:none;transition:all .15s ease;
   }
   .bit.on{color:var(--accent2);border-color:var(--accent2);}
-  .bit.result{background:var(--good);color:#0b0e14;border-color:var(--good);}
-  .bit.result.zero{background:#1c2740;color:var(--dim);border-color:var(--border);}
+  .bit.result{background:var(--good);color:#0a0a0a;border-color:var(--good);}
+  .bit.result.zero{background:#242424;color:var(--dim);border-color:var(--border);}
   .opline{
     text-align:center;font-family:var(--mono);font-size:22px;color:var(--accent2);
     margin:6px 0 14px;
@@ -52,6 +52,13 @@
   .decimals{font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:16px;}
   .decimals b{color:var(--text);}
   .hint{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:10px;}
+  .explain{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 22px;margin:20px 0;}
+  .explain h2{font-family:var(--mono);font-size:14px;margin:0 0 10px;letter-spacing:.02em;}
+  .explain p{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 10px;}
+  .explain p:last-child{margin-bottom:0;}
+  .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:14px;line-height:1.7;}
+  .explain li{margin-bottom:6px;}
+  .explain code{background:#0d0d0d;border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--text);}
 </style>
 </head>
 <body>
@@ -61,6 +68,17 @@
   <p class="sub">Click any bit to flip it, pick an operation, and watch the result form one bit at a time — the same logic your CPU runs on every integer, just at 8-bit scale.</p>
 </header>
 <main>
+  <div class="explain">
+    <h2>how it works</h2>
+    <p>A number stored as bits is just a row of 0s and 1s, each position worth double the one to its right (128, 64, 32, 16, 8, 4, 2, 1 for 8 bits). Every operation here works on <b style="color:var(--text)">one column at a time</b>, comparing only the two bits directly above each other — there's no carrying or borrowing like in normal addition.</p>
+    <ul>
+      <li><code>AND</code> — result bit is 1 only if <b style="color:var(--text)">both</b> input bits are 1. Useful for "masking," i.e. clearing bits you don't want while keeping the rest.</li>
+      <li><code>OR</code> — result bit is 1 if <b style="color:var(--text)">either</b> input bit is 1. Useful for turning specific bits on.</li>
+      <li><code>XOR</code> — result bit is 1 if the two input bits <b style="color:var(--text)">differ</b>. Useful for toggling bits, and for spotting which bits changed between two values.</li>
+      <li><code>NOT</code> — flips every bit of a single number: 0 becomes 1 and 1 becomes 0.</li>
+      <li><code>&lt;&lt;</code> / <code>&gt;&gt;</code> (shift left/right) — every bit slides one position over, and a fresh 0 fills the gap left behind. Shifting left by 1 doubles the number (same reason moving a decimal digit left multiplies by 10); shifting right by 1 halves it, discarding any remainder.</li>
+    </ul>
+  </div>
   <div class="controls">
     <label>A <input type="number" id="valA" value="203" min="0" max="255"></label>
     <label>B <input type="number" id="valB" value="90" min="0" max="255"></label>

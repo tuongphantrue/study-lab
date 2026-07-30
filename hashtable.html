@@ -8,9 +8,9 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0b0e14; --panel:#131826; --border:#232b42; --text:#e7ecf6;
-    --muted:#8793b0; --dim:#5b6685; --accent:#6e56cf; --accent2:#f2b807;
-    --good:#4fd1a5; --bad:#ef6f6c;
+    --bg:#0a0a0a; --panel:#151515; --border:#2e2e2e; --text:#f5f5f5;
+    --muted:#9a9a9a; --dim:#666666; --accent:#ffffff; --accent2:#d0d0d0;
+    --good:#ffffff; --bad:#555555;
     --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace; --sans:'Inter',system-ui,sans-serif;
   }
   *{box-sizing:border-box;}
@@ -29,7 +29,7 @@
   }
   input{width:140px;}
   button{cursor:pointer;}
-  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  button.primary{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600;}
   button:hover{border-color:var(--accent2);}
   .hashline{font-family:var(--mono);font-size:13px;color:var(--muted);margin-bottom:16px;min-height:20px;}
   .hashline b{color:var(--accent2);}
@@ -42,13 +42,18 @@
   .bucket .idx{font-family:var(--mono);font-size:12px;color:var(--dim);width:26px;}
   .chain{display:flex;gap:6px;flex-wrap:wrap;}
   .entry{
-    font-family:var(--mono);font-size:12px;background:#0d1017;border:1px solid var(--border);
+    font-family:var(--mono);font-size:12px;background:#0d0d0d;border:1px solid var(--border);
     border-radius:5px;padding:5px 10px;color:var(--text);animation:pop .2s ease;
   }
   @keyframes pop{from{transform:scale(.7);opacity:0;}to{transform:scale(1);opacity:1;}}
   .stats{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:14px;}
   .stats b{color:var(--text);}
   .hint{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:6px;}
+  .explain{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 22px;margin:20px 0;}
+  .explain h2{font-family:var(--mono);font-size:14px;margin:0 0 10px;letter-spacing:.02em;}
+  .explain p{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 10px;}
+  .explain p:last-child{margin-bottom:0;}
+  .explain code{background:#0d0d0d;border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--text);}
 </style>
 </head>
 <body>
@@ -58,6 +63,12 @@
   <p class="sub">A key gets hashed to a number, then dropped into <code>bucket = hash % size</code>. Two keys landing on the same bucket is a collision — this table resolves it by chaining, and resizes once it gets crowded.</p>
 </header>
 <main>
+  <div class="explain">
+    <h2>how it works</h2>
+    <p><b style="color:var(--text)">Hashing</b> turns an arbitrary key (here, a string) into a number, using a formula that mixes every character together — this page multiplies a running total by 31 and adds each character's code, a common simple approach. That raw number is then reduced with <code>% size</code> (size = number of buckets) so it always lands on a valid bucket index, no matter how large the original hash was.</p>
+    <p><b style="color:var(--text)">Collisions</b> happen when two different keys hash to the same bucket — with enough keys and a fixed number of buckets, this is mathematically unavoidable (the pigeonhole principle). This table handles it with <b style="color:var(--text)">chaining</b>: each bucket holds a small list, and a colliding key just gets appended to that bucket's list instead of overwriting anything. Looking up a key means hashing it to find the right bucket, then scanning that bucket's short list.</p>
+    <p><b style="color:var(--text)">Load factor</b> (entries ÷ buckets) measures how crowded the table is getting. As it climbs, chains get longer and lookups get slower — approaching <code>O(n)</code> in the worst case instead of the <code>O(1)</code> average a hash table is supposed to give you. Once load factor crosses a threshold (0.75 here), the table <b style="color:var(--text)">resizes</b>: it allocates more buckets and rehashes every existing key into the new, larger table, since <code>hash % size</code> gives a different answer once <code>size</code> changes.</p>
+  </div>
   <div class="controls">
     <input type="text" id="key" placeholder="key" value="apple">
     <button class="primary" id="insert">insert</button>

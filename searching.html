@@ -8,9 +8,9 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0b0e14; --panel:#131826; --border:#232b42; --text:#e7ecf6;
-    --muted:#8793b0; --dim:#5b6685; --accent:#6e56cf; --accent2:#f2b807;
-    --good:#4fd1a5; --bad:#ef6f6c;
+    --bg:#0a0a0a; --panel:#151515; --border:#2e2e2e; --text:#f5f5f5;
+    --muted:#9a9a9a; --dim:#666666; --accent:#ffffff; --accent2:#d0d0d0;
+    --good:#ffffff; --bad:#555555;
     --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace; --sans:'Inter',system-ui,sans-serif;
   }
   *{box-sizing:border-box;}
@@ -29,7 +29,7 @@
   }
   input{width:110px;}
   button{cursor:pointer;}
-  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  button.primary{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600;}
   button:hover{border-color:var(--accent2);}
   button:disabled{opacity:.4;cursor:not-allowed;}
   .panel{
@@ -41,14 +41,19 @@
   .array{display:flex;flex-wrap:wrap;gap:6px;}
   .box{
     width:44px;height:44px;display:flex;align-items:center;justify-content:center;
-    font-family:var(--mono);font-size:14px;border-radius:6px;background:#0d1017;
+    font-family:var(--mono);font-size:14px;border-radius:6px;background:#0d0d0d;
     border:1px solid var(--border);transition:all .15s ease;
   }
-  .box.check{background:var(--accent);border-color:var(--accent);color:#fff;}
+  .box.check{background:var(--accent);border-color:var(--accent);color:var(--bg);}
   .box.dead{opacity:.25;}
-  .box.found{background:var(--good);border-color:var(--good);color:#0b0e14;font-weight:700;}
+  .box.found{background:var(--good);border-color:var(--good);color:#0a0a0a;font-weight:700;}
   .status{font-family:var(--mono);font-size:13px;color:var(--muted);margin-top:14px;min-height:20px;}
   .status b{color:var(--text);}
+  .explain{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 22px;margin:20px 0;}
+  .explain h2{font-family:var(--mono);font-size:14px;margin:0 0 10px;letter-spacing:.02em;}
+  .explain p{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 10px;}
+  .explain p:last-child{margin-bottom:0;}
+  .explain code{background:#0d0d0d;border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--text);}
 </style>
 </head>
 <body>
@@ -58,6 +63,12 @@
   <p class="sub">Linear search checks every box in order — O(n). Binary search only works on a sorted array, but halves the search space each step — O(log n). Same array, same target, run both.</p>
 </header>
 <main>
+  <div class="explain">
+    <h2>how it works</h2>
+    <p><b style="color:var(--text)">Linear search</b> has no shortcut: it looks at index 0, then 1, then 2, comparing each value to the target, until it finds a match or runs off the end. That's why worst case takes <code>n</code> comparisons for an array of <code>n</code> items — it has no way to know where the target might be, so it can't skip anything.</p>
+    <p><b style="color:var(--text)">Binary search</b> only works because the array is sorted first. It looks at the middle element: if that's the target, done. If the target is smaller, the entire right half can be thrown away — nothing sorted below the middle could contain it. If it's larger, the left half is thrown away. Each comparison cuts the remaining range in half, which is why it takes about <code>log₂(n)</code> comparisons instead of <code>n</code> — for 1,000 items, that's ~10 steps instead of up to 1,000.</p>
+    <p>The trade: binary search needs sorted data up front (sorting itself costs <code>O(n log n)</code>), so it only pays off when you'll search the same data many times.</p>
+  </div>
   <div class="controls">
     <label>size <input type="number" id="size" value="24" min="6" max="40"></label>
     <label>target <input type="number" id="target" value="0"></label>

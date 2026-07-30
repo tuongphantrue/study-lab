@@ -8,9 +8,9 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0b0e14; --panel:#131826; --border:#232b42; --text:#e7ecf6;
-    --muted:#8793b0; --dim:#5b6685; --accent:#6e56cf; --accent2:#f2b807;
-    --good:#4fd1a5; --bad:#ef6f6c;
+    --bg:#0a0a0a; --panel:#151515; --border:#2e2e2e; --text:#f5f5f5;
+    --muted:#9a9a9a; --dim:#666666; --accent:#ffffff; --accent2:#d0d0d0;
+    --good:#ffffff; --bad:#555555;
     --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace; --sans:'Inter',system-ui,sans-serif;
   }
   *{box-sizing:border-box;}
@@ -27,7 +27,7 @@
     background:var(--panel);border:1px solid var(--border);color:var(--text);
     font-family:var(--mono);font-size:13px;padding:9px 12px;border-radius:6px;cursor:pointer;
   }
-  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600;}
+  button.primary{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600;}
   button:hover{border-color:var(--accent2);}
   button:disabled{opacity:.4;cursor:not-allowed;}
   .stage{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:10px;}
@@ -37,7 +37,7 @@
   .edge.used{stroke:var(--good);stroke-width:3;}
   .edge.rejected{stroke:var(--bad);stroke-width:2;opacity:.5;}
   .edgeLabel{fill:var(--muted);font-family:var(--mono);font-size:11px;}
-  .node circle{fill:#0d1017;stroke:var(--border);stroke-width:2;transition:stroke .2s ease;}
+  .node circle{fill:#0d0d0d;stroke:var(--border);stroke-width:2;transition:stroke .2s ease;}
   .node.visited circle{stroke:var(--good);}
   .node.start circle{stroke:var(--accent2);stroke-width:3;}
   .node text{fill:var(--text);font-family:var(--mono);font-size:13px;font-weight:600;}
@@ -45,6 +45,11 @@
   .status{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:12px;}
   .status b{color:var(--text);}
   .hint{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:6px;}
+  .explain{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 22px;margin:20px 0;}
+  .explain h2{font-family:var(--mono);font-size:14px;margin:0 0 10px;letter-spacing:.02em;}
+  .explain p{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 10px;}
+  .explain p:last-child{margin-bottom:0;}
+  .explain code{background:#0d0d0d;border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--text);}
 </style>
 </head>
 <body>
@@ -54,6 +59,12 @@
   <p class="sub">Same weighted graph, two different questions. Dijkstra finds the shortest path from one node to every other. Kruskal's finds the minimum-cost set of edges that connects every node with no cycles.</p>
 </header>
 <main>
+  <div class="explain">
+    <h2>how it works</h2>
+    <p><b style="color:var(--text)">Dijkstra's algorithm</b> keeps a "best distance found so far" for every node, starting at 0 for the source and infinity for everything else. Each round, it finalizes whichever unvisited node currently has the smallest known distance — that distance can never improve later, because every edge weight is non-negative, so nothing cheaper could still be found through an unvisited (therefore farther) node. It then "relaxes" that node's edges: for each neighbor, it checks whether going through the just-finalized node beats the neighbor's current best distance, and updates it if so. Repeat until every node is finalized.</p>
+    <p><b style="color:var(--text)">Kruskal's algorithm</b> takes a completely different approach to a different problem: it sorts every edge by weight, cheapest first, then walks through that list adding an edge as long as it doesn't create a cycle — i.e. as long as its two endpoints aren't already connected through edges already chosen. A quick union-find structure tracks which nodes are already in the same connected group. It stops once every node is connected, which happens after exactly <code>(number of nodes − 1)</code> edges are added.</p>
+    <p>Edges shown in the brightest tone are the ones actually kept (finalized shortest-path edges, or edges accepted into the spanning tree); dimmer ones were considered and passed over.</p>
+  </div>
   <div class="controls">
     <select id="algo">
       <option value="dijkstra">Dijkstra — shortest path from A</option>
@@ -64,7 +75,7 @@
   </div>
   <div class="stage"><svg id="svg" viewBox="0 0 640 400"></svg></div>
   <div class="status" id="status">select an algorithm and hit run</div>
-  <div class="hint">edge labels are weights · green = finalized / included, amber = currently being considered</div>
+  <div class="hint">edge labels are weights · brightest = finalized / included, mid-tone = currently being considered</div>
 </main>
 <script>
 let nodes = [];
