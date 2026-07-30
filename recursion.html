@@ -5,73 +5,83 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>recursion — study://lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0a0a0a; --panel:#151515; --border:#2e2e2e; --text:#f5f5f5;
-    --muted:#9a9a9a; --dim:#666666; --accent:#ffffff; --accent2:#d0d0d0;
-    --good:#ffffff; --bad:#555555;
-    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace; --sans:'Inter',system-ui,sans-serif;
+    --bg:#ffffff; --bg-soft:#f6f7fb; --card:#ffffff; --border:#e8e9ef;
+    --text:#14151a; --muted:#5c5e68; --dim:#9598a3;
+    --accent:#4f46e5; --accent-soft:#eef0ff; --accent-dark:#3c34b8;
+    --good:#16a34a; --good-soft:#e6f7ec;
+    --bad:#e11d48; --bad-soft:#fdeaee;
+    --warn:#f59e0b; --warn-soft:#fef3e0;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+    --shadow:0 1px 2px rgba(20,21,26,.04), 0 12px 32px rgba(20,21,26,.07);
   }
   *{box-sizing:border-box;}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
-  a.back{font-family:var(--mono);font-size:13px;color:var(--dim);text-decoration:none;}
-  a.back:hover{color:var(--accent2);}
-  header{max-width:960px;margin:0 auto;padding:32px 24px 8px;}
-  h1{font-family:var(--mono);font-size:clamp(24px,4vw,32px);margin:12px 0 6px;}
-  h1 span{color:var(--accent2);}
-  p.sub{color:var(--muted);max-width:64ch;line-height:1.6;font-size:14px;margin-top:0;}
-  main{max-width:960px;margin:0 auto;padding:8px 24px 60px;}
-  .tabs{display:flex;gap:8px;margin:20px 0 16px;font-family:var(--mono);font-size:13px;flex-wrap:wrap;}
-  .tab{background:var(--panel);border:1px solid var(--border);color:var(--muted);padding:9px 14px;border-radius:6px;cursor:pointer;}
-  .tab.active{border-color:var(--accent2);color:var(--accent2);}
-  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px;font-family:var(--mono);font-size:13px;}
-  input, button, select{
-    background:var(--panel);border:1px solid var(--border);color:var(--text);
-    font-family:var(--mono);font-size:13px;padding:9px 12px;border-radius:6px;
+  body{margin:0;background:var(--bg-soft);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  nav{display:flex;align-items:center;max-width:1080px;margin:0 auto;padding:24px 24px 4px;}
+  nav a.back{font-weight:600;font-size:14px;color:var(--muted);text-decoration:none;padding:9px 16px;border-radius:100px;transition:all .15s ease;}
+  nav a.back:hover{background:var(--card);color:var(--accent);box-shadow:var(--shadow);}
+  header{max-width:1080px;margin:0 auto;padding:8px 24px 8px;}
+  h1{font-weight:800;font-size:clamp(28px,4.5vw,38px);letter-spacing:-0.03em;margin:6px 0 12px;}
+  h1 span{color:var(--accent);}
+  p.sub{color:var(--muted);max-width:68ch;line-height:1.65;font-size:16px;margin-top:0;}
+  main{max-width:1080px;margin:0 auto;padding:8px 24px 80px;}
+
+  .explain{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px 28px;margin:22px 0;box-shadow:var(--shadow);}
+  .explain h2{font-weight:700;font-size:16px;margin:0 0 12px;}
+  .explain p{color:var(--muted);font-size:15px;line-height:1.75;margin:0 0 12px;}
+  .explain p:last-child{margin-bottom:0;}
+  .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+
+  .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
+  .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
+  .tab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px;font-size:14px;}
+  input{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-size:14px;padding:11px 14px;border-radius:10px;width:70px;box-shadow:var(--shadow);
   }
-  input{width:70px;}
-  button{cursor:pointer;}
-  button.primary{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600;}
-  button:hover{border-color:var(--accent2);}
+  button{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-weight:600;font-size:14px;padding:11px 18px;border-radius:100px;
+    cursor:pointer;transition:all .15s ease;box-shadow:var(--shadow);
+  }
+  button:hover{border-color:var(--accent);color:var(--accent);}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 8px 18px rgba(79,70,229,.28);}
+  button.primary:hover{background:var(--accent-dark);border-color:var(--accent-dark);color:#fff;}
   button:disabled{opacity:.4;cursor:not-allowed;}
   .view{display:none;}
   .view.active{display:block;}
-  .stack-panel{
-    background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px;margin-bottom:16px;
-  }
-  .stack-panel h2{font-family:var(--mono);font-size:14px;margin:0 0 10px;color:var(--accent2);}
-  #callStack{display:flex;flex-direction:column-reverse;gap:4px;min-height:60px;font-family:var(--mono);font-size:12px;}
-  .frame{background:#0d0d0d;border:1px solid var(--border);border-radius:4px;padding:6px 10px;animation:pop .15s ease;}
+  .stack-panel{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:22px;margin-bottom:16px;box-shadow:var(--shadow);}
+  .stack-panel h2{font-size:15px;margin:0 0 12px;color:var(--accent-dark);font-weight:700;}
+  #callStack{display:flex;flex-direction:column-reverse;gap:6px;min-height:60px;font-family:var(--mono);font-size:12.5px;}
+  .frame{background:var(--accent-soft);border:1px solid var(--accent);color:var(--accent-dark);border-radius:8px;padding:8px 12px;font-weight:600;animation:pop .15s ease;}
   @keyframes pop{from{transform:scale(.85);opacity:0;}to{transform:scale(1);opacity:1;}}
   #tree{width:100%;overflow:auto;}
   svg text{fill:var(--text);font-family:var(--mono);font-size:11px;}
-  .tnode rect{fill:#0d0d0d;stroke:var(--border);}
-  .tnode.done rect{stroke:var(--good);}
-  .tedge{stroke:var(--border);stroke-width:1.2;}
-  #board{display:inline-grid;gap:2px;background:var(--border);border:1px solid var(--border);}
-  .sq{width:38px;height:38px;background:var(--panel);display:flex;align-items:center;justify-content:center;font-size:18px;}
-  .sq.try{background:var(--frontier,#3a3a3a);}
-  .sq.queen{background:var(--good);}
-  .sq.reject{background:var(--bad);}
-  .status{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:10px;}
+  .tnode rect{fill:var(--bg-soft);stroke:var(--border);stroke-width:1.5;}
+  .tnode.done rect{fill:var(--good-soft);stroke:var(--good);}
+  .tedge{stroke:var(--border);stroke-width:1.5;}
+  #board{display:inline-grid;gap:3px;background:var(--border);border:1px solid var(--border);border-radius:10px;overflow:hidden;box-shadow:var(--shadow);}
+  .sq{width:40px;height:40px;background:var(--card);display:flex;align-items:center;justify-content:center;font-size:19px;}
+  .sq.try{background:var(--warn-soft);}
+  .sq.queen{background:var(--good-soft);}
+  .sq.reject{background:var(--bad-soft);}
+  .status{font-size:13px;color:var(--muted);margin-top:12px;}
   .status b{color:var(--text);}
-  .explain{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 22px;margin:20px 0;}
-  .explain h2{font-family:var(--mono);font-size:14px;margin:0 0 10px;letter-spacing:.02em;}
-  .explain p{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 10px;}
-  .explain p:last-child{margin-bottom:0;}
-  .explain code{background:#0d0d0d;border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--text);}
 </style>
 </head>
 <body>
+<nav><a class="back" href="index.html">← study://lab</a></nav>
 <header>
-  <a class="back" href="index.html">‹ study://lab</a>
-  <h1>recur<span>sion</span></h1>
+  <h1>Recur<span>sion</span></h1>
   <p class="sub">Recursion is a function calling itself, with a stack quietly keeping track of every unfinished call. Watch the stack for fibonacci, and watch backtracking undo bad guesses in N-Queens.</p>
 </header>
 <main>
   <div class="explain">
-    <h2>how it works</h2>
+    <h2>How it works</h2>
     <p><b style="color:var(--text)">Every recursive function needs two things:</b> a base case that stops the recursion (here, <code>fib(0)</code> and <code>fib(1)</code> just return directly, no further calls), and a recursive case that calls itself on a smaller problem (<code>fib(n)</code> calls <code>fib(n-1)</code> and <code>fib(n-2)</code>). Each call gets pushed onto the call stack when it starts and popped off when it returns — that's the panel labeled "call stack (live)." A call can't finish until both of its own recursive calls have returned, which is why the tree branches out before it ever collapses back into an answer.</p>
     <p>Naive fibonacci recomputes the same smaller values many times (<code>fib(3)</code> gets called separately inside both <code>fib(4)</code> and <code>fib(5)</code>), which is exactly the inefficiency the dynamic-programming page's memoization fixes.</p>
     <p><b style="color:var(--text)">N-Queens is backtracking</b>: place a queen in the current row, then recursively try to place the next row. If a placement leaves no valid spot anywhere in a later row, the recursion returns failure, the queen gets removed ("backtracked"), and the algorithm tries the next column in that row instead. Nothing is smarter here than brute force with an early exit — it just abandons a branch the moment it's proven hopeless, instead of checking it all the way to the end.</p>
@@ -246,5 +256,4 @@ document.getElementById('runQueens').onclick = async ()=>{
 
 drawBoard(6, new Array(6).fill(-1));
 </script>
-</body>
-</html>
+</body></html>

@@ -5,83 +5,85 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>data-structures — study://lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0a0a0a; --panel:#151515; --border:#2e2e2e; --text:#f5f5f5;
-    --muted:#9a9a9a; --dim:#666666; --accent:#ffffff; --accent2:#d0d0d0;
-    --good:#ffffff; --bad:#555555;
-    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace; --sans:'Inter',system-ui,sans-serif;
+    --bg:#ffffff; --bg-soft:#f6f7fb; --card:#ffffff; --border:#e8e9ef;
+    --text:#14151a; --muted:#5c5e68; --dim:#9598a3;
+    --accent:#4f46e5; --accent-soft:#eef0ff; --accent-dark:#3c34b8;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+    --shadow:0 1px 2px rgba(20,21,26,.04), 0 12px 32px rgba(20,21,26,.07);
   }
   *{box-sizing:border-box;}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
-  a.back{font-family:var(--mono);font-size:13px;color:var(--dim);text-decoration:none;}
-  a.back:hover{color:var(--accent2);}
-  header{max-width:960px;margin:0 auto;padding:32px 24px 8px;}
-  h1{font-family:var(--mono);font-size:clamp(24px,4vw,32px);margin:12px 0 6px;}
-  h1 span{color:var(--accent2);}
-  p.sub{color:var(--muted);max-width:64ch;line-height:1.6;font-size:14px;margin-top:0;}
-  main{max-width:960px;margin:0 auto;padding:8px 24px 60px;}
-  .tabs{display:flex;gap:8px;margin:20px 0 16px;font-family:var(--mono);font-size:13px;flex-wrap:wrap;}
-  .tab{
-    background:var(--panel);border:1px solid var(--border);color:var(--muted);
-    padding:9px 14px;border-radius:6px;cursor:pointer;
+  body{margin:0;background:var(--bg-soft);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  nav{display:flex;align-items:center;max-width:1080px;margin:0 auto;padding:24px 24px 4px;}
+  nav a.back{font-weight:600;font-size:14px;color:var(--muted);text-decoration:none;padding:9px 16px;border-radius:100px;transition:all .15s ease;}
+  nav a.back:hover{background:var(--card);color:var(--accent);box-shadow:var(--shadow);}
+  header{max-width:1080px;margin:0 auto;padding:8px 24px 8px;}
+  h1{font-weight:800;font-size:clamp(28px,4.5vw,38px);letter-spacing:-0.03em;margin:6px 0 12px;}
+  h1 span{color:var(--accent);}
+  p.sub{color:var(--muted);max-width:68ch;line-height:1.65;font-size:16px;margin-top:0;}
+  main{max-width:1080px;margin:0 auto;padding:8px 24px 80px;}
+
+  .explain{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px 28px;margin:22px 0;box-shadow:var(--shadow);}
+  .explain h2{font-weight:700;font-size:16px;margin:0 0 12px;}
+  .explain ul{margin:0;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
+  .explain li{margin-bottom:10px;}
+  .explain li:last-child{margin-bottom:0;}
+  .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+
+  .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
+  .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
+  .tab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px;font-size:14px;}
+  input{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-size:14px;padding:11px 14px;border-radius:10px;width:90px;box-shadow:var(--shadow);
   }
-  .tab.active{border-color:var(--accent2);color:var(--accent2);}
-  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:18px;font-family:var(--mono);font-size:13px;}
-  input, button{
-    background:var(--panel);border:1px solid var(--border);color:var(--text);
-    font-family:var(--mono);font-size:13px;padding:9px 12px;border-radius:6px;
+  button{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-weight:600;font-size:14px;padding:11px 18px;border-radius:100px;
+    cursor:pointer;transition:all .15s ease;box-shadow:var(--shadow);
   }
-  input{width:90px;}
-  button{cursor:pointer;}
-  button.primary{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600;}
-  button:hover{border-color:var(--accent2);}
+  button:hover{border-color:var(--accent);color:var(--accent);}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 8px 18px rgba(79,70,229,.28);}
+  button.primary:hover{background:var(--accent-dark);border-color:var(--accent-dark);color:#fff;}
+
   .stage{
-    background:var(--panel);border:1px solid var(--border);border-radius:10px;
-    min-height:280px;padding:24px;display:flex;align-items:center;justify-content:center;
-    overflow:auto;
+    background:var(--card);border:1px solid var(--border);border-radius:20px;
+    min-height:280px;padding:28px;display:flex;align-items:center;justify-content:center;
+    overflow:auto;box-shadow:var(--shadow);
   }
   .view{display:none;width:100%;}
   .view.active{display:block;}
   .node{
-    font-family:var(--mono);font-size:14px;background:#0d0d0d;border:1px solid var(--border);
-    border-radius:6px;padding:10px 14px;color:var(--text);animation:pop .2s ease;
+    font-family:var(--mono);font-size:14px;background:var(--accent-soft);border:1px solid var(--accent);
+    border-radius:8px;padding:10px 16px;color:var(--accent-dark);font-weight:600;animation:pop .2s ease;
   }
   @keyframes pop{ from{transform:scale(.7);opacity:0;} to{transform:scale(1);opacity:1;} }
-  /* stack */
-  #stackView{display:flex;flex-direction:column-reverse;gap:6px;align-items:center;min-height:240px;justify-content:flex-start;}
-  /* queue */
-  #queueView{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
-  #queueView .arrow{color:var(--dim);}
-  /* linked list */
-  #listView{display:flex;gap:4px;flex-wrap:wrap;align-items:center;}
+  #stackView{display:flex;flex-direction:column-reverse;gap:8px;align-items:center;min-height:240px;justify-content:flex-start;}
+  #queueView{display:flex;gap:8px;flex-wrap:wrap;align-items:center;}
+  #queueView .arrow{color:var(--dim);font-weight:700;}
+  #listView{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
   #listView .arrow{color:var(--dim);font-family:var(--mono);}
-  /* tree */
   #treeView{width:100%;text-align:center;}
   svg{max-width:100%;}
-  .tnode circle{fill:#0d0d0d;stroke:var(--border);}
-  .tnode text{fill:var(--text);font-family:var(--mono);font-size:12px;}
-  .tedge{stroke:var(--border);stroke-width:1.5;}
-  .hint{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:12px;}
-  .explain{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 22px;margin:20px 0;}
-  .explain h2{font-family:var(--mono);font-size:14px;margin:0 0 10px;letter-spacing:.02em;}
-  .explain p{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 10px;}
-  .explain p:last-child{margin-bottom:0;}
-  .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:14px;line-height:1.7;}
-  .explain li{margin-bottom:6px;}
-  .explain code{background:#0d0d0d;border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--text);}
+  .tnode circle{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2;}
+  .tnode text{fill:var(--accent-dark);font-family:var(--mono);font-size:12px;font-weight:600;}
+  .tedge{stroke:var(--border);stroke-width:2;}
+  .hint{font-size:13px;color:var(--dim);margin-top:14px;}
 </style>
 </head>
 <body>
+<nav><a class="back" href="index.html">← study://lab</a></nav>
 <header>
-  <a class="back" href="index.html">‹ study://lab</a>
-  <h1>data<span>-structures</span></h1>
+  <h1>Data<span>-structures</span></h1>
   <p class="sub">The same handful of operations, four different shapes. Push a stack, enqueue a queue, insert into a linked list, or drop a value into a binary search tree.</p>
 </header>
 <main>
   <div class="explain">
-    <h2>how it works</h2>
+    <h2>How it works</h2>
     <ul>
       <li><b style="color:var(--text)">Stack (LIFO)</b> — only the top is ever touched. <code>push</code> adds a new top, <code>pop</code> removes it. Think of a stack of plates: you can only take from the top. This is exactly how a program's call stack behaves (see the recursion page).</li>
       <li><b style="color:var(--text)">Queue (FIFO)</b> — added to the back, removed from the front, like a line at a checkout. <code>enqueue</code> appends, <code>dequeue</code> removes the oldest item. BFS uses a queue for exactly this reason.</li>
@@ -201,5 +203,4 @@ document.getElementById('clear').onclick = ()=>{
 
 renderStack(); renderQueue(); renderList(); renderTree();
 </script>
-</body>
-</html>
+</body></html>

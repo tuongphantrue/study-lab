@@ -5,75 +5,81 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>pathfinding — study://lab</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#0a0a0a; --panel:#151515; --border:#2e2e2e; --text:#f5f5f5;
-    --muted:#9a9a9a; --dim:#666666; --accent:#ffffff; --accent2:#d0d0d0;
-    --good:#ffffff; --bad:#555555; --visited:#232323; --frontier:#3a3a3a;
-    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace; --sans:'Inter',system-ui,sans-serif;
+    --bg:#ffffff; --bg-soft:#f6f7fb; --card:#ffffff; --border:#e8e9ef;
+    --text:#14151a; --muted:#5c5e68; --dim:#9598a3;
+    --accent:#4f46e5; --accent-soft:#eef0ff; --accent-dark:#3c34b8;
+    --good:#16a34a; --good-soft:#e6f7ec;
+    --bad:#e11d48; --bad-soft:#fdeaee;
+    --warn:#f59e0b; --warn-soft:#fef3e0;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+    --shadow:0 1px 2px rgba(20,21,26,.04), 0 12px 32px rgba(20,21,26,.07);
   }
   *{box-sizing:border-box;}
-  body{margin:0;background:var(--bg);color:var(--text);font-family:var(--sans);}
-  a.back{font-family:var(--mono);font-size:13px;color:var(--dim);text-decoration:none;}
-  a.back:hover{color:var(--accent2);}
-  header{max-width:960px;margin:0 auto;padding:32px 24px 8px;}
-  h1{font-family:var(--mono);font-size:clamp(24px,4vw,32px);margin:12px 0 6px;}
-  h1 span{color:var(--accent2);}
-  p.sub{color:var(--muted);max-width:64ch;line-height:1.6;font-size:14px;margin-top:0;}
-  main{max-width:960px;margin:0 auto;padding:8px 24px 60px;}
-  .controls{
-    display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:18px 0 16px;
-    font-family:var(--mono);font-size:13px;
+  body{margin:0;background:var(--bg-soft);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  nav{display:flex;align-items:center;max-width:1080px;margin:0 auto;padding:24px 24px 4px;}
+  nav a.back{font-weight:600;font-size:14px;color:var(--muted);text-decoration:none;padding:9px 16px;border-radius:100px;transition:all .15s ease;}
+  nav a.back:hover{background:var(--card);color:var(--accent);box-shadow:var(--shadow);}
+  header{max-width:1080px;margin:0 auto;padding:8px 24px 8px;}
+  h1{font-weight:800;font-size:clamp(28px,4.5vw,38px);letter-spacing:-0.03em;margin:6px 0 12px;}
+  h1 span{color:var(--accent);}
+  p.sub{color:var(--muted);max-width:68ch;line-height:1.65;font-size:16px;margin-top:0;}
+  main{max-width:1080px;margin:0 auto;padding:8px 24px 80px;}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:20px 0 16px;font-size:14px;}
+  select, input{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-size:14px;padding:11px 14px;border-radius:10px;box-shadow:var(--shadow);
   }
-  select, button{
-    background:var(--panel);border:1px solid var(--border);color:var(--text);
-    font-family:var(--mono);font-size:13px;padding:9px 12px;border-radius:6px;cursor:pointer;
+  button{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-weight:600;font-size:14px;padding:11px 18px;border-radius:100px;
+    cursor:pointer;transition:all .15s ease;box-shadow:var(--shadow);
   }
-  button.primary{background:var(--accent);border-color:var(--accent);color:var(--bg);font-weight:600;}
-  button.primary:hover{filter:brightness(1.1);}
-  button:hover{border-color:var(--accent2);}
+  button:hover{border-color:var(--accent);color:var(--accent);}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 8px 18px rgba(79,70,229,.28);}
+  button.primary:hover{background:var(--accent-dark);border-color:var(--accent-dark);color:#fff;}
   button:disabled{opacity:.4;cursor:not-allowed;}
-  .legend{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--muted);margin-bottom:14px;}
-  .sw{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px;}
+
+  .explain{background:var(--card);border:1px solid var(--border);border-radius:20px;padding:24px 28px;margin:22px 0;box-shadow:var(--shadow);}
+  .explain h2{font-weight:700;font-size:16px;margin:0 0 12px;}
+  .explain p{color:var(--muted);font-size:15px;line-height:1.75;margin:0 0 12px;}
+  .explain p:last-child{margin-bottom:0;}
+  .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
+  .explain li{margin-bottom:8px;}
+  .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+
+  .legend{display:flex;gap:16px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-bottom:14px;}
+  .sw{display:inline-block;width:12px;height:12px;border-radius:4px;margin-right:6px;vertical-align:-2px;}
   #grid{
-    display:grid;
-    gap:2px;
-    background:var(--border);
-    border:1px solid var(--border);
-    border-radius:8px;
-    overflow:hidden;
-    user-select:none;
-    touch-action:none;
+    display:grid; gap:3px; background:var(--border); border:1px solid var(--border);
+    border-radius:14px; overflow:hidden; user-select:none; touch-action:none;
+    box-shadow:var(--shadow);
   }
-  .cell{background:var(--panel);aspect-ratio:1;transition:background .12s ease;cursor:pointer;}
-  .cell.wall{background:#0d0d0d;}
+  .cell{background:var(--card);aspect-ratio:1;transition:background .12s ease;cursor:pointer;}
+  .cell.wall{background:#2b2d33;}
   .cell.start{background:var(--good);}
   .cell.end{background:var(--bad);}
-  .cell.visited{background:var(--visited);}
-  .cell.frontier{background:var(--frontier);}
-  .cell.path{background:var(--accent2);}
-  .stats{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:12px;}
+  .cell.visited{background:var(--accent-soft);}
+  .cell.frontier{background:var(--warn-soft);}
+  .cell.path{background:var(--accent);}
+  .stats{font-size:13px;color:var(--muted);margin-top:14px;}
   .stats b{color:var(--text);}
-  .hint{font-family:var(--mono);font-size:12px;color:var(--dim);margin-top:6px;}
-  .explain{background:var(--panel);border:1px solid var(--border);border-radius:10px;padding:20px 22px;margin:20px 0;}
-  .explain h2{font-family:var(--mono);font-size:14px;margin:0 0 10px;letter-spacing:.02em;}
-  .explain p{color:var(--muted);font-size:14px;line-height:1.7;margin:0 0 10px;}
-  .explain p:last-child{margin-bottom:0;}
-  .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:14px;line-height:1.7;}
-  .explain li{margin-bottom:6px;}
-  .explain code{background:#0d0d0d;border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--text);}
+  .hint{font-size:13px;color:var(--dim);margin-top:8px;}
 </style>
 </head>
 <body>
+<nav><a class="back" href="index.html">← study://lab</a></nav>
 <header>
-  <a class="back" href="index.html">‹ study://lab</a>
-  <h1>path<span>finding</span></h1>
-  <p class="sub">Drag to draw walls, then race BFS, DFS, Dijkstra, or A* from the filled cell to the outlined one. Dimmer cells were explored; the brightest trail is the final path.</p>
+  <h1>Path<span>finding</span></h1>
+  <p class="sub">Drag to draw walls, then race BFS, DFS, Dijkstra, or A* from the green cell to the red one. Tinted cells were explored; the solid indigo trail is the final path.</p>
 </header>
 <main>
   <div class="explain">
-    <h2>how it works</h2>
+    <h2>How it works</h2>
     <p>All four algorithms explore the grid outward from the start cell, one "frontier" of cells at a time. What differs is <b style="color:var(--text)">which cell they pick next</b> and <b style="color:var(--text)">what order they leave the frontier</b>:</p>
     <ul>
       <li><code>BFS</code> keeps a plain queue (first in, first out). It explores every cell 1 step away before any cell 2 steps away, so the first time it reaches the end, that path is guaranteed shortest — as long as every step costs the same.</li>
@@ -98,10 +104,10 @@
   <div class="legend">
     <span><span class="sw" style="background:var(--good)"></span>start</span>
     <span><span class="sw" style="background:var(--bad)"></span>end</span>
-    <span><span class="sw" style="background:#0d0d0d"></span>wall</span>
-    <span><span class="sw" style="background:var(--frontier)"></span>frontier</span>
-    <span><span class="sw" style="background:var(--visited)"></span>visited</span>
-    <span><span class="sw" style="background:var(--accent2)"></span>path</span>
+    <span><span class="sw" style="background:#2b2d33"></span>wall</span>
+    <span><span class="sw" style="background:var(--warn-soft);border:1px solid var(--warn)"></span>frontier</span>
+    <span><span class="sw" style="background:var(--accent-soft)"></span>visited</span>
+    <span><span class="sw" style="background:var(--accent)"></span>path</span>
   </div>
   <div id="grid"></div>
   <div class="stats" id="stats">cells visited: <b>0</b> · path length: <b>—</b></div>
@@ -295,5 +301,4 @@ async function run(){
 document.getElementById('run').onclick = run;
 buildGrid();
 </script>
-</body>
-</html>
+</body></html>
