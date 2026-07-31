@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>trie — study://lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --bg-soft:#f6f7fb; --card:#ffffff; --border:#e5e7eb;
+    --text:#14151a; --muted:#5c5e68; --dim:#9598a3;
+    --accent:#4f46e5; --accent-soft:#eef0ff; --accent-dark:#3c34b8;
+    --good:#16a34a; --good-soft:#e6f7ec;
+    --bad:#e11d48; --bad-soft:#fdeaee;
+    --warn:#f59e0b; --warn-soft:#fef3e0;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+    --shadow:0 1px 2px rgba(16,24,40,.04);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg-soft);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  .navbar-outer{background:var(--card);border-bottom:1px solid var(--border);}
+  nav{display:flex;align-items:center;gap:10px;max-width:1080px;margin:0 auto;padding:16px 24px;}
+  nav .tile{width:26px;height:26px;border-radius:7px;background:var(--accent-dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+  nav a.back{font-weight:600;font-size:13.5px;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:100px;border:1px solid var(--border);transition:all .15s ease;}
+  nav a.back:hover{color:var(--accent-dark);border-color:var(--accent);}
+  nav .crumb{color:var(--dim);font-size:13px;}
+  nav .crumb-current{font-weight:600;color:var(--text);font-size:13px;}
+  header{max-width:1080px;margin:0 auto;padding:20px 24px 8px;}
+  h1{font-weight:800;font-size:clamp(28px,4.5vw,38px);letter-spacing:-0.03em;margin:6px 0 12px;color:var(--accent-dark);}
+  h1 span{color:var(--text);}
+  p.sub{color:var(--muted);max-width:68ch;line-height:1.65;font-size:16px;margin-top:0;}
+  main{max-width:1080px;margin:0 auto;padding:8px 24px 80px;}
+
+  .explain{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px 28px;margin:22px 0;box-shadow:var(--shadow);}
+  .explain h2{font-weight:700;font-size:16px;margin:0 0 12px;}
+  .explain p{color:var(--muted);font-size:15px;line-height:1.75;margin:0 0 12px;}
+  .explain p:last-child{margin-bottom:0;}
+  .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
+  .explain li{margin-bottom:8px;}
+  .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+
+  .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
+  .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
+  .tab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:20px 0 16px;font-size:14px;}
+  input, select{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-size:14px;padding:11px 14px;border-radius:10px;box-shadow:var(--shadow);
+  }
+  button{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-weight:600;font-size:14px;padding:11px 18px;border-radius:100px;
+    cursor:pointer;transition:all .15s ease;box-shadow:var(--shadow);
+  }
+  button:hover{border-color:var(--accent);color:var(--accent);}
+  button.primary{background:var(--good);border-color:var(--good);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.06);}
+  button.primary:hover{background:#15803d;border-color:#15803d;color:#fff;}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+
+  .panel, .stage{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow);}
+  .status{font-size:13px;color:var(--muted);margin-top:14px;}
+  .status b{color:var(--text);}
+  .hint{font-size:13px;color:var(--dim);margin-top:8px;}
+  svg text{font-family:var(--mono);}
+
+
+  #tree{width:100%;overflow:auto;min-height:260px;}
+  svg text{fill:var(--text);font-size:13px;font-weight:600;}
+  .tnode circle{fill:var(--accent-soft);stroke:var(--border);stroke-width:2;}
+  .tnode.path circle{fill:var(--accent);stroke:var(--accent);}
+  .tnode.path text{fill:#fff;}
+  .tnode.end circle{stroke:var(--good);stroke-width:3;}
+  .tedge{stroke:var(--border);stroke-width:2;}
+  .tedge.path{stroke:var(--accent);stroke-width:3;}
+  .wordlist{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px;}
+  .wordchip{font-family:var(--mono);font-size:12.5px;background:var(--accent-soft);color:var(--accent-dark);border:1px solid var(--accent);border-radius:100px;padding:6px 14px;font-weight:600;}
+  .suggestions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px;}
+  .sugg{font-family:var(--mono);font-size:13px;background:var(--good-soft);color:var(--good);border:1px solid var(--good);border-radius:100px;padding:6px 14px;font-weight:600;}
+
+</style>
+</head>
+<body>
+<div class="navbar-outer"><nav><span class="tile">◆</span><a class="back" href="index.html">study://lab</a><span class="crumb">/</span><span class="crumb-current">trie</span></nav></div>
+<header>
+  <h1>Trie<span> (Prefix Tree)</span></h1>
+  <p class="sub">Insert words and watch shared prefixes branch off the same path. Type a prefix below to see live autocomplete pulled straight from the tree.</p>
+</header>
+<main>
+  <div class="explain">
+    <h2>How it works</h2>
+    
+<p>A trie (prefix tree) stores words letter by letter, with shared prefixes sharing the same path from the root. Inserting <code>"cat"</code> then <code>"car"</code> creates one shared branch for <code>c → a</code>, then splits into <code>t</code> and <code>r</code>.</p>
+<p>Each node marks whether a word <b style="color:var(--text)">ends</b> there — that's how the trie distinguishes "car" (a complete word) from "ca" (just a prefix on the way to something else) even though both are valid paths through the tree.</p>
+<p><b style="color:var(--text)">Autocomplete</b> works by walking down to the node matching the typed prefix, then collecting every complete word reachable below that point — which is why it's fast: you only ever explore the subtree under your prefix, never the whole dictionary.</p>
+
+  </div>
+
+  <div class="controls">
+    <input type="text" id="word" placeholder="word to insert" value="cat">
+    <button class="primary" id="insert">insert</button>
+    <button id="reset">reset</button>
+  </div>
+  <div class="panel"><div id="tree"></div></div>
+  <div class="wordlist" id="wordlist"></div>
+  <div class="controls" style="margin-top:20px;">
+    <input type="text" id="prefix" placeholder="type a prefix..." value="ca">
+  </div>
+  <div class="suggestions" id="suggestions"></div>
+  <div class="hint">insert a few words, then type a prefix below to see live autocomplete</div>
+
+</main>
+<script>
+
+let root = { children:{}, end:false };
+let words = [];
+
+function insert(word){
+  let node = root;
+  for(const ch of word){
+    if(!node.children[ch]) node.children[ch] = { children:{}, end:false };
+    node = node.children[ch];
+  }
+  node.end = true;
+  if(!words.includes(word)) words.push(word);
+}
+
+function renderWordlist(){
+  document.getElementById('wordlist').innerHTML = words.map(w=>`<span class="wordchip">${w}</span>`).join('');
+}
+
+function layoutTrie(){
+  const positions = [];
+  let leafCounter = { n: 0 };
+  function countLeaves(node){
+    const keys = Object.keys(node.children);
+    if(keys.length===0) return 1;
+    let sum = 0;
+    for(const k of keys) sum += countLeaves(node.children[k]);
+    return sum;
+  }
+  function layout(node, depth, xMin, xMax, label){
+    const x = (xMin+xMax)/2;
+    const y = 40 + depth*64;
+    node._x = x; node._y = y; node._label = label;
+    positions.push(node);
+    const keys = Object.keys(node.children).sort();
+    if(keys.length===0) return;
+    const totalLeaves = keys.reduce((s,k)=>s+countLeaves(node.children[k]),0);
+    let cursor = xMin;
+    for(const k of keys){
+      const share = countLeaves(node.children[k]) / totalLeaves * (xMax-xMin);
+      layout(node.children[k], depth+1, cursor, cursor+share, k);
+      cursor += share;
+    }
+  }
+  layout(root, 0, 20, 620, 'root');
+  return positions;
+}
+
+function renderTree(highlightPrefix){
+  const positions = layoutTrie();
+  let edges = '', nodes = '';
+  const highlightPath = new Set();
+  if(highlightPrefix){
+    let node = root;
+    highlightPath.add(node);
+    for(const ch of highlightPrefix){
+      if(!node.children[ch]) break;
+      node = node.children[ch];
+      highlightPath.add(node);
+    }
+  }
+  function draw(node){
+    const keys = Object.keys(node.children).sort();
+    for(const k of keys){
+      const child = node.children[k];
+      const onPath = highlightPath.has(node) && highlightPath.has(child);
+      edges += `<line class="tedge ${onPath?'path':''}" x1="${node._x}" y1="${node._y}" x2="${child._x}" y2="${child._y}"/>`;
+      draw(child);
+    }
+  }
+  draw(root);
+  positions.forEach(n=>{
+    const cls = ['tnode'];
+    if(highlightPath.has(n)) cls.push('path');
+    if(n.end) cls.push('end');
+    nodes += `<g class="${cls.join(' ')}"><circle cx="${n._x}" cy="${n._y}" r="16"/><text x="${n._x}" y="${n._y+4}" text-anchor="middle">${n._label==='root'?'•':n._label}</text></g>`;
+  });
+  const maxY = Math.max(...positions.map(n=>n._y)) + 40;
+  document.getElementById('tree').innerHTML = `<svg viewBox="0 0 640 ${maxY}" width="100%" height="${Math.min(maxY,340)}">${edges}${nodes}</svg>`;
+}
+
+function collectWords(node, prefix, out){
+  if(node.end) out.push(prefix);
+  for(const k of Object.keys(node.children).sort()) collectWords(node.children[k], prefix+k, out);
+}
+
+function updateSuggestions(){
+  const prefix = document.getElementById('prefix').value.trim();
+  let node = root;
+  let found = true;
+  for(const ch of prefix){
+    if(!node.children[ch]){ found=false; break; }
+    node = node.children[ch];
+  }
+  const out = [];
+  if(found) collectWords(node, prefix, out);
+  document.getElementById('suggestions').innerHTML = out.length
+    ? out.map(w=>`<span class="sugg">${w}</span>`).join('')
+    : '<span style="color:var(--dim);font-size:13px;">no matches</span>';
+  renderTree(prefix);
+}
+
+document.getElementById('insert').onclick = ()=>{
+  const w = document.getElementById('word').value.trim().toLowerCase();
+  if(w){ insert(w); renderWordlist(); updateSuggestions(); }
+  document.getElementById('word').value='';
+};
+document.getElementById('reset').onclick = ()=>{
+  root = { children:{}, end:false }; words=[];
+  renderWordlist(); updateSuggestions();
+};
+document.getElementById('prefix').addEventListener('input', updateSuggestions);
+
+['cat','car','card','care','dog','do'].forEach(insert);
+renderWordlist();
+updateSuggestions();
+
+</script>
+</body>
+</html>

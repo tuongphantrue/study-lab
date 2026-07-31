@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>topological-sort — study://lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --bg-soft:#f6f7fb; --card:#ffffff; --border:#e5e7eb;
+    --text:#14151a; --muted:#5c5e68; --dim:#9598a3;
+    --accent:#4f46e5; --accent-soft:#eef0ff; --accent-dark:#3c34b8;
+    --good:#16a34a; --good-soft:#e6f7ec;
+    --bad:#e11d48; --bad-soft:#fdeaee;
+    --warn:#f59e0b; --warn-soft:#fef3e0;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+    --shadow:0 1px 2px rgba(16,24,40,.04);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg-soft);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  .navbar-outer{background:var(--card);border-bottom:1px solid var(--border);}
+  nav{display:flex;align-items:center;gap:10px;max-width:1080px;margin:0 auto;padding:16px 24px;}
+  nav .tile{width:26px;height:26px;border-radius:7px;background:var(--accent-dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+  nav a.back{font-weight:600;font-size:13.5px;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:100px;border:1px solid var(--border);transition:all .15s ease;}
+  nav a.back:hover{color:var(--accent-dark);border-color:var(--accent);}
+  nav .crumb{color:var(--dim);font-size:13px;}
+  nav .crumb-current{font-weight:600;color:var(--text);font-size:13px;}
+  header{max-width:1080px;margin:0 auto;padding:20px 24px 8px;}
+  h1{font-weight:800;font-size:clamp(28px,4.5vw,38px);letter-spacing:-0.03em;margin:6px 0 12px;color:var(--accent-dark);}
+  h1 span{color:var(--text);}
+  p.sub{color:var(--muted);max-width:68ch;line-height:1.65;font-size:16px;margin-top:0;}
+  main{max-width:1080px;margin:0 auto;padding:8px 24px 80px;}
+
+  .explain{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px 28px;margin:22px 0;box-shadow:var(--shadow);}
+  .explain h2{font-weight:700;font-size:16px;margin:0 0 12px;}
+  .explain p{color:var(--muted);font-size:15px;line-height:1.75;margin:0 0 12px;}
+  .explain p:last-child{margin-bottom:0;}
+  .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
+  .explain li{margin-bottom:8px;}
+  .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+
+  .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
+  .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
+  .tab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:20px 0 16px;font-size:14px;}
+  input, select{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-size:14px;padding:11px 14px;border-radius:10px;box-shadow:var(--shadow);
+  }
+  button{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-weight:600;font-size:14px;padding:11px 18px;border-radius:100px;
+    cursor:pointer;transition:all .15s ease;box-shadow:var(--shadow);
+  }
+  button:hover{border-color:var(--accent);color:var(--accent);}
+  button.primary{background:var(--good);border-color:var(--good);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.06);}
+  button.primary:hover{background:#15803d;border-color:#15803d;color:#fff;}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+
+  .panel, .stage{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow);}
+  .status{font-size:13px;color:var(--muted);margin-top:14px;}
+  .status b{color:var(--text);}
+  .hint{font-size:13px;color:var(--dim);margin-top:8px;}
+  svg text{font-family:var(--mono);}
+
+
+  .stage{overflow:auto;}
+  .node circle{fill:var(--accent-soft);stroke:var(--border);stroke-width:2;}
+  .node.ready circle{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3;}
+  .node.done circle{fill:var(--good-soft);stroke:var(--good);stroke-width:3;}
+  .node text{fill:var(--text);font-size:13px;font-weight:700;}
+  .edge{stroke:var(--border);stroke-width:2;marker-end:url(#arrow);}
+  .edge.done{stroke:var(--good);}
+  .order{display:flex;gap:8px;flex-wrap:wrap;margin-top:16px;}
+  .orderchip{font-family:var(--mono);font-size:13px;background:var(--good-soft);color:var(--good);border:1px solid var(--good);border-radius:100px;padding:6px 14px;font-weight:700;}
+
+</style>
+</head>
+<body>
+<div class="navbar-outer"><nav><span class="tile">◆</span><a class="back" href="index.html">study://lab</a><span class="crumb">/</span><span class="crumb-current">topological-sort</span></nav></div>
+<header>
+  <h1>Topological<span> Sort</span></h1>
+  <p class="sub">Task dependencies as a graph: an arrow from A to B means A must finish first. Kahn's algorithm finds a valid execution order by repeatedly scheduling whatever has no unfinished prerequisites.</p>
+</header>
+<main>
+  <div class="explain">
+    <h2>How it works</h2>
+    
+<p>Topological sort only makes sense on a <b style="color:var(--text)">DAG</b> (directed acyclic graph) — think task dependencies, where an edge <code>A → B</code> means "A must finish before B can start." The output is one valid order to do everything in, respecting every dependency.</p>
+<p>This uses <b style="color:var(--text)">Kahn's algorithm</b>: first count each node's <b style="color:var(--text)">in-degree</b> (how many arrows point into it — how many prerequisites it has). Any node with in-degree 0 has no unfinished prerequisites, so it's ready to go now. Pick a ready node, add it to the output, then "remove" it — which means decrementing the in-degree of everything it points to. Some of those might now hit 0 and become ready themselves.</p>
+<p>If the graph has a true cycle (A needs B, B needs A), some nodes never reach in-degree 0, and no valid order exists — Kahn's algorithm detects this simply by finishing with fewer nodes than the graph actually has.</p>
+
+  </div>
+
+  <div class="controls">
+    <button class="primary" id="run">▶ Run Kahn's algorithm</button>
+    <button id="regen">New graph</button>
+  </div>
+  <div class="stage"><svg id="svg" viewBox="0 0 640 340"></svg></div>
+  <div class="status" id="status">amber = ready to schedule (in-degree 0) · green = scheduled</div>
+  <div class="order" id="order"></div>
+
+</main>
+<script>
+
+let nodes = [], edges = [];
+
+function genGraph(){
+  const names = ['setup','design','backend','frontend','tests','deploy'];
+  nodes = names.map((name,i)=>({name}));
+  edges = [
+    {a:0,b:1},{a:0,b:2},{a:1,b:3},{a:2,b:3},{a:2,b:4},{a:3,b:4},{a:4,b:5}
+  ];
+  layout();
+  draw();
+}
+
+function layout(){
+  // simple layered layout based on longest path from a source
+  const indeg = nodes.map(()=>0);
+  edges.forEach(e=>indeg[e.b]++);
+  const layer = nodes.map(()=>0);
+  const adj = nodes.map(()=>[]);
+  edges.forEach(e=>adj[e.a].push(e.b));
+  const q = [];
+  const localIndeg = [...indeg];
+  nodes.forEach((_,i)=>{ if(localIndeg[i]===0) q.push(i); });
+  while(q.length){
+    const u = q.shift();
+    for(const v of adj[u]){
+      layer[v] = Math.max(layer[v], layer[u]+1);
+      if(--localIndeg[v]===0) q.push(v);
+    }
+  }
+  const byLayer = {};
+  nodes.forEach((n,i)=>{ (byLayer[layer[i]] = byLayer[layer[i]]||[]).push(i); });
+  Object.keys(byLayer).forEach(l=>{
+    const arr = byLayer[l];
+    arr.forEach((i,idx)=>{
+      nodes[i].x = 70 + (+l)*115;
+      nodes[i].y = 50 + idx*90 + (arr.length===1?60:0);
+    });
+  });
+}
+
+function draw(activeSet, doneSet){
+  let defs = `<defs><marker id="arrow" markerWidth="10" markerHeight="10" refX="18" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 z" fill="var(--dim)"/></marker></defs>`;
+  let content = defs;
+  edges.forEach(e=>{
+    const A = nodes[e.a], B = nodes[e.b];
+    const cls = (doneSet && doneSet.has(e.a)) ? 'edge done' : 'edge';
+    content += `<line class="${cls}" x1="${A.x}" y1="${A.y}" x2="${B.x}" y2="${B.y}"/>`;
+  });
+  nodes.forEach((n,i)=>{
+    let cls = 'node';
+    if(doneSet && doneSet.has(i)) cls += ' done';
+    else if(activeSet && activeSet.has(i)) cls += ' ready';
+    content += `<g class="${cls}"><circle cx="${n.x}" cy="${n.y}" r="30"/><text x="${n.x}" y="${n.y+4}" text-anchor="middle">${n.name}</text></g>`;
+  });
+  document.getElementById('svg').innerHTML = content;
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+async function run(){
+  document.getElementById('run').disabled = true;
+  document.getElementById('order').innerHTML = '';
+  const indeg = nodes.map(()=>0);
+  edges.forEach(e=>indeg[e.b]++);
+  const adj = nodes.map(()=>[]);
+  edges.forEach(e=>adj[e.a].push(e.b));
+  const doneSet = new Set();
+  const order = [];
+  while(doneSet.size < nodes.length){
+    const ready = [];
+    nodes.forEach((n,i)=>{ if(!doneSet.has(i) && indeg[i]===0) ready.push(i); });
+    if(ready.length===0){ document.getElementById('status').textContent = 'cycle detected — no valid order'; break; }
+    draw(new Set(ready), doneSet);
+    document.getElementById('status').innerHTML = `ready now (in-degree 0): ${ready.map(i=>nodes[i].name).join(', ')}`;
+    await sleep(700);
+    const pick = ready[0];
+    doneSet.add(pick);
+    order.push(pick);
+    document.getElementById('order').innerHTML = order.map(i=>`<span class="orderchip">${nodes[i].name}</span>`).join('');
+    for(const v of adj[pick]) indeg[v]--;
+    draw(new Set(), doneSet);
+    document.getElementById('status').innerHTML = `scheduled "${nodes[pick].name}" — decrementing in-degree of its dependents`;
+    await sleep(500);
+  }
+  if(doneSet.size===nodes.length) document.getElementById('status').innerHTML = `done — valid order: <b>${order.map(i=>nodes[i].name).join(' → ')}</b>`;
+  document.getElementById('run').disabled = false;
+}
+
+document.getElementById('run').onclick = run;
+document.getElementById('regen').onclick = genGraph;
+genGraph();
+
+</script>
+</body>
+</html>

@@ -1,0 +1,183 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>consistent-hashing — study://lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --bg-soft:#f6f7fb; --card:#ffffff; --border:#e5e7eb;
+    --text:#14151a; --muted:#5c5e68; --dim:#9598a3;
+    --accent:#4f46e5; --accent-soft:#eef0ff; --accent-dark:#3c34b8;
+    --good:#16a34a; --good-soft:#e6f7ec;
+    --bad:#e11d48; --bad-soft:#fdeaee;
+    --warn:#f59e0b; --warn-soft:#fef3e0;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+    --shadow:0 1px 2px rgba(16,24,40,.04);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg-soft);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  .navbar-outer{background:var(--card);border-bottom:1px solid var(--border);}
+  nav{display:flex;align-items:center;gap:10px;max-width:1080px;margin:0 auto;padding:16px 24px;}
+  nav .tile{width:26px;height:26px;border-radius:7px;background:var(--accent-dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+  nav a.back{font-weight:600;font-size:13.5px;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:100px;border:1px solid var(--border);transition:all .15s ease;}
+  nav a.back:hover{color:var(--accent-dark);border-color:var(--accent);}
+  nav .crumb{color:var(--dim);font-size:13px;}
+  nav .crumb-current{font-weight:600;color:var(--text);font-size:13px;}
+  header{max-width:1080px;margin:0 auto;padding:20px 24px 8px;}
+  h1{font-weight:800;font-size:clamp(28px,4.5vw,38px);letter-spacing:-0.03em;margin:6px 0 12px;color:var(--accent-dark);}
+  h1 span{color:var(--text);}
+  p.sub{color:var(--muted);max-width:68ch;line-height:1.65;font-size:16px;margin-top:0;}
+  main{max-width:1080px;margin:0 auto;padding:8px 24px 80px;}
+
+  .explain{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px 28px;margin:22px 0;box-shadow:var(--shadow);}
+  .explain h2{font-weight:700;font-size:16px;margin:0 0 12px;}
+  .explain p{color:var(--muted);font-size:15px;line-height:1.75;margin:0 0 12px;}
+  .explain p:last-child{margin-bottom:0;}
+  .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
+  .explain li{margin-bottom:8px;}
+  .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+
+  .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
+  .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
+  .tab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:20px 0 16px;font-size:14px;}
+  input, select{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-size:14px;padding:11px 14px;border-radius:10px;box-shadow:var(--shadow);
+  }
+  button{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-weight:600;font-size:14px;padding:11px 18px;border-radius:100px;
+    cursor:pointer;transition:all .15s ease;box-shadow:var(--shadow);
+  }
+  button:hover{border-color:var(--accent);color:var(--accent);}
+  button.primary{background:var(--good);border-color:var(--good);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.06);}
+  button.primary:hover{background:#15803d;border-color:#15803d;color:#fff;}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+
+  .panel, .stage{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow);}
+  .status{font-size:13px;color:var(--muted);margin-top:14px;}
+  .status b{color:var(--text);}
+  .hint{font-size:13px;color:var(--dim);margin-top:8px;}
+  svg text{font-family:var(--mono);}
+
+
+  .stage svg{overflow:visible;}
+  .server circle{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2.5;}
+  .server text{fill:var(--accent-dark);font-size:12px;font-weight:700;}
+  .key circle{fill:var(--warn-soft);stroke:var(--warn);stroke-width:2;}
+  .key text{fill:var(--warn);font-size:11px;font-weight:700;}
+  .keyedge{stroke:var(--warn);stroke-width:1.5;stroke-dasharray:3,3;opacity:.6;}
+  .ring{fill:none;stroke:var(--border);stroke-width:2;}
+
+</style>
+</head>
+<body>
+<div class="navbar-outer"><nav><span class="tile">◆</span><a class="back" href="index.html">study://lab</a><span class="crumb">/</span><span class="crumb-current">consistent-hashing</span></nav></div>
+<header>
+  <h1>Consistent<span> Hashing</span></h1>
+  <p class="sub">Servers and keys share one ring instead of a plain hash % N. Add or remove a server and watch how little needs to be remapped, compared to a plain modulo scheme where almost everything would move.</p>
+</header>
+<main>
+  <div class="explain">
+    <h2>How it works</h2>
+    
+<p>Say you shard data across servers with plain <code>hash(key) % number_of_servers</code>. It works — until you add or remove a server. Then <code>number_of_servers</code> changes, so almost <b style="color:var(--text)">every</b> key's target server changes too, forcing a massive remap of data.</p>
+<p>Consistent hashing fixes this by placing both <b style="color:var(--text)">servers</b> and <b style="color:var(--text)">keys</b> on the same conceptual ring (hash values from 0 to some max, wrapped around like a clock). A key belongs to whichever server is the <b style="color:var(--text)">next one clockwise</b> from its position on the ring.</p>
+<p>Now add or remove a server: only the keys sitting between that server and the previous one on the ring need to move — everything else on the ring is completely unaffected. That's the entire benefit: remapping stays proportional to <code>1/number_of_servers</code> of the data instead of nearly all of it.</p>
+
+  </div>
+
+  <div class="controls">
+    <button class="primary" id="addServer">add server</button>
+    <button id="removeServer">remove a server</button>
+    <button id="addKey">add key</button>
+    <button id="reset">reset</button>
+  </div>
+  <div class="stage"><svg id="svg" viewBox="0 0 400 400"></svg></div>
+  <div class="status" id="status">servers and keys share one ring — a key belongs to the next server clockwise</div>
+
+</main>
+<script>
+
+const CX=200, CY=200, R=160;
+let servers = [];
+let keys = [];
+let serverCount = 0, keyCount = 0;
+
+function angleFor(hashVal){ return (hashVal/1000)*2*Math.PI - Math.PI/2; }
+function pointAt(angle, radius){ return {x: CX+Math.cos(angle)*radius, y: CY+Math.sin(angle)*radius}; }
+function hashOf(str){ let h=0; for(const c of str) h=(h*31+c.charCodeAt(0))>>>0; return h%1000; }
+
+function findServerFor(key){
+  const kh = hashOf(key);
+  let best = null, bestDiff = Infinity;
+  for(const s of servers){
+    let diff = s.hash - kh;
+    if(diff < 0) diff += 1000;
+    if(diff < bestDiff){ bestDiff = diff; best = s; }
+  }
+  return best;
+}
+
+function render(){
+  let content = `<circle class="ring" cx="${CX}" cy="${CY}" r="${R}"/>`;
+  keys.forEach(k=>{
+    const owner = findServerFor(k.name);
+    if(owner){
+      const kp = pointAt(angleFor(k.hash), R);
+      const sp = pointAt(angleFor(owner.hash), R);
+      content += `<line class="keyedge" x1="${kp.x}" y1="${kp.y}" x2="${sp.x}" y2="${sp.y}"/>`;
+    }
+  });
+  servers.forEach(s=>{
+    const p = pointAt(angleFor(s.hash), R);
+    content += `<g class="server"><circle cx="${p.x}" cy="${p.y}" r="16"/><text x="${p.x}" y="${p.y+4}" text-anchor="middle">${s.name}</text></g>`;
+  });
+  keys.forEach(k=>{
+    const p = pointAt(angleFor(k.hash), R*0.72);
+    content += `<g class="key"><circle cx="${p.x}" cy="${p.y}" r="10"/><text x="${p.x}" y="${p.y+3}" text-anchor="middle">${k.name}</text></g>`;
+  });
+  document.getElementById('svg').innerHTML = content;
+}
+
+document.getElementById('addServer').onclick = ()=>{
+  serverCount++;
+  const name = 'S'+serverCount;
+  servers.push({name, hash: hashOf(name)});
+  render();
+  document.getElementById('status').innerHTML = `added server ${name} — only keys between it and the previous server on the ring get reassigned`;
+};
+document.getElementById('removeServer').onclick = ()=>{
+  if(servers.length===0) return;
+  const removed = servers.pop();
+  render();
+  document.getElementById('status').innerHTML = `removed ${removed.name} — its keys fall to the next server clockwise; nothing else moves`;
+};
+document.getElementById('addKey').onclick = ()=>{
+  keyCount++;
+  const name = 'k'+keyCount;
+  keys.push({name, hash: hashOf(name)});
+  render();
+  const owner = findServerFor(name);
+  document.getElementById('status').innerHTML = owner
+    ? `key ${name} maps to server ${owner.name} (next clockwise on the ring)`
+    : `key ${name} added — add a server to see where it maps`;
+};
+document.getElementById('reset').onclick = ()=>{
+  servers=[]; keys=[]; serverCount=0; keyCount=0; render();
+  document.getElementById('status').textContent = 'servers and keys share one ring — a key belongs to the next server clockwise';
+};
+
+['S1','S2','S3'].forEach(name=>{ serverCount++; servers.push({name, hash: hashOf(name)}); });
+['k1','k2','k3','k4'].forEach(name=>{ keyCount++; keys.push({name, hash: hashOf(name)}); });
+render();
+
+</script>
+</body>
+</html>

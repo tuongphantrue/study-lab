@@ -8,12 +8,13 @@
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   :root{
-    --bg:#ffffff; --bg-soft:#f6f7fb; --card:#ffffff; --border:#e8e9ef;
+    --bg:#ffffff; --bg-soft:#f6f7fb; --card:#ffffff; --border:#e5e7eb;
     --text:#14151a; --muted:#5c5e68; --dim:#9598a3;
     --accent:#4f46e5; --accent-soft:#eef0ff; --accent-dark:#3c34b8;
+    --good:#16a34a;
     --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
     --sans:'Inter',system-ui,-apple-system,sans-serif;
-    --shadow:0 1px 2px rgba(20,21,26,.04), 0 12px 32px rgba(20,21,26,.07);
+    --shadow:0 1px 2px rgba(16,24,40,.04);
     --shadow-hover:0 4px 10px rgba(20,21,26,.06), 0 20px 44px rgba(79,70,229,.14);
   }
   *{box-sizing:border-box;}
@@ -21,33 +22,42 @@
   a{color:inherit;}
   nav{
     display:flex;align-items:center;justify-content:space-between;
-    max-width:1120px;margin:0 auto;padding:26px 24px;
+    max-width:1120px;margin:0 auto;padding:18px 24px;
+    background:var(--card);border-bottom:1px solid var(--border);
   }
-  nav .logo{font-weight:800;font-size:16px;text-decoration:none;display:flex;align-items:center;gap:8px;letter-spacing:-0.01em;}
-  nav .logo .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);display:inline-block;}
+  .navbar-outer{background:var(--card);border-bottom:1px solid var(--border);}
+  nav .logo{font-weight:700;font-size:15px;text-decoration:none;display:flex;align-items:center;gap:10px;letter-spacing:-0.01em;}
+  nav .logo .tile{
+    width:30px;height:30px;border-radius:8px;background:var(--accent-dark);color:#fff;
+    display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:800;
+  }
+  nav .logo .pill{
+    background:var(--bg-soft);border:1px solid var(--border);border-radius:100px;
+    padding:6px 14px;font-weight:600;color:var(--text);
+  }
   nav .ghlink{
-    font-weight:600;font-size:14px;color:var(--muted);text-decoration:none;
-    padding:9px 18px;border-radius:100px;border:1px solid var(--border);background:var(--card);
-    box-shadow:var(--shadow);transition:all .15s ease;
+    font-weight:600;font-size:13.5px;color:var(--muted);text-decoration:none;
+    padding:8px 16px;border-radius:100px;border:1px solid var(--border);background:var(--card);
+    transition:all .15s ease;
   }
-  nav .ghlink:hover{color:var(--accent);border-color:var(--accent);}
+  nav .ghlink:hover{color:var(--accent-dark);border-color:var(--accent);}
 
   .hero{max-width:1120px;margin:0 auto;padding:52px 24px 20px;}
   .eyebrow{
     display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:12px;
-    font-weight:500;color:var(--accent-dark);background:var(--accent-soft);
+    font-weight:600;color:var(--accent-dark);background:var(--card);border:1px solid var(--accent);
     padding:6px 12px;border-radius:100px;margin-bottom:20px;
   }
-  h1{font-weight:800;font-size:clamp(34px,6vw,56px);letter-spacing:-0.035em;line-height:1.05;margin:0 0 18px;}
-  h1 span{color:var(--accent);}
+  h1{font-weight:800;font-size:clamp(34px,6vw,56px);letter-spacing:-0.035em;line-height:1.05;margin:0 0 18px;color:var(--accent-dark);}
+  h1 span{color:var(--text);}
   .lede{color:var(--muted);max-width:60ch;line-height:1.65;font-size:18px;margin:0 0 28px;}
   .hero-actions{display:flex;gap:12px;flex-wrap:wrap;}
   .btn{
     font-weight:600;font-size:15px;padding:13px 24px;border-radius:100px;text-decoration:none;
     display:inline-flex;align-items:center;gap:8px;transition:all .15s ease;border:1px solid transparent;
   }
-  .btn.primary{background:var(--accent);color:#fff;box-shadow:0 8px 20px rgba(79,70,229,.28);}
-  .btn.primary:hover{background:var(--accent-dark);transform:translateY(-1px);}
+  .btn.primary{background:var(--good);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.06);}
+  .btn.primary:hover{background:#15803d;transform:translateY(-1px);}
   .btn.ghost{background:var(--card);color:var(--text);border-color:var(--border);box-shadow:var(--shadow);}
   .btn.ghost:hover{border-color:var(--accent);color:var(--accent);}
 
@@ -58,7 +68,7 @@
   @media (max-width:600px){ .grid{grid-template-columns:1fr;} }
 
   .card{
-    background:var(--card);border:1px solid var(--border);border-radius:20px;
+    background:var(--card);border:1px solid var(--border);border-radius:14px;
     padding:26px;text-decoration:none;color:var(--text);display:flex;flex-direction:column;
     box-shadow:var(--shadow);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
     position:relative;
@@ -71,8 +81,8 @@
   .card p{font-size:14.5px;color:var(--muted);line-height:1.6;margin:0 0 20px;flex-grow:1;}
   .card .foot{display:flex;align-items:center;justify-content:space-between;font-size:13px;}
   .card .tag{
-    font-family:var(--mono);font-size:11.5px;color:var(--accent-dark);background:var(--accent-soft);
-    padding:4px 10px;border-radius:100px;font-weight:600;
+    font-family:var(--mono);font-size:11.5px;color:var(--accent-dark);background:var(--card);
+    border:1px solid var(--accent-soft);padding:4px 10px;border-radius:100px;font-weight:600;
   }
   .card .go{font-weight:700;color:var(--dim);transition:color .15s ease, transform .15s ease;}
   .card:hover .go{color:var(--accent);transform:translateX(3px);}
@@ -86,15 +96,17 @@
 </style>
 </head>
 <body>
+<div class="navbar-outer">
 <nav>
-  <a class="logo" href="index.html"><span class="dot"></span>study://lab</a>
+  <a class="logo" href="index.html"><span class="tile">◆</span><span class="pill">study://lab</span></a>
   <a class="ghlink" href="https://github.com/tuongphantrue" target="_blank" rel="noopener">GitHub ↗</a>
 </nav>
+</div>
 
 <div class="hero">
-  <div class="eyebrow">● 9 interactive visualizers · zero dependencies</div>
+  <div class="eyebrow">● 22 interactive visualizers · zero dependencies</div>
   <h1>Learn CS concepts by<br><span>watching them run.</span></h1>
-  <p class="lede">Nine small, single-file visualizers for the ideas usually taught with static diagrams — pathfinding, sorting's cousins, recursion, hash tables, and more. No build step, no backend, just open a page and press run.</p>
+  <p class="lede">22 small, single-file visualizers for the ideas usually taught with static diagrams — pathfinding, hash tables, recursion, tries, caches, and more. No build step, no backend, just open a page and press run.</p>
   <div class="hero-actions">
     <a class="btn primary" href="pathfinding.html">Start with pathfinding →</a>
     <a class="btn ghost" href="#topics">Browse all topics</a>
@@ -166,6 +178,102 @@
       <h3>Bitwise Ops</h3>
       <p>AND / OR / XOR / shifts, one bit at a time, on an 8-bit grid.</p>
       <div class="foot"><span class="tag">O(1)</span><span class="go">Open →</span></div>
+    </a>
+
+  </div>
+
+  <div class="grid-heading">more topics</div>
+  <div class="grid">
+
+    <a class="card" href="sorting-comparison.html">
+      <div class="num">10</div>
+      <h3>Sorting Comparison</h3>
+      <p>Quicksort, merge sort &amp; heap sort race on the same array, side by side.</p>
+      <div class="foot"><span class="tag">O(n log n)</span><span class="go">Open →</span></div>
+    </a>
+
+    <a class="card" href="trie.html">
+      <div class="num">11</div>
+      <h3>Trie</h3>
+      <p>A prefix tree with live autocomplete — type a prefix, see matching words light up.</p>
+      <div class="foot"><span class="tag">O(k)</span><span class="go">Open →</span></div>
+    </a>
+
+    <a class="card" href="heap.html">
+      <div class="num">12</div>
+      <h3>Heap / Priority Queue</h3>
+      <p>Insert and extract-min with live sift-up / sift-down animations.</p>
+      <div class="foot"><span class="tag">O(log n)</span><span class="go">Open →</span></div>
+    </a>
+
+    <a class="card" href="union-find.html">
+      <div class="num">13</div>
+      <h3>Union-Find</h3>
+      <p>Union groups together and watch path compression flatten the tree.</p>
+      <div class="foot"><span class="tag">~O(1)</span><span class="go">Open →</span></div>
+    </a>
+
+    <a class="card" href="sliding-window.html">
+      <div class="num">14</div>
+      <h3>Sliding Window</h3>
+      <p>Two pointers sweep a string to find the longest substring without repeats.</p>
+      <div class="foot"><span class="tag">O(n)</span><span class="go">Open →</span></div>
+    </a>
+
+    <a class="card" href="topological-sort.html">
+      <div class="num">15</div>
+      <h3>Topological Sort</h3>
+      <p>Kahn's algorithm schedules tasks in dependency order on a live DAG.</p>
+      <div class="foot"><span class="tag">O(V+E)</span><span class="go">Open →</span></div>
+    </a>
+
+    <a class="card" href="lru-cache.html">
+      <div class="num">16</div>
+      <h3>LRU Cache</h3>
+      <p>Hash map + linked list combo — watch eviction happen when the cache overflows.</p>
+      <div class="foot"><span class="tag">O(1)</span><span class="go">Open →</span></div>
+    </a>
+
+    <a class="card" href="segment-tree.html">
+      <div class="num">17</div>
+      <h3>Segment Tree</h3>
+      <p>Range-sum queries answered in log time by pre-combining ranges into a tree.</p>
+      <div class="foot"><span class="tag">O(log n)</span><span class="go">Open →</span></div>
+    </a>
+
+    <a class="card" href="bloom-filter.html">
+      <div class="num">18</div>
+      <h3>Bloom Filter</h3>
+      <p>Multiple hash functions light up bits — no keys stored, but false positives possible.</p>
+      <div class="foot"><span class="tag">O(k)</span><span class="go">Open →</span></div>
+    </a>
+
+    <a class="card" href="consistent-hashing.html">
+      <div class="num">19</div>
+      <h3>Consistent Hashing</h3>
+      <p>Servers and keys share a ring, so adding a server barely disturbs the rest.</p>
+      <div class="foot"><span class="tag">O(1/N)</span><span class="go">Open →</span></div>
+    </a>
+
+    <a class="card" href="big-number-exponentiation.html">
+      <div class="num">20</div>
+      <h3>Fast Exponentiation</h3>
+      <p>Exponentiation by squaring — walking the exponent's binary digits.</p>
+      <div class="foot"><span class="tag">O(log n)</span><span class="go">Open →</span></div>
+    </a>
+
+    <a class="card" href="fsm.html">
+      <div class="num">21</div>
+      <h3>Finite State Machine</h3>
+      <p>A turnstile simulator — states plus a transition table, one input at a time.</p>
+      <div class="foot"><span class="tag">O(1)</span><span class="go">Open →</span></div>
+    </a>
+
+    <a class="card" href="huffman-coding.html">
+      <div class="num">22</div>
+      <h3>Huffman Coding</h3>
+      <p>Build a compression tree live from character frequencies, then see the encoded bits.</p>
+      <div class="foot"><span class="tag">O(n log n)</span><span class="go">Open →</span></div>
     </a>
 
   </div>

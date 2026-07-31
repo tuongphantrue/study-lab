@@ -1,0 +1,163 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sliding-window — study://lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --bg-soft:#f6f7fb; --card:#ffffff; --border:#e5e7eb;
+    --text:#14151a; --muted:#5c5e68; --dim:#9598a3;
+    --accent:#4f46e5; --accent-soft:#eef0ff; --accent-dark:#3c34b8;
+    --good:#16a34a; --good-soft:#e6f7ec;
+    --bad:#e11d48; --bad-soft:#fdeaee;
+    --warn:#f59e0b; --warn-soft:#fef3e0;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+    --shadow:0 1px 2px rgba(16,24,40,.04);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg-soft);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  .navbar-outer{background:var(--card);border-bottom:1px solid var(--border);}
+  nav{display:flex;align-items:center;gap:10px;max-width:1080px;margin:0 auto;padding:16px 24px;}
+  nav .tile{width:26px;height:26px;border-radius:7px;background:var(--accent-dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+  nav a.back{font-weight:600;font-size:13.5px;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:100px;border:1px solid var(--border);transition:all .15s ease;}
+  nav a.back:hover{color:var(--accent-dark);border-color:var(--accent);}
+  nav .crumb{color:var(--dim);font-size:13px;}
+  nav .crumb-current{font-weight:600;color:var(--text);font-size:13px;}
+  header{max-width:1080px;margin:0 auto;padding:20px 24px 8px;}
+  h1{font-weight:800;font-size:clamp(28px,4.5vw,38px);letter-spacing:-0.03em;margin:6px 0 12px;color:var(--accent-dark);}
+  h1 span{color:var(--text);}
+  p.sub{color:var(--muted);max-width:68ch;line-height:1.65;font-size:16px;margin-top:0;}
+  main{max-width:1080px;margin:0 auto;padding:8px 24px 80px;}
+
+  .explain{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px 28px;margin:22px 0;box-shadow:var(--shadow);}
+  .explain h2{font-weight:700;font-size:16px;margin:0 0 12px;}
+  .explain p{color:var(--muted);font-size:15px;line-height:1.75;margin:0 0 12px;}
+  .explain p:last-child{margin-bottom:0;}
+  .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
+  .explain li{margin-bottom:8px;}
+  .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+
+  .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
+  .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
+  .tab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:20px 0 16px;font-size:14px;}
+  input, select{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-size:14px;padding:11px 14px;border-radius:10px;box-shadow:var(--shadow);
+  }
+  button{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-weight:600;font-size:14px;padding:11px 18px;border-radius:100px;
+    cursor:pointer;transition:all .15s ease;box-shadow:var(--shadow);
+  }
+  button:hover{border-color:var(--accent);color:var(--accent);}
+  button.primary{background:var(--good);border-color:var(--good);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.06);}
+  button.primary:hover{background:#15803d;border-color:#15803d;color:#fff;}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+
+  .panel, .stage{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow);}
+  .status{font-size:13px;color:var(--muted);margin-top:14px;}
+  .status b{color:var(--text);}
+  .hint{font-size:13px;color:var(--dim);margin-top:8px;}
+  svg text{font-family:var(--mono);}
+
+
+  .arr{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;}
+  .cell{
+    width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:15px;font-weight:600;border-radius:8px;background:var(--bg-soft);
+    border:1px solid var(--border);position:relative;transition:all .15s ease;
+  }
+  .cell.inwindow{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-dark);}
+  .cell.left::before{content:"L";position:absolute;top:-20px;font-size:11px;color:var(--accent);font-weight:700;}
+  .cell.right::before{content:"R";position:absolute;top:-20px;font-size:11px;color:var(--accent);font-weight:700;}
+  .bestwindow{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;}
+  .bestcell{width:38px;height:38px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:13px;font-weight:700;border-radius:6px;background:var(--good-soft);border:1px solid var(--good);color:var(--good);}
+
+</style>
+</head>
+<body>
+<div class="navbar-outer"><nav><span class="tile">◆</span><a class="back" href="index.html">study://lab</a><span class="crumb">/</span><span class="crumb-current">sliding-window</span></nav></div>
+<header>
+  <h1>Sliding<span> Window</span></h1>
+  <p class="sub">Two pointers sweep across a string to find the longest substring without repeating characters — expanding right, and jumping left only when it has to.</p>
+</header>
+<main>
+  <div class="explain">
+    <h2>How it works</h2>
+    
+<p>Sliding window keeps two pointers, <code>left</code> and <code>right</code>, marking the edges of a "window" over the array or string — instead of checking every possible substring from scratch (which would be <code>O(n²)</code> or worse), the window only ever moves forward.</p>
+<p>This page solves <b style="color:var(--text)">"longest substring without repeating characters."</b> <code>right</code> expands the window one character at a time. If the new character is already inside the window, <code>left</code> jumps forward past that character's previous occurrence — shrinking the window just enough to remove the duplicate, not resetting it entirely.</p>
+<p>Because <code>left</code> and <code>right</code> each only ever move forward and never backward, the whole string gets scanned in <code>O(n)</code> total — each character is added to the window once and removed at most once.</p>
+
+  </div>
+
+  <div class="controls">
+    <input type="text" id="text" value="abcabcbb" placeholder="string">
+    <button class="primary" id="run">▶ Slide the window</button>
+  </div>
+  <div class="panel">
+    <div class="arr" id="arr"></div>
+    <div class="status" id="status">press run to start</div>
+    <div style="margin-top:14px;font-size:13px;color:var(--muted);">best window found so far:</div>
+    <div class="bestwindow" id="best"></div>
+  </div>
+
+</main>
+<script>
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+function renderArr(text, left, right){
+  document.getElementById('arr').innerHTML = text.split('').map((ch,i)=>{
+    const inWin = i>=left && i<=right;
+    let cls = 'cell'+(inWin?' inwindow':'');
+    if(i===left) cls += ' left';
+    if(i===right) cls += ' right';
+    return `<div class="${cls}">${ch}</div>`;
+  }).join('');
+}
+
+function renderBest(text, bestL, bestR){
+  if(bestL===undefined){ document.getElementById('best').innerHTML=''; return; }
+  document.getElementById('best').innerHTML = text.slice(bestL,bestR+1).split('').map(ch=>`<div class="bestcell">${ch}</div>`).join('');
+}
+
+async function run(){
+  const text = document.getElementById('text').value || 'abcabcbb';
+  document.getElementById('run').disabled = true;
+  let left = 0, bestLen = 0, bestL=0, bestR=-1;
+  const seen = {};
+  for(let right=0; right<text.length; right++){
+    const ch = text[right];
+    renderArr(text, left, right);
+    document.getElementById('status').innerHTML = `right moves to index ${right} ('${ch}')`;
+    await sleep(500);
+    if(seen[ch]!==undefined && seen[ch]>=left){
+      const oldLeft = left;
+      left = seen[ch]+1;
+      renderArr(text, left, right);
+      document.getElementById('status').innerHTML = `'${ch}' already in window at index ${seen[ch]} — left jumps from ${oldLeft} to ${left}`;
+      await sleep(500);
+    }
+    seen[ch] = right;
+    const len = right-left+1;
+    if(len>bestLen){ bestLen=len; bestL=left; bestR=right; renderBest(text,bestL,bestR); }
+    document.getElementById('status').innerHTML = `window [${left}, ${right}] has length ${len} — best so far: ${bestLen}`;
+    await sleep(250);
+  }
+  document.getElementById('status').innerHTML = `done — longest substring without repeats: "<b>${text.slice(bestL,bestR+1)}</b>" (length ${bestLen})`;
+  document.getElementById('run').disabled = false;
+}
+
+document.getElementById('run').onclick = run;
+renderArr(document.getElementById('text').value, 0, -1);
+
+</script>
+</body>
+</html>

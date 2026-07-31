@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>heap — study://lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --bg-soft:#f6f7fb; --card:#ffffff; --border:#e5e7eb;
+    --text:#14151a; --muted:#5c5e68; --dim:#9598a3;
+    --accent:#4f46e5; --accent-soft:#eef0ff; --accent-dark:#3c34b8;
+    --good:#16a34a; --good-soft:#e6f7ec;
+    --bad:#e11d48; --bad-soft:#fdeaee;
+    --warn:#f59e0b; --warn-soft:#fef3e0;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+    --shadow:0 1px 2px rgba(16,24,40,.04);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg-soft);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  .navbar-outer{background:var(--card);border-bottom:1px solid var(--border);}
+  nav{display:flex;align-items:center;gap:10px;max-width:1080px;margin:0 auto;padding:16px 24px;}
+  nav .tile{width:26px;height:26px;border-radius:7px;background:var(--accent-dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+  nav a.back{font-weight:600;font-size:13.5px;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:100px;border:1px solid var(--border);transition:all .15s ease;}
+  nav a.back:hover{color:var(--accent-dark);border-color:var(--accent);}
+  nav .crumb{color:var(--dim);font-size:13px;}
+  nav .crumb-current{font-weight:600;color:var(--text);font-size:13px;}
+  header{max-width:1080px;margin:0 auto;padding:20px 24px 8px;}
+  h1{font-weight:800;font-size:clamp(28px,4.5vw,38px);letter-spacing:-0.03em;margin:6px 0 12px;color:var(--accent-dark);}
+  h1 span{color:var(--text);}
+  p.sub{color:var(--muted);max-width:68ch;line-height:1.65;font-size:16px;margin-top:0;}
+  main{max-width:1080px;margin:0 auto;padding:8px 24px 80px;}
+
+  .explain{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px 28px;margin:22px 0;box-shadow:var(--shadow);}
+  .explain h2{font-weight:700;font-size:16px;margin:0 0 12px;}
+  .explain p{color:var(--muted);font-size:15px;line-height:1.75;margin:0 0 12px;}
+  .explain p:last-child{margin-bottom:0;}
+  .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
+  .explain li{margin-bottom:8px;}
+  .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+
+  .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
+  .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
+  .tab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:20px 0 16px;font-size:14px;}
+  input, select{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-size:14px;padding:11px 14px;border-radius:10px;box-shadow:var(--shadow);
+  }
+  button{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-weight:600;font-size:14px;padding:11px 18px;border-radius:100px;
+    cursor:pointer;transition:all .15s ease;box-shadow:var(--shadow);
+  }
+  button:hover{border-color:var(--accent);color:var(--accent);}
+  button.primary{background:var(--good);border-color:var(--good);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.06);}
+  button.primary:hover{background:#15803d;border-color:#15803d;color:#fff;}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+
+  .panel, .stage{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow);}
+  .status{font-size:13px;color:var(--muted);margin-top:14px;}
+  .status b{color:var(--text);}
+  .hint{font-size:13px;color:var(--dim);margin-top:8px;}
+  svg text{font-family:var(--mono);}
+
+
+  #tree{width:100%;overflow:auto;min-height:220px;}
+  .tnode circle{fill:var(--accent-soft);stroke:var(--border);stroke-width:2;}
+  .tnode.active circle{fill:var(--warn-soft);stroke:var(--warn);stroke-width:3;}
+  .tnode text{fill:var(--text);font-size:13px;font-weight:700;}
+  .tedge{stroke:var(--border);stroke-width:2;}
+  .arrview{display:flex;gap:6px;flex-wrap:wrap;margin-top:16px;}
+  .aitem{font-family:var(--mono);font-size:13px;background:var(--bg-soft);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-weight:600;}
+  .aitem.active{background:var(--warn-soft);border-color:var(--warn);}
+
+</style>
+</head>
+<body>
+<div class="navbar-outer"><nav><span class="tile">◆</span><a class="back" href="index.html">study://lab</a><span class="crumb">/</span><span class="crumb-current">heap</span></nav></div>
+<header>
+  <h1>Heap<span> / Priority Queue</span></h1>
+  <p class="sub">A binary min-heap always keeps the smallest value at the root. Insert a value and watch it sift up; extract the min and watch the last element sift back down into place.</p>
+</header>
+<main>
+  <div class="explain">
+    <h2>How it works</h2>
+    
+<p>A binary min-heap keeps one rule true everywhere: <b style="color:var(--text)">every parent is smaller than or equal to both its children.</b> That rule alone guarantees the smallest element is always sitting at the root — no searching required.</p>
+<p><b style="color:var(--text)">Insert</b> adds the new value at the very next open spot (keeping the tree balanced), then "sifts up": as long as it's smaller than its parent, swap with the parent and repeat. That's <code>O(log n)</code> because it only ever travels up one path, the height of the tree.</p>
+<p><b style="color:var(--text)">Extract-min</b> removes the root, moves the very last element into its place, then "sifts down": swap with whichever child is smaller, repeating until the heap rule holds again. Also <code>O(log n)</code> for the same reason.</p>
+<p>The same array secretly represents the tree — a node at index <code>i</code> has children at <code>2i+1</code> and <code>2i+2</code>, so no pointers are needed.</p>
+
+  </div>
+
+  <div class="controls">
+    <input type="number" id="val" value="5" placeholder="value">
+    <button class="primary" id="insert">insert</button>
+    <button id="extract">extract-min</button>
+    <button id="reset">reset</button>
+  </div>
+  <div class="panel"><div id="tree"></div></div>
+  <div class="arrview" id="arrview"></div>
+  <div class="status" id="status">heap is empty</div>
+
+</main>
+<script>
+
+let heap = [];
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+function renderArr(activeIdx){
+  document.getElementById('arrview').innerHTML = heap.map((v,i)=>
+    `<div class="aitem ${i===activeIdx?'active':''}">[${i}] ${v}</div>`).join('') || '<span style="color:var(--dim);font-size:13px;">empty</span>';
+}
+
+function renderTree(activeIdx){
+  if(heap.length===0){ document.getElementById('tree').innerHTML = '<span style="color:var(--dim);font-size:13px;">empty heap</span>'; return; }
+  const positions = [];
+  function layout(i, depth, xMin, xMax){
+    if(i>=heap.length) return;
+    const x = (xMin+xMax)/2;
+    positions[i] = {x, y: 30+depth*60, v: heap[i]};
+    layout(2*i+1, depth+1, xMin, x);
+    layout(2*i+2, depth+1, x, xMax);
+  }
+  layout(0,0,20,620);
+  let edges='', nodes='';
+  for(let i=0;i<heap.length;i++){
+    const l=2*i+1, r=2*i+2;
+    if(l<heap.length) edges += `<line class="tedge" x1="${positions[i].x}" y1="${positions[i].y}" x2="${positions[l].x}" y2="${positions[l].y}"/>`;
+    if(r<heap.length) edges += `<line class="tedge" x1="${positions[i].x}" y1="${positions[i].y}" x2="${positions[r].x}" y2="${positions[r].y}"/>`;
+    const cls = i===activeIdx ? 'tnode active' : 'tnode';
+    nodes += `<g class="${cls}"><circle cx="${positions[i].x}" cy="${positions[i].y}" r="17"/><text x="${positions[i].x}" y="${positions[i].y+5}" text-anchor="middle">${positions[i].v}</text></g>`;
+  }
+  const maxY = Math.max(...positions.filter(Boolean).map(p=>p.y)) + 40;
+  document.getElementById('tree').innerHTML = `<svg viewBox="0 0 640 ${maxY}" width="100%" height="${Math.min(maxY,300)}">${edges}${nodes}</svg>`;
+}
+
+async function siftUp(i){
+  while(i>0){
+    const parent = Math.floor((i-1)/2);
+    renderTree(i);
+    document.getElementById('status').innerHTML = `comparing new value at index ${i} with parent at index ${parent}`;
+    await sleep(450);
+    if(heap[i] < heap[parent]){
+      [heap[i],heap[parent]]=[heap[parent],heap[i]];
+      i = parent;
+      renderArr(i); renderTree(i);
+      await sleep(300);
+    } else break;
+  }
+  renderArr(); renderTree();
+}
+
+async function siftDown(i){
+  const n = heap.length;
+  while(true){
+    let smallest = i, l=2*i+1, r=2*i+2;
+    if(l<n && heap[l]<heap[smallest]) smallest=l;
+    if(r<n && heap[r]<heap[smallest]) smallest=r;
+    renderTree(i);
+    document.getElementById('status').innerHTML = `checking children of index ${i} for the smaller value`;
+    await sleep(450);
+    if(smallest!==i){
+      [heap[i],heap[smallest]]=[heap[smallest],heap[i]];
+      i = smallest;
+      renderArr(i); renderTree(i);
+      await sleep(300);
+    } else break;
+  }
+  renderArr(); renderTree();
+}
+
+document.getElementById('insert').onclick = async ()=>{
+  const v = +document.getElementById('val').value || Math.floor(Math.random()*90);
+  heap.push(v);
+  renderArr(heap.length-1); renderTree(heap.length-1);
+  document.getElementById('status').innerHTML = `inserted ${v} at the end, now sifting up`;
+  await sleep(350);
+  await siftUp(heap.length-1);
+  document.getElementById('status').innerHTML = `done — heap property restored`;
+};
+
+document.getElementById('extract').onclick = async ()=>{
+  if(heap.length===0){ document.getElementById('status').textContent = 'heap is empty'; return; }
+  const min = heap[0];
+  document.getElementById('status').innerHTML = `extracting min (${min}) from the root`;
+  const last = heap.pop();
+  if(heap.length>0){
+    heap[0] = last;
+    renderArr(0); renderTree(0);
+    await sleep(400);
+    await siftDown(0);
+  } else { renderArr(); renderTree(); }
+  document.getElementById('status').innerHTML = `extracted <b>${min}</b> — heap property restored`;
+};
+
+document.getElementById('reset').onclick = ()=>{
+  heap = []; renderArr(); renderTree();
+  document.getElementById('status').textContent = 'heap is empty';
+};
+
+[15, 8, 21, 4, 12, 30, 6].forEach(v=>heap.push(v));
+// heapify initial array quickly (no animation) for a sensible starting state
+for(let i=Math.floor(heap.length/2)-1;i>=0;i--){
+  let idx=i;
+  while(true){
+    let s=idx,l=2*idx+1,r=2*idx+2;
+    if(l<heap.length && heap[l]<heap[s]) s=l;
+    if(r<heap.length && heap[r]<heap[s]) s=r;
+    if(s!==idx){ [heap[idx],heap[s]]=[heap[s],heap[idx]]; idx=s; } else break;
+  }
+}
+renderArr(); renderTree();
+document.getElementById('status').textContent = 'starting heap ready — try insert or extract-min';
+
+</script>
+</body>
+</html>

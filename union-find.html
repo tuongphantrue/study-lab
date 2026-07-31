@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>union-find — study://lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --bg-soft:#f6f7fb; --card:#ffffff; --border:#e5e7eb;
+    --text:#14151a; --muted:#5c5e68; --dim:#9598a3;
+    --accent:#4f46e5; --accent-soft:#eef0ff; --accent-dark:#3c34b8;
+    --good:#16a34a; --good-soft:#e6f7ec;
+    --bad:#e11d48; --bad-soft:#fdeaee;
+    --warn:#f59e0b; --warn-soft:#fef3e0;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+    --shadow:0 1px 2px rgba(16,24,40,.04);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg-soft);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  .navbar-outer{background:var(--card);border-bottom:1px solid var(--border);}
+  nav{display:flex;align-items:center;gap:10px;max-width:1080px;margin:0 auto;padding:16px 24px;}
+  nav .tile{width:26px;height:26px;border-radius:7px;background:var(--accent-dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+  nav a.back{font-weight:600;font-size:13.5px;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:100px;border:1px solid var(--border);transition:all .15s ease;}
+  nav a.back:hover{color:var(--accent-dark);border-color:var(--accent);}
+  nav .crumb{color:var(--dim);font-size:13px;}
+  nav .crumb-current{font-weight:600;color:var(--text);font-size:13px;}
+  header{max-width:1080px;margin:0 auto;padding:20px 24px 8px;}
+  h1{font-weight:800;font-size:clamp(28px,4.5vw,38px);letter-spacing:-0.03em;margin:6px 0 12px;color:var(--accent-dark);}
+  h1 span{color:var(--text);}
+  p.sub{color:var(--muted);max-width:68ch;line-height:1.65;font-size:16px;margin-top:0;}
+  main{max-width:1080px;margin:0 auto;padding:8px 24px 80px;}
+
+  .explain{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px 28px;margin:22px 0;box-shadow:var(--shadow);}
+  .explain h2{font-weight:700;font-size:16px;margin:0 0 12px;}
+  .explain p{color:var(--muted);font-size:15px;line-height:1.75;margin:0 0 12px;}
+  .explain p:last-child{margin-bottom:0;}
+  .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
+  .explain li{margin-bottom:8px;}
+  .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+
+  .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
+  .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
+  .tab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:20px 0 16px;font-size:14px;}
+  input, select{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-size:14px;padding:11px 14px;border-radius:10px;box-shadow:var(--shadow);
+  }
+  button{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-weight:600;font-size:14px;padding:11px 18px;border-radius:100px;
+    cursor:pointer;transition:all .15s ease;box-shadow:var(--shadow);
+  }
+  button:hover{border-color:var(--accent);color:var(--accent);}
+  button.primary{background:var(--good);border-color:var(--good);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.06);}
+  button.primary:hover{background:#15803d;border-color:#15803d;color:#fff;}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+
+  .panel, .stage{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow);}
+  .status{font-size:13px;color:var(--muted);margin-top:14px;}
+  .status b{color:var(--text);}
+  .hint{font-size:13px;color:var(--dim);margin-top:8px;}
+  svg text{font-family:var(--mono);}
+
+
+  .nodes{display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
+  .nodeitem{
+    width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-weight:700;font-size:16px;background:var(--accent-soft);
+    border:2px solid var(--accent);color:var(--accent-dark);transition:all .2s ease;
+  }
+  .nodeitem.root{background:var(--good-soft);border-color:var(--good);color:var(--good);box-shadow:0 0 0 4px var(--good-soft);}
+  .nodeitem.active{background:var(--warn-soft);border-color:var(--warn);color:var(--warn);}
+  #tree{width:100%;overflow:auto;min-height:200px;}
+  .tnode circle{fill:var(--accent-soft);stroke:var(--accent);stroke-width:2;}
+  .tnode.root circle{fill:var(--good-soft);stroke:var(--good);stroke-width:3;}
+  .tnode text{fill:var(--text);font-size:13px;font-weight:700;}
+  .tedge{stroke:var(--border);stroke-width:2;}
+
+</style>
+</head>
+<body>
+<div class="navbar-outer"><nav><span class="tile">◆</span><a class="back" href="index.html">study://lab</a><span class="crumb">/</span><span class="crumb-current">union-find</span></nav></div>
+<header>
+  <h1>Union<span>-Find</span></h1>
+  <p class="sub">8 elements, each starting as its own group. Union two of them together, or find the root of a group — and watch path compression flatten the tree as you go.</p>
+</header>
+<main>
+  <div class="explain">
+    <h2>How it works</h2>
+    
+<p>Union-Find (Disjoint Set Union) answers one question fast: <b style="color:var(--text)">are these two elements already connected?</b> Every element starts as its own group of one, pointing to itself as its "parent."</p>
+<p><code>find(x)</code> follows parent pointers upward until it reaches an element that points to itself — the <b style="color:var(--text)">root</b> of that group. Two elements are connected exactly when <code>find</code> gives the same root for both.</p>
+<p><code>union(a, b)</code> connects two groups by making one root point to the other. This is exactly what Kruskal's algorithm (on the graph-algorithms page) uses to check "would adding this edge create a cycle?" — a cycle would mean both endpoints already share a root.</p>
+<p><b style="color:var(--text)">Path compression</b> is the optimization shown below: every time <code>find</code> walks up to a root, it rewires every node it passed through to point directly at that root. Future lookups for those nodes become instant instead of re-walking the same chain — this is why real-world union-find is nearly <code>O(1)</code> per operation.</p>
+
+  </div>
+
+  <div class="controls">
+    <label>a <input type="number" id="ua" value="0" min="0" max="7" style="width:60px"></label>
+    <label>b <input type="number" id="ub" value="1" min="0" max="7" style="width:60px"></label>
+    <button class="primary" id="union">union(a, b)</button>
+    <label>find <input type="number" id="fx" value="0" min="0" max="7" style="width:60px"></label>
+    <button id="find">find(x)</button>
+    <button id="reset">reset</button>
+  </div>
+  <div class="nodes" id="nodes"></div>
+  <div class="panel"><div id="tree"></div></div>
+  <div class="status" id="status">8 elements, each its own group</div>
+
+</main>
+<script>
+
+const N = 8;
+let parent = [];
+function reset(){ parent = Array.from({length:N},(_,i)=>i); render(); }
+
+function find(x){
+  if(parent[x]===x) return x;
+  return find(parent[x]);
+}
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+function render(activeSet){
+  const nodesEl = document.getElementById('nodes');
+  nodesEl.innerHTML = '';
+  for(let i=0;i<N;i++){
+    const isRoot = parent[i]===i;
+    const cls = ['nodeitem'];
+    if(isRoot) cls.push('root');
+    if(activeSet && activeSet.has(i)) cls.push('active');
+    nodesEl.innerHTML += `<div class="${cls.join(' ')}">${i}</div>`;
+  }
+  // tree view: group by root
+  const groups = {};
+  for(let i=0;i<N;i++){ const r=find(i); if(!groups[r]) groups[r]=[]; groups[r].push(i); }
+  let x = 30;
+  let svgNodes='', svgEdges='';
+  const positions = {};
+  for(const rootKey of Object.keys(groups)){
+    const root = +rootKey;
+    positions[root] = {x, y:40};
+    x += 90;
+  }
+  for(let i=0;i<N;i++){
+    if(parent[i]===i) continue;
+    if(!positions[i]){ positions[i] = {x: positions[parent[i]].x + (Math.random()*40-20), y: positions[parent[i]].y+70}; }
+  }
+  // simpler deterministic layout: for each root, lay its members in a row below it
+  svgNodes=''; svgEdges='';
+  let cursorX = 40;
+  const finalPos = {};
+  for(const rootKey of Object.keys(groups)){
+    const root = +rootKey;
+    const members = groups[rootKey].filter(m=>m!==root);
+    finalPos[root] = {x: cursorX + members.length*36, y:40};
+    members.forEach((m,idx)=>{ finalPos[m] = {x: cursorX + idx*72, y:130}; });
+    cursorX += Math.max(members.length,1)*72 + 50;
+  }
+  for(let i=0;i<N;i++){
+    if(parent[i]!==i){
+      const p = finalPos[parent[i]], c = finalPos[i];
+      svgEdges += `<line class="tedge" x1="${p.x}" y1="${p.y}" x2="${c.x}" y2="${c.y}"/>`;
+    }
+  }
+  for(let i=0;i<N;i++){
+    const p = finalPos[i];
+    const isRoot = parent[i]===i;
+    svgNodes += `<g class="tnode ${isRoot?'root':''}"><circle cx="${p.x}" cy="${p.y}" r="17"/><text x="${p.x}" y="${p.y+5}" text-anchor="middle">${i}</text></g>`;
+  }
+  document.getElementById('tree').innerHTML = `<svg viewBox="0 0 ${cursorX} 170" width="100%" height="180">${svgEdges}${svgNodes}</svg>`;
+}
+
+async function doUnion(a,b){
+  const ra = find(a), rb = find(b);
+  document.getElementById('status').innerHTML = `find(${a}) = ${ra}, find(${b}) = ${rb}`;
+  render(new Set([a,b,ra,rb]));
+  await sleep(500);
+  if(ra===rb){
+    document.getElementById('status').innerHTML = `already in the same group (root ${ra}) — no union needed`;
+    return;
+  }
+  parent[ra] = rb;
+  document.getElementById('status').innerHTML = `unioned: root ${ra} now points to root ${rb}`;
+  render(new Set([ra,rb]));
+}
+
+async function doFind(x){
+  let path = [x];
+  let cur = x;
+  while(parent[cur]!==cur){ cur = parent[cur]; path.push(cur); }
+  for(const p of path){
+    render(new Set(path));
+    document.getElementById('status').innerHTML = `walking up: ${path.join(' → ')}${path.length>1?' (root = '+cur+')':''}`;
+    await sleep(350);
+  }
+  // path compression
+  for(const p of path) parent[p] = cur;
+  render(new Set(path));
+  document.getElementById('status').innerHTML = `find(${x}) = <b>${cur}</b> — path compressed, every visited node now points directly at the root`;
+}
+
+document.getElementById('union').onclick = ()=>{
+  const a = Math.max(0,Math.min(N-1, +document.getElementById('ua').value||0));
+  const b = Math.max(0,Math.min(N-1, +document.getElementById('ub').value||0));
+  doUnion(a,b);
+};
+document.getElementById('find').onclick = ()=>{
+  const x = Math.max(0,Math.min(N-1, +document.getElementById('fx').value||0));
+  doFind(x);
+};
+document.getElementById('reset').onclick = reset;
+reset();
+
+</script>
+</body>
+</html>

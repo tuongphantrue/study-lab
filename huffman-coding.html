@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>huffman-coding — study://lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --bg-soft:#f6f7fb; --card:#ffffff; --border:#e5e7eb;
+    --text:#14151a; --muted:#5c5e68; --dim:#9598a3;
+    --accent:#4f46e5; --accent-soft:#eef0ff; --accent-dark:#3c34b8;
+    --good:#16a34a; --good-soft:#e6f7ec;
+    --bad:#e11d48; --bad-soft:#fdeaee;
+    --warn:#f59e0b; --warn-soft:#fef3e0;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+    --shadow:0 1px 2px rgba(16,24,40,.04);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg-soft);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  .navbar-outer{background:var(--card);border-bottom:1px solid var(--border);}
+  nav{display:flex;align-items:center;gap:10px;max-width:1080px;margin:0 auto;padding:16px 24px;}
+  nav .tile{width:26px;height:26px;border-radius:7px;background:var(--accent-dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+  nav a.back{font-weight:600;font-size:13.5px;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:100px;border:1px solid var(--border);transition:all .15s ease;}
+  nav a.back:hover{color:var(--accent-dark);border-color:var(--accent);}
+  nav .crumb{color:var(--dim);font-size:13px;}
+  nav .crumb-current{font-weight:600;color:var(--text);font-size:13px;}
+  header{max-width:1080px;margin:0 auto;padding:20px 24px 8px;}
+  h1{font-weight:800;font-size:clamp(28px,4.5vw,38px);letter-spacing:-0.03em;margin:6px 0 12px;color:var(--accent-dark);}
+  h1 span{color:var(--text);}
+  p.sub{color:var(--muted);max-width:68ch;line-height:1.65;font-size:16px;margin-top:0;}
+  main{max-width:1080px;margin:0 auto;padding:8px 24px 80px;}
+
+  .explain{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px 28px;margin:22px 0;box-shadow:var(--shadow);}
+  .explain h2{font-weight:700;font-size:16px;margin:0 0 12px;}
+  .explain p{color:var(--muted);font-size:15px;line-height:1.75;margin:0 0 12px;}
+  .explain p:last-child{margin-bottom:0;}
+  .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
+  .explain li{margin-bottom:8px;}
+  .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+
+  .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
+  .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
+  .tab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:20px 0 16px;font-size:14px;}
+  input, select{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-size:14px;padding:11px 14px;border-radius:10px;box-shadow:var(--shadow);
+  }
+  button{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-weight:600;font-size:14px;padding:11px 18px;border-radius:100px;
+    cursor:pointer;transition:all .15s ease;box-shadow:var(--shadow);
+  }
+  button:hover{border-color:var(--accent);color:var(--accent);}
+  button.primary{background:var(--good);border-color:var(--good);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.06);}
+  button.primary:hover{background:#15803d;border-color:#15803d;color:#fff;}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+
+  .panel, .stage{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow);}
+  .status{font-size:13px;color:var(--muted);margin-top:14px;}
+  .status b{color:var(--text);}
+  .hint{font-size:13px;color:var(--dim);margin-top:8px;}
+  svg text{font-family:var(--mono);}
+
+
+  .freqs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px;}
+  .freqchip{font-family:var(--mono);font-size:12.5px;background:var(--bg-soft);border:1px solid var(--border);border-radius:8px;padding:6px 12px;}
+  #tree{width:100%;overflow:auto;min-height:200px;}
+  .tnode circle{fill:var(--accent-soft);stroke:var(--border);stroke-width:2;}
+  .tnode.leaf circle{fill:var(--good-soft);stroke:var(--good);stroke-width:2;}
+  .tnode text{fill:var(--text);font-size:11px;font-weight:700;}
+  .tedge{stroke:var(--border);stroke-width:2;}
+  .tedgelabel{fill:var(--accent-dark);font-family:var(--mono);font-size:11px;font-weight:700;}
+  .codes{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px;}
+  .codechip{font-family:var(--mono);font-size:13px;background:var(--accent-soft);color:var(--accent-dark);border:1px solid var(--accent);border-radius:8px;padding:8px 12px;font-weight:600;}
+  .encoded{font-family:var(--mono);font-size:14px;color:var(--good);word-break:break-all;margin-top:14px;line-height:1.6;}
+
+</style>
+</head>
+<body>
+<div class="navbar-outer"><nav><span class="tile">◆</span><a class="back" href="index.html">study://lab</a><span class="crumb">/</span><span class="crumb-current">huffman-coding</span></nav></div>
+<header>
+  <h1>Huffman<span> Coding</span></h1>
+  <p class="sub">Frequent characters get short codes, rare ones get long codes — built by repeatedly merging the two least-frequent nodes into a tree. Watch the compression tree grow, then see the encoded bits.</p>
+</header>
+<main>
+  <div class="explain">
+    <h2>How it works</h2>
+    
+<p>Regular text uses a fixed number of bits per character (8 for ASCII), no matter how common that character is. Huffman coding instead gives <b style="color:var(--text)">frequent characters shorter codes</b> and rare characters longer ones, which shrinks the total size — the same idea as Morse code giving "E" a single dot because it's the most common letter.</p>
+<p><b style="color:var(--text)">Building the tree</b>: start with one leaf node per character, each weighted by its frequency. Repeatedly take the <b style="color:var(--text)">two lowest-weight</b> nodes and merge them under a new parent node (weight = sum of the two). Keep merging until only one node — the root — remains.</p>
+<p>Each character's code is the path from the root to its leaf, reading left-branches as <code>0</code> and right-branches as <code>1</code>. Because every character sits at a leaf (never partway down a path to another leaf), no code is ever a prefix of another — which is exactly what lets the encoded bits be decoded unambiguously, one character at a time, with no separators needed.</p>
+
+  </div>
+
+  <div class="controls">
+    <input type="text" id="text" value="abracadabra" placeholder="text to encode">
+    <button class="primary" id="build">▶ Build Huffman tree</button>
+  </div>
+  <div class="freqs" id="freqs"></div>
+  <div class="panel"><div id="tree"></div></div>
+  <div class="codes" id="codes"></div>
+  <div class="encoded" id="encoded"></div>
+
+</main>
+<script>
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+function renderFreqs(freq){
+  document.getElementById('freqs').innerHTML = Object.entries(freq)
+    .sort((a,b)=>b[1]-a[1])
+    .map(([ch,f])=>`<span class="freqchip">'${ch}' × ${f}</span>`).join('');
+}
+
+let nodeId = 0;
+function makeNode(ch, weight, left, right){
+  return { id: nodeId++, ch, weight, left, right };
+}
+
+function layoutTree(root){
+  const positions = [];
+  function countLeaves(node){
+    if(!node.left && !node.right) return 1;
+    return countLeaves(node.left) + countLeaves(node.right);
+  }
+  function layout(node, depth, xMin, xMax){
+    const x = (xMin+xMax)/2, y = 30+depth*64;
+    node._x = x; node._y = y;
+    positions.push(node);
+    if(node.left){
+      const leftLeaves = countLeaves(node.left), rightLeaves = node.right?countLeaves(node.right):0;
+      const split = xMin + (xMax-xMin)*(leftLeaves/(leftLeaves+rightLeaves));
+      layout(node.left, depth+1, xMin, split);
+      if(node.right) layout(node.right, depth+1, split, xMax);
+    }
+  }
+  layout(root, 0, 20, 620);
+  return positions;
+}
+
+function drawTree(root){
+  const positions = layoutTree(root);
+  let edges = '', nodes = '';
+  function draw(node){
+    if(node.left){
+      edges += `<line class="tedge" x1="${node._x}" y1="${node._y}" x2="${node.left._x}" y2="${node.left._y}"/>`;
+      edges += `<text class="tedgelabel" x="${(node._x+node.left._x)/2 - 8}" y="${(node._y+node.left._y)/2}">0</text>`;
+      draw(node.left);
+    }
+    if(node.right){
+      edges += `<line class="tedge" x1="${node._x}" y1="${node._y}" x2="${node.right._x}" y2="${node.right._y}"/>`;
+      edges += `<text class="tedgelabel" x="${(node._x+node.right._x)/2 + 8}" y="${(node._y+node.right._y)/2}">1</text>`;
+      draw(node.right);
+    }
+  }
+  draw(root);
+  positions.forEach(n=>{
+    const isLeaf = !n.left && !n.right;
+    const label = isLeaf ? `'${n.ch}':${n.weight}` : n.weight;
+    nodes += `<g class="tnode ${isLeaf?'leaf':''}"><circle cx="${n._x}" cy="${n._y}" r="20"/><text x="${n._x}" y="${n._y+4}" text-anchor="middle">${label}</text></g>`;
+  });
+  const maxY = Math.max(...positions.map(n=>n._y)) + 40;
+  document.getElementById('tree').innerHTML = `<svg viewBox="0 0 640 ${maxY}" width="100%" height="${Math.min(maxY,340)}">${edges}${nodes}</svg>`;
+}
+
+function collectCodes(node, prefix, out){
+  if(!node.left && !node.right){ out[node.ch] = prefix || '0'; return; }
+  if(node.left) collectCodes(node.left, prefix+'0', out);
+  if(node.right) collectCodes(node.right, prefix+'1', out);
+}
+
+async function build(){
+  document.getElementById('build').disabled = true;
+  const text = document.getElementById('text').value || 'abracadabra';
+  const freq = {};
+  for(const ch of text) freq[ch] = (freq[ch]||0)+1;
+  renderFreqs(freq);
+
+  nodeId = 0;
+  let queue = Object.entries(freq).map(([ch,f])=>makeNode(ch,f,null,null));
+
+  while(queue.length > 1){
+    queue.sort((a,b)=>a.weight-b.weight);
+    const a = queue.shift(), b = queue.shift();
+    const parent = makeNode(null, a.weight+b.weight, a, b);
+    queue.push(parent);
+    drawTree(queue.length===1 ? queue[0] : parent);
+    document.getElementById('encoded').innerHTML = `merging '${a.ch||'…'}' (${a.weight}) and '${b.ch||'…'}' (${b.weight}) into a new node of weight ${parent.weight}`;
+    await sleep(700);
+  }
+
+  const root = queue[0];
+  drawTree(root);
+  const codes = {};
+  collectCodes(root, '', codes);
+  document.getElementById('codes').innerHTML = Object.entries(codes)
+    .sort((a,b)=>a[1].length-b[1].length)
+    .map(([ch,code])=>`<span class="codechip">'${ch}' = ${code}</span>`).join('');
+
+  const encoded = text.split('').map(ch=>codes[ch]).join('');
+  const originalBits = text.length*8;
+  document.getElementById('encoded').innerHTML =
+    `encoded (${encoded.length} bits vs. ${originalBits} bits as plain ASCII):<br>${encoded}`;
+
+  document.getElementById('build').disabled = false;
+}
+
+document.getElementById('build').onclick = build;
+
+</script>
+</body>
+</html>

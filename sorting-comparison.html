@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>sorting-comparison — study://lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --bg-soft:#f6f7fb; --card:#ffffff; --border:#e5e7eb;
+    --text:#14151a; --muted:#5c5e68; --dim:#9598a3;
+    --accent:#4f46e5; --accent-soft:#eef0ff; --accent-dark:#3c34b8;
+    --good:#16a34a; --good-soft:#e6f7ec;
+    --bad:#e11d48; --bad-soft:#fdeaee;
+    --warn:#f59e0b; --warn-soft:#fef3e0;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+    --shadow:0 1px 2px rgba(16,24,40,.04);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg-soft);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  .navbar-outer{background:var(--card);border-bottom:1px solid var(--border);}
+  nav{display:flex;align-items:center;gap:10px;max-width:1080px;margin:0 auto;padding:16px 24px;}
+  nav .tile{width:26px;height:26px;border-radius:7px;background:var(--accent-dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+  nav a.back{font-weight:600;font-size:13.5px;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:100px;border:1px solid var(--border);transition:all .15s ease;}
+  nav a.back:hover{color:var(--accent-dark);border-color:var(--accent);}
+  nav .crumb{color:var(--dim);font-size:13px;}
+  nav .crumb-current{font-weight:600;color:var(--text);font-size:13px;}
+  header{max-width:1080px;margin:0 auto;padding:20px 24px 8px;}
+  h1{font-weight:800;font-size:clamp(28px,4.5vw,38px);letter-spacing:-0.03em;margin:6px 0 12px;color:var(--accent-dark);}
+  h1 span{color:var(--text);}
+  p.sub{color:var(--muted);max-width:68ch;line-height:1.65;font-size:16px;margin-top:0;}
+  main{max-width:1080px;margin:0 auto;padding:8px 24px 80px;}
+
+  .explain{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px 28px;margin:22px 0;box-shadow:var(--shadow);}
+  .explain h2{font-weight:700;font-size:16px;margin:0 0 12px;}
+  .explain p{color:var(--muted);font-size:15px;line-height:1.75;margin:0 0 12px;}
+  .explain p:last-child{margin-bottom:0;}
+  .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
+  .explain li{margin-bottom:8px;}
+  .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+
+  .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
+  .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
+  .tab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:20px 0 16px;font-size:14px;}
+  input, select{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-size:14px;padding:11px 14px;border-radius:10px;box-shadow:var(--shadow);
+  }
+  button{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-weight:600;font-size:14px;padding:11px 18px;border-radius:100px;
+    cursor:pointer;transition:all .15s ease;box-shadow:var(--shadow);
+  }
+  button:hover{border-color:var(--accent);color:var(--accent);}
+  button.primary{background:var(--good);border-color:var(--good);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.06);}
+  button.primary:hover{background:#15803d;border-color:#15803d;color:#fff;}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+
+  .panel, .stage{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow);}
+  .status{font-size:13px;color:var(--muted);margin-top:14px;}
+  .status b{color:var(--text);}
+  .hint{font-size:13px;color:var(--dim);margin-top:8px;}
+  svg text{font-family:var(--mono);}
+
+
+  .cols{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;}
+  @media (max-width:800px){ .cols{grid-template-columns:1fr;} }
+  .col h3{font-size:14px;margin:0 0 4px;color:var(--accent-dark);font-weight:700;}
+  .col .desc{font-size:12.5px;color:var(--dim);margin:0 0 14px;}
+  .bars{display:flex;align-items:flex-end;gap:3px;height:180px;}
+  .bar{flex:1;background:var(--accent-soft);border:1px solid var(--accent);border-radius:3px 3px 0 0;transition:height .15s ease;}
+  .bar.compare{background:var(--warn-soft);border-color:var(--warn);}
+  .bar.swap{background:var(--bad-soft);border-color:var(--bad);}
+  .bar.done{background:var(--good-soft);border-color:var(--good);}
+  .colstats{font-family:var(--mono);font-size:12px;color:var(--muted);margin-top:10px;}
+  .colstats b{color:var(--text);}
+
+</style>
+</head>
+<body>
+<div class="navbar-outer"><nav><span class="tile">◆</span><a class="back" href="index.html">study://lab</a><span class="crumb">/</span><span class="crumb-current">sorting-comparison</span></nav></div>
+<header>
+  <h1>Sort<span>ing Comparison</span></h1>
+  <p class="sub">Quicksort, merge sort, and heap sort race on the same array. Watch how differently each one moves through the data to reach the same sorted result.</p>
+</header>
+<main>
+  <div class="explain">
+    <h2>How it works</h2>
+    
+<p>All three sort the same array of numbers, but by different rules for which pair to compare or move next:</p>
+<ul>
+  <li><b style="color:var(--text)">Quicksort</b> picks a "pivot" value, then partitions the array so everything smaller goes left of it and everything larger goes right — then recursively sorts each side. Fast on average (<code>O(n log n)</code>), but a badly chosen pivot on already-sorted data can degrade to <code>O(n²)</code>.</li>
+  <li><b style="color:var(--text)">Merge sort</b> splits the array in half repeatedly until each piece has one element, then merges pairs back together in sorted order. Always <code>O(n log n)</code>, no matter the input — the cost is needing extra memory to hold the merged pieces.</li>
+  <li><b style="color:var(--text)">Heap sort</b> first arranges the array into a max-heap (a tree where every parent is ≥ its children), then repeatedly swaps the largest element (the root) to the end and shrinks the heap. Also guaranteed <code>O(n log n)</code>, and — unlike merge sort — sorts in place.</li>
+</ul>
+<p>Watch how differently they move through the same data: quicksort in sharp partitioned jumps, merge sort in clean halves, heap sort in a steady countdown from the top.</p>
+
+  </div>
+
+  <div class="controls">
+    <label>size <input type="number" id="size" value="30" min="10" max="60"></label>
+    <button id="regen">New array</button>
+    <button class="primary" id="run">▶ Race all three</button>
+  </div>
+  <div class="cols">
+    <div class="col">
+      <h3>quicksort</h3>
+      <p class="desc">pivot &amp; partition, recursively</p>
+      <div class="bars" id="barsQ"></div>
+      <div class="colstats" id="statQ">comparisons: <b>0</b></div>
+    </div>
+    <div class="col">
+      <h3>merge sort</h3>
+      <p class="desc">split in half, merge back sorted</p>
+      <div class="bars" id="barsM"></div>
+      <div class="colstats" id="statM">comparisons: <b>0</b></div>
+    </div>
+    <div class="col">
+      <h3>heap sort</h3>
+      <p class="desc">build a max-heap, pop the largest repeatedly</p>
+      <div class="bars" id="barsH"></div>
+      <div class="colstats" id="statH">comparisons: <b>0</b></div>
+    </div>
+  </div>
+  <div class="hint">amber = comparing · red = swapping · green = finalized in place</div>
+
+</main>
+<script>
+
+let arr = [];
+function genArray(){
+  const n = Math.max(10, Math.min(60, +document.getElementById('size').value||30));
+  arr = Array.from({length:n}, ()=>Math.floor(Math.random()*90)+10);
+  renderAll();
+}
+function renderBars(id, data, states){
+  const el = document.getElementById(id);
+  const max = Math.max(...data);
+  el.innerHTML = data.map((v,i)=>{
+    const st = (states && states[i]) || '';
+    return `<div class="bar ${st}" style="height:${(v/max*100)}%"></div>`;
+  }).join('');
+}
+function renderAll(){
+  renderBars('barsQ', arr);
+  renderBars('barsM', arr);
+  renderBars('barsH', arr);
+  document.getElementById('statQ').innerHTML = 'comparisons: <b>0</b>';
+  document.getElementById('statM').innerHTML = 'comparisons: <b>0</b>';
+  document.getElementById('statH').innerHTML = 'comparisons: <b>0</b>';
+}
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+async function quicksort(){
+  const a = [...arr];
+  let comps = 0;
+  const statEl = document.getElementById('statQ');
+  async function qs(lo, hi){
+    if(lo>=hi){ if(lo===hi){ } return; }
+    const pivot = a[hi];
+    let i = lo;
+    for(let j=lo;j<hi;j++){
+      comps++;
+      statEl.innerHTML = `comparisons: <b>${comps}</b>`;
+      const states = new Array(a.length).fill('');
+      states[j]='compare'; states[hi]='compare';
+      renderBars('barsQ', a, states);
+      await sleep(35);
+      if(a[j] < pivot){
+        [a[i],a[j]] = [a[j],a[i]];
+        i++;
+      }
+    }
+    [a[i],a[hi]] = [a[hi],a[i]];
+    const doneStates = new Array(a.length).fill('');
+    doneStates[i]='done';
+    renderBars('barsQ', a, doneStates);
+    await sleep(20);
+    await qs(lo, i-1);
+    await qs(i+1, hi);
+  }
+  await qs(0, a.length-1);
+  renderBars('barsQ', a, new Array(a.length).fill('done'));
+}
+
+async function mergesort(){
+  let a = [...arr];
+  let comps = 0;
+  const statEl = document.getElementById('statM');
+  async function merge(lo, mid, hi){
+    const left = a.slice(lo, mid+1), right = a.slice(mid+1, hi+1);
+    let i=0,j=0,k=lo;
+    while(i<left.length && j<right.length){
+      comps++;
+      statEl.innerHTML = `comparisons: <b>${comps}</b>`;
+      if(left[i]<=right[j]){ a[k]=left[i]; i++; } else { a[k]=right[j]; j++; }
+      const states = new Array(a.length).fill('');
+      states[k]='compare';
+      renderBars('barsM', a, states);
+      await sleep(35);
+      k++;
+    }
+    while(i<left.length){ a[k]=left[i]; i++; k++; }
+    while(j<right.length){ a[k]=right[j]; j++; k++; }
+  }
+  async function ms(lo, hi){
+    if(lo>=hi) return;
+    const mid = Math.floor((lo+hi)/2);
+    await ms(lo, mid);
+    await ms(mid+1, hi);
+    await merge(lo, mid, hi);
+  }
+  await ms(0, a.length-1);
+  renderBars('barsM', a, new Array(a.length).fill('done'));
+}
+
+async function heapsort(){
+  const a = [...arr];
+  const n = a.length;
+  let comps = 0;
+  const statEl = document.getElementById('statH');
+  async function siftDown(size, root){
+    let largest = root, l=2*root+1, r=2*root+2;
+    if(l<size){ comps++; if(a[l]>a[largest]) largest=l; }
+    if(r<size){ comps++; if(a[r]>a[largest]) largest=r; }
+    statEl.innerHTML = `comparisons: <b>${comps}</b>`;
+    if(largest!==root){
+      [a[root],a[largest]]=[a[largest],a[root]];
+      const states = new Array(a.length).fill('');
+      states[root]='swap'; states[largest]='swap';
+      renderBars('barsH', a, states);
+      await sleep(40);
+      await siftDown(size, largest);
+    }
+  }
+  for(let i=Math.floor(n/2)-1;i>=0;i--) await siftDown(n, i);
+  for(let end=n-1; end>0; end--){
+    [a[0],a[end]]=[a[end],a[0]];
+    const states = new Array(a.length).fill('');
+    for(let k=end;k<n;k++) states[k]='done';
+    states[0]='swap';
+    renderBars('barsH', a, states);
+    await sleep(40);
+    await siftDown(end, 0);
+  }
+  renderBars('barsH', a, new Array(a.length).fill('done'));
+}
+
+document.getElementById('regen').onclick = genArray;
+document.getElementById('run').onclick = async ()=>{
+  document.getElementById('run').disabled = true;
+  renderAll();
+  await Promise.all([quicksort(), mergesort(), heapsort()]);
+  document.getElementById('run').disabled = false;
+};
+genArray();
+
+</script>
+</body>
+</html>

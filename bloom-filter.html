@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>bloom-filter — study://lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --bg-soft:#f6f7fb; --card:#ffffff; --border:#e5e7eb;
+    --text:#14151a; --muted:#5c5e68; --dim:#9598a3;
+    --accent:#4f46e5; --accent-soft:#eef0ff; --accent-dark:#3c34b8;
+    --good:#16a34a; --good-soft:#e6f7ec;
+    --bad:#e11d48; --bad-soft:#fdeaee;
+    --warn:#f59e0b; --warn-soft:#fef3e0;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+    --shadow:0 1px 2px rgba(16,24,40,.04);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg-soft);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  .navbar-outer{background:var(--card);border-bottom:1px solid var(--border);}
+  nav{display:flex;align-items:center;gap:10px;max-width:1080px;margin:0 auto;padding:16px 24px;}
+  nav .tile{width:26px;height:26px;border-radius:7px;background:var(--accent-dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+  nav a.back{font-weight:600;font-size:13.5px;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:100px;border:1px solid var(--border);transition:all .15s ease;}
+  nav a.back:hover{color:var(--accent-dark);border-color:var(--accent);}
+  nav .crumb{color:var(--dim);font-size:13px;}
+  nav .crumb-current{font-weight:600;color:var(--text);font-size:13px;}
+  header{max-width:1080px;margin:0 auto;padding:20px 24px 8px;}
+  h1{font-weight:800;font-size:clamp(28px,4.5vw,38px);letter-spacing:-0.03em;margin:6px 0 12px;color:var(--accent-dark);}
+  h1 span{color:var(--text);}
+  p.sub{color:var(--muted);max-width:68ch;line-height:1.65;font-size:16px;margin-top:0;}
+  main{max-width:1080px;margin:0 auto;padding:8px 24px 80px;}
+
+  .explain{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px 28px;margin:22px 0;box-shadow:var(--shadow);}
+  .explain h2{font-weight:700;font-size:16px;margin:0 0 12px;}
+  .explain p{color:var(--muted);font-size:15px;line-height:1.75;margin:0 0 12px;}
+  .explain p:last-child{margin-bottom:0;}
+  .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
+  .explain li{margin-bottom:8px;}
+  .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+
+  .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
+  .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
+  .tab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:20px 0 16px;font-size:14px;}
+  input, select{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-size:14px;padding:11px 14px;border-radius:10px;box-shadow:var(--shadow);
+  }
+  button{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-weight:600;font-size:14px;padding:11px 18px;border-radius:100px;
+    cursor:pointer;transition:all .15s ease;box-shadow:var(--shadow);
+  }
+  button:hover{border-color:var(--accent);color:var(--accent);}
+  button.primary{background:var(--good);border-color:var(--good);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.06);}
+  button.primary:hover{background:#15803d;border-color:#15803d;color:#fff;}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+
+  .panel, .stage{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow);}
+  .status{font-size:13px;color:var(--muted);margin-top:14px;}
+  .status b{color:var(--text);}
+  .hint{font-size:13px;color:var(--dim);margin-top:8px;}
+  svg text{font-family:var(--mono);}
+
+
+  .bitsrow{display:flex;gap:3px;flex-wrap:wrap;margin-bottom:16px;}
+  .bitbox{
+    width:34px;height:34px;display:flex;align-items:center;justify-content:center;
+    font-family:var(--mono);font-size:12px;font-weight:700;border-radius:6px;background:var(--bg-soft);
+    border:1px solid var(--border);color:var(--dim);transition:all .2s ease;
+  }
+  .bitbox.set{background:var(--accent-soft);border-color:var(--accent);color:var(--accent-dark);}
+  .bitbox.hit{background:var(--warn-soft);border-color:var(--warn);color:var(--warn);}
+  .wordlist{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0;}
+  .wordchip{font-family:var(--mono);font-size:12.5px;background:var(--accent-soft);color:var(--accent-dark);border:1px solid var(--accent);border-radius:100px;padding:6px 14px;font-weight:600;}
+
+</style>
+</head>
+<body>
+<div class="navbar-outer"><nav><span class="tile">◆</span><a class="back" href="index.html">study://lab</a><span class="crumb">/</span><span class="crumb-current">bloom-filter</span></nav></div>
+<header>
+  <h1>Bloom<span> Filter</span></h1>
+  <p class="sub">A fixed-size bit array that answers "have I seen this key before?" without storing any keys at all. Insert a few, then check one — watch how false positives can sneak in.</p>
+</header>
+<main>
+  <div class="explain">
+    <h2>How it works</h2>
+    
+<p>A Bloom filter answers <b style="color:var(--text)">"have I possibly seen this before?"</b> using a fixed-size bit array and no stored keys at all — which is what makes it so memory-efficient. It trades certainty for space: it can say "definitely not present," but only ever "maybe present."</p>
+<p><b style="color:var(--text)">Inserting</b> a key runs it through several different hash functions, each producing a bit position, and sets all of those bits to 1. <b style="color:var(--text)">Checking</b> a key runs the same hash functions and checks whether every one of those positions is already 1.</p>
+<p>If even one of those bits is 0, the key was <b style="color:var(--text)">definitely never inserted</b> — no false negatives are possible. But if all the bits happen to be 1 (either because this exact key was inserted, or because other keys happened to set the same bits), the filter reports "maybe," which could be a <b style="color:var(--text)">false positive</b>. More inserted keys means more bits set, which means a rising false-positive rate — that's the core tradeoff.</p>
+
+  </div>
+
+  <div class="controls">
+    <input type="text" id="key" placeholder="key to add or check" value="apple">
+    <button class="primary" id="add">insert</button>
+    <button id="check">check membership</button>
+    <button id="reset">reset</button>
+  </div>
+  <div class="bitsrow" id="bits"></div>
+  <div class="wordlist" id="wordlist"></div>
+  <div class="status" id="status">bit array of size 24, 3 hash functions</div>
+
+</main>
+<script>
+
+const SIZE = 24;
+let bits = new Array(SIZE).fill(0);
+let inserted = [];
+
+function h1(s){ let h=0; for(const c of s) h=(h*31+c.charCodeAt(0))>>>0; return h%SIZE; }
+function h2(s){ let h=7; for(const c of s) h=(h*17+c.charCodeAt(0)*3)>>>0; return h%SIZE; }
+function h3(s){ let h=13; for(const c of s) h=(h*23+c.charCodeAt(0)*7+11)>>>0; return h%SIZE; }
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+function render(hitSet){
+  document.getElementById('bits').innerHTML = bits.map((b,i)=>{
+    let cls = 'bitbox';
+    if(hitSet && hitSet.has(i)) cls += ' hit';
+    else if(b) cls += ' set';
+    return `<div class="${cls}">${b}</div>`;
+  }).join('');
+  document.getElementById('wordlist').innerHTML = inserted.map(w=>`<span class="wordchip">${w}</span>`).join('');
+}
+
+async function add(key){
+  const positions = [h1(key), h2(key), h3(key)];
+  document.getElementById('status').innerHTML = `hashing "${key}" → positions ${positions.join(', ')}`;
+  render(new Set(positions));
+  await sleep(600);
+  positions.forEach(p=>bits[p]=1);
+  inserted.push(key);
+  render();
+  document.getElementById('status').innerHTML = `inserted "${key}" — set bits at ${positions.join(', ')}`;
+}
+
+async function check(key){
+  const positions = [h1(key), h2(key), h3(key)];
+  document.getElementById('status').innerHTML = `checking "${key}" → positions ${positions.join(', ')}`;
+  render(new Set(positions));
+  await sleep(600);
+  const allSet = positions.every(p=>bits[p]===1);
+  if(allSet){
+    const actuallyInserted = inserted.includes(key);
+    document.getElementById('status').innerHTML = actuallyInserted
+      ? `all bits set — "${key}" is <b>probably present</b> (and it really was inserted)`
+      : `all bits set — "${key}" is <b>probably present</b>... but it was never inserted! This is a false positive caused by bit overlap with other keys.`;
+  } else {
+    document.getElementById('status').innerHTML = `at least one bit is 0 — "${key}" was <b>definitely never inserted</b>`;
+  }
+}
+
+document.getElementById('add').onclick = ()=>{
+  const k = document.getElementById('key').value.trim();
+  if(k) add(k);
+};
+document.getElementById('check').onclick = ()=>{
+  const k = document.getElementById('key').value.trim();
+  if(k) check(k);
+};
+document.getElementById('reset').onclick = ()=>{
+  bits = new Array(SIZE).fill(0); inserted = []; render();
+  document.getElementById('status').textContent = 'bit array of size 24, 3 hash functions';
+};
+
+render();
+['apple','banana'].forEach((k,i)=>setTimeout(()=>add(k), i*700));
+
+</script>
+</body>
+</html>

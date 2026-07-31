@@ -1,0 +1,213 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>segment-tree — study://lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --bg-soft:#f6f7fb; --card:#ffffff; --border:#e5e7eb;
+    --text:#14151a; --muted:#5c5e68; --dim:#9598a3;
+    --accent:#4f46e5; --accent-soft:#eef0ff; --accent-dark:#3c34b8;
+    --good:#16a34a; --good-soft:#e6f7ec;
+    --bad:#e11d48; --bad-soft:#fdeaee;
+    --warn:#f59e0b; --warn-soft:#fef3e0;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+    --shadow:0 1px 2px rgba(16,24,40,.04);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg-soft);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  .navbar-outer{background:var(--card);border-bottom:1px solid var(--border);}
+  nav{display:flex;align-items:center;gap:10px;max-width:1080px;margin:0 auto;padding:16px 24px;}
+  nav .tile{width:26px;height:26px;border-radius:7px;background:var(--accent-dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+  nav a.back{font-weight:600;font-size:13.5px;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:100px;border:1px solid var(--border);transition:all .15s ease;}
+  nav a.back:hover{color:var(--accent-dark);border-color:var(--accent);}
+  nav .crumb{color:var(--dim);font-size:13px;}
+  nav .crumb-current{font-weight:600;color:var(--text);font-size:13px;}
+  header{max-width:1080px;margin:0 auto;padding:20px 24px 8px;}
+  h1{font-weight:800;font-size:clamp(28px,4.5vw,38px);letter-spacing:-0.03em;margin:6px 0 12px;color:var(--accent-dark);}
+  h1 span{color:var(--text);}
+  p.sub{color:var(--muted);max-width:68ch;line-height:1.65;font-size:16px;margin-top:0;}
+  main{max-width:1080px;margin:0 auto;padding:8px 24px 80px;}
+
+  .explain{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px 28px;margin:22px 0;box-shadow:var(--shadow);}
+  .explain h2{font-weight:700;font-size:16px;margin:0 0 12px;}
+  .explain p{color:var(--muted);font-size:15px;line-height:1.75;margin:0 0 12px;}
+  .explain p:last-child{margin-bottom:0;}
+  .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
+  .explain li{margin-bottom:8px;}
+  .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+
+  .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
+  .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
+  .tab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:20px 0 16px;font-size:14px;}
+  input, select{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-size:14px;padding:11px 14px;border-radius:10px;box-shadow:var(--shadow);
+  }
+  button{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-weight:600;font-size:14px;padding:11px 18px;border-radius:100px;
+    cursor:pointer;transition:all .15s ease;box-shadow:var(--shadow);
+  }
+  button:hover{border-color:var(--accent);color:var(--accent);}
+  button.primary{background:var(--good);border-color:var(--good);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.06);}
+  button.primary:hover{background:#15803d;border-color:#15803d;color:#fff;}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+
+  .panel, .stage{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow);}
+  .status{font-size:13px;color:var(--muted);margin-top:14px;}
+  .status b{color:var(--text);}
+  .hint{font-size:13px;color:var(--dim);margin-top:8px;}
+  svg text{font-family:var(--mono);}
+
+
+  .leaves{display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;}
+  .leaf{width:44px;height:44px;display:flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:14px;font-weight:600;background:var(--bg-soft);border:1px solid var(--border);border-radius:8px;}
+  #tree{width:100%;overflow:auto;}
+  .tnode rect{fill:var(--accent-soft);stroke:var(--border);stroke-width:1.5;rx:6;}
+  .tnode.query rect{fill:var(--warn-soft);stroke:var(--warn);stroke-width:2;}
+  .tnode.result rect{fill:var(--good-soft);stroke:var(--good);stroke-width:2.5;}
+  .tnode text{fill:var(--text);font-size:11px;font-weight:600;}
+  .tedge{stroke:var(--border);stroke-width:1.5;}
+
+</style>
+</head>
+<body>
+<div class="navbar-outer"><nav><span class="tile">◆</span><a class="back" href="index.html">study://lab</a><span class="crumb">/</span><span class="crumb-current">segment-tree</span></nav></div>
+<header>
+  <h1>Segment<span> Tree</span></h1>
+  <p class="sub">A tree that pre-combines array ranges so range-sum queries take O(log n) instead of O(n). Build the tree, then query any range and watch it decide which nodes it can trust directly.</p>
+</header>
+<main>
+  <div class="explain">
+    <h2>How it works</h2>
+    
+<p>A plain array answers "sum of a range" in <code>O(n)</code> by adding everything up each time. A segment tree answers the same query in <code>O(log n)</code> by pre-combining ranges into a tree, at the cost of <code>O(n)</code> space and build time.</p>
+<p><b style="color:var(--text)">Building</b> the tree is recursive: each leaf holds one array element, and every internal node holds the sum of its two children's ranges. The root ends up holding the sum of the entire array.</p>
+<p><b style="color:var(--text)">Querying</b> a range walks down from the root: if a node's range sits entirely inside the query range, its precomputed sum is used directly and the tree doesn't need to go any deeper on that branch. If it partially overlaps, the query recurses into both children and adds their results. Only <code>O(log n)</code> nodes ever need to be visited because each level of the tree roughly halves the range being considered.</p>
+
+  </div>
+
+  <div class="controls">
+    <input type="text" id="array" value="2,4,5,7,8,9" placeholder="comma-separated numbers">
+    <button id="build">build tree</button>
+  </div>
+  <div class="leaves" id="leaves"></div>
+  <div class="controls">
+    <label>range [<input type="number" id="ql" value="1" style="width:60px">, <input type="number" id="qr" value="4" style="width:60px">]</label>
+    <button class="primary" id="query">▶ Query sum</button>
+  </div>
+  <div class="panel"><div id="tree"></div></div>
+  <div class="status" id="status">build the tree, then query a range</div>
+
+</main>
+<script>
+
+let arr = [];
+let tree = [];
+let n = 0;
+
+function build(node, start, end){
+  if(start===end){ tree[node] = {sum: arr[start], start, end}; return; }
+  const mid = Math.floor((start+end)/2);
+  build(2*node+1, start, mid);
+  build(2*node+2, mid+1, end);
+  tree[node] = {sum: tree[2*node+1].sum + tree[2*node+2].sum, start, end};
+}
+
+function renderLeaves(){
+  document.getElementById('leaves').innerHTML = arr.map((v,i)=>`<div class="leaf">${v}</div>`).join('');
+}
+
+function layoutAndDraw(highlightIds, resultIds){
+  const positions = {};
+  function layout(node, depth, xMin, xMax){
+    if(!tree[node]) return;
+    const x = (xMin+xMax)/2, y = 30+depth*56;
+    positions[node] = {x,y};
+    if(tree[node].start!==tree[node].end){
+      const mid = Math.floor((tree[node].start+tree[node].end)/2);
+      layout(2*node+1, depth+1, xMin, x);
+      layout(2*node+2, depth+1, x, xMax);
+    }
+  }
+  layout(0,0,20,620);
+  let edges='', nodes='';
+  function draw(node){
+    if(!tree[node]) return;
+    const l=2*node+1, r=2*node+2;
+    if(tree[l]) { edges += `<line class="tedge" x1="${positions[node].x}" y1="${positions[node].y}" x2="${positions[l].x}" y2="${positions[l].y}"/>`; draw(l); }
+    if(tree[r]) { edges += `<line class="tedge" x1="${positions[node].x}" y1="${positions[node].y}" x2="${positions[r].x}" y2="${positions[r].y}"/>`; draw(r); }
+  }
+  draw(0);
+  for(const nodeStr of Object.keys(positions)){
+    const node = +nodeStr;
+    const p = positions[node];
+    const t = tree[node];
+    let cls = 'tnode';
+    if(resultIds && resultIds.has(node)) cls += ' result';
+    else if(highlightIds && highlightIds.has(node)) cls += ' query';
+    nodes += `<g class="${cls}"><rect x="${p.x-24}" y="${p.y-14}" width="48" height="28"/><text x="${p.x}" y="${p.y+4}" text-anchor="middle">${t.sum} [${t.start}-${t.end}]</text></g>`;
+  }
+  const maxY = Math.max(...Object.values(positions).map(p=>p.y)) + 30;
+  document.getElementById('tree').innerHTML = `<svg viewBox="0 0 640 ${maxY}" width="100%" height="${Math.min(maxY,320)}">${edges}${nodes}</svg>`;
+}
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+async function query(node, l, r, visited, result){
+  const t = tree[node];
+  if(r < t.start || t.end < l) return 0;
+  visited.add(node);
+  layoutAndDraw(visited, result);
+  document.getElementById('status').innerHTML = `visiting node covering [${t.start}, ${t.end}] for query [${l}, ${r}]`;
+  await sleep(500);
+  if(l <= t.start && t.end <= r){
+    result.add(node);
+    layoutAndDraw(visited, result);
+    document.getElementById('status').innerHTML = `[${t.start}, ${t.end}] is fully inside [${l}, ${r}] — use precomputed sum ${t.sum} directly`;
+    await sleep(500);
+    return t.sum;
+  }
+  const leftSum = await query(2*node+1, l, r, visited, result);
+  const rightSum = await query(2*node+2, l, r, visited, result);
+  return leftSum + rightSum;
+}
+
+document.getElementById('build').onclick = ()=>{
+  arr = document.getElementById('array').value.split(',').map(s=>parseInt(s.trim())||0);
+  n = arr.length;
+  tree = [];
+  build(0,0,n-1);
+  renderLeaves();
+  layoutAndDraw();
+  document.getElementById('ql').max = n-1;
+  document.getElementById('qr').max = n-1;
+  document.getElementById('status').textContent = 'tree built — try a range query';
+};
+
+document.getElementById('query').onclick = async ()=>{
+  if(tree.length===0){ document.getElementById('status').textContent = 'build the tree first'; return; }
+  document.getElementById('query').disabled = true;
+  const l = Math.max(0, Math.min(n-1, +document.getElementById('ql').value||0));
+  const r = Math.max(0, Math.min(n-1, +document.getElementById('qr').value||0));
+  const visited = new Set(), result = new Set();
+  const sum = await query(0, Math.min(l,r), Math.max(l,r), visited, result);
+  document.getElementById('status').innerHTML = `sum of range [${Math.min(l,r)}, ${Math.max(l,r)}] = <b>${sum}</b>`;
+  document.getElementById('query').disabled = false;
+};
+
+arr = [2,4,5,7,8,9]; n = arr.length;
+build(0,0,n-1);
+renderLeaves();
+layoutAndDraw();
+
+</script>
+</body>
+</html>

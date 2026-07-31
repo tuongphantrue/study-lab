@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>lru-cache — study://lab</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#ffffff; --bg-soft:#f6f7fb; --card:#ffffff; --border:#e5e7eb;
+    --text:#14151a; --muted:#5c5e68; --dim:#9598a3;
+    --accent:#4f46e5; --accent-soft:#eef0ff; --accent-dark:#3c34b8;
+    --good:#16a34a; --good-soft:#e6f7ec;
+    --bad:#e11d48; --bad-soft:#fdeaee;
+    --warn:#f59e0b; --warn-soft:#fef3e0;
+    --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
+    --sans:'Inter',system-ui,-apple-system,sans-serif;
+    --shadow:0 1px 2px rgba(16,24,40,.04);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg-soft);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
+  .navbar-outer{background:var(--card);border-bottom:1px solid var(--border);}
+  nav{display:flex;align-items:center;gap:10px;max-width:1080px;margin:0 auto;padding:16px 24px;}
+  nav .tile{width:26px;height:26px;border-radius:7px;background:var(--accent-dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
+  nav a.back{font-weight:600;font-size:13.5px;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:100px;border:1px solid var(--border);transition:all .15s ease;}
+  nav a.back:hover{color:var(--accent-dark);border-color:var(--accent);}
+  nav .crumb{color:var(--dim);font-size:13px;}
+  nav .crumb-current{font-weight:600;color:var(--text);font-size:13px;}
+  header{max-width:1080px;margin:0 auto;padding:20px 24px 8px;}
+  h1{font-weight:800;font-size:clamp(28px,4.5vw,38px);letter-spacing:-0.03em;margin:6px 0 12px;color:var(--accent-dark);}
+  h1 span{color:var(--text);}
+  p.sub{color:var(--muted);max-width:68ch;line-height:1.65;font-size:16px;margin-top:0;}
+  main{max-width:1080px;margin:0 auto;padding:8px 24px 80px;}
+
+  .explain{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px 28px;margin:22px 0;box-shadow:var(--shadow);}
+  .explain h2{font-weight:700;font-size:16px;margin:0 0 12px;}
+  .explain p{color:var(--muted);font-size:15px;line-height:1.75;margin:0 0 12px;}
+  .explain p:last-child{margin-bottom:0;}
+  .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
+  .explain li{margin-bottom:8px;}
+  .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+
+  .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
+  .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
+  .tab.active{border-color:var(--accent);color:var(--accent);background:var(--accent-soft);}
+
+  .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:20px 0 16px;font-size:14px;}
+  input, select{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-size:14px;padding:11px 14px;border-radius:10px;box-shadow:var(--shadow);
+  }
+  button{
+    background:var(--card);border:1px solid var(--border);color:var(--text);
+    font-family:var(--sans);font-weight:600;font-size:14px;padding:11px 18px;border-radius:100px;
+    cursor:pointer;transition:all .15s ease;box-shadow:var(--shadow);
+  }
+  button:hover{border-color:var(--accent);color:var(--accent);}
+  button.primary{background:var(--good);border-color:var(--good);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.06);}
+  button.primary:hover{background:#15803d;border-color:#15803d;color:#fff;}
+  button:disabled{opacity:.4;cursor:not-allowed;}
+
+  .panel, .stage{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow);}
+  .status{font-size:13px;color:var(--muted);margin-top:14px;}
+  .status b{color:var(--text);}
+  .hint{font-size:13px;color:var(--dim);margin-top:8px;}
+  svg text{font-family:var(--mono);}
+
+
+  .listview{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:20px;}
+  .litem{
+    font-family:var(--mono);font-size:13px;background:var(--accent-soft);border:1px solid var(--accent);
+    border-radius:10px;padding:10px 14px;color:var(--accent-dark);font-weight:600;transition:all .2s ease;
+  }
+  .litem.mru{border-color:var(--good);background:var(--good-soft);color:var(--good);}
+  .litem.evicting{border-color:var(--bad);background:var(--bad-soft);color:var(--bad);}
+  .arrow2{color:var(--dim);font-weight:700;}
+  .maplabel{font-size:12px;color:var(--dim);margin-bottom:8px;font-weight:600;}
+
+</style>
+</head>
+<body>
+<div class="navbar-outer"><nav><span class="tile">◆</span><a class="back" href="index.html">study://lab</a><span class="crumb">/</span><span class="crumb-current">lru-cache</span></nav></div>
+<header>
+  <h1>LRU<span> Cache</span></h1>
+  <p class="sub">A hash map for O(1) lookup, plus an ordering for O(1) eviction. Access a key and watch it jump to the front — fill the cache past capacity and watch the oldest key get evicted.</p>
+</header>
+<main>
+  <div class="explain">
+    <h2>How it works</h2>
+    
+<p>An LRU (least-recently-used) cache needs two operations to be fast: <b style="color:var(--text)">look up a key</b>, and <b style="color:var(--text)">know which item was touched longest ago</b>. Neither structure alone gives you both cheaply — a hash map gives O(1) lookup but no ordering; a plain list gives ordering but O(n) lookup — so the cache combines them.</p>
+<p>A <b style="color:var(--text)">doubly linked list</b> keeps every key in order from most- to least-recently used. A <b style="color:var(--text)">hash map</b> stores key → node, so any key can jump straight to its spot in the list in O(1), instead of scanning for it.</p>
+<p>On every <code>get</code> or <code>put</code>, the touched node is unlinked and moved to the front (most-recent end) — O(1) because doubly-linked nodes know their own neighbors. When the cache is full and a new key arrives, the node at the back (least-recently used) is evicted.</p>
+
+  </div>
+
+  <div class="controls">
+    <label>capacity <input type="number" id="cap" value="4" min="2" max="8" style="width:70px"></label>
+    <input type="text" id="key" placeholder="key" value="a">
+    <button class="primary" id="access">get/put(key)</button>
+    <button id="reset">reset</button>
+  </div>
+  <div class="maplabel">most recent ← → least recent</div>
+  <div class="listview" id="listview"></div>
+  <div class="status" id="status">cache is empty</div>
+
+</main>
+<script>
+
+let cap = 4;
+let order = []; // front = most recent
+
+function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+
+function render(highlight, evicting){
+  document.getElementById('listview').innerHTML = order.map((k,i)=>{
+    let cls = 'litem';
+    if(i===0 && k===highlight) cls += ' mru';
+    if(k===evicting) cls += ' evicting';
+    return `<span class="${cls}">${k}</span>` + (i<order.length-1?'<span class="arrow2"> → </span>':'');
+  }).join('') || '<span style="color:var(--dim);font-size:13px;">empty</span>';
+}
+
+async function access(key){
+  cap = Math.max(2, Math.min(8, +document.getElementById('cap').value||4));
+  const idx = order.indexOf(key);
+  if(idx!==-1){
+    document.getElementById('status').innerHTML = `cache hit on "${key}" — moving it to the front (most recent)`;
+    order.splice(idx,1);
+    order.unshift(key);
+    render(key);
+    await sleep(500);
+  } else {
+    document.getElementById('status').innerHTML = `cache miss on "${key}" — inserting at the front`;
+    order.unshift(key);
+    render(key);
+    await sleep(500);
+    if(order.length > cap){
+      const evicted = order[order.length-1];
+      render(key, evicted);
+      document.getElementById('status').innerHTML = `cache full — evicting least-recently-used: "<b>${evicted}</b>"`;
+      await sleep(600);
+      order.pop();
+    }
+  }
+  render();
+  document.getElementById('status').innerHTML = `order (most → least recent): <b>${order.join(', ')}</b>`;
+}
+
+document.getElementById('access').onclick = ()=>{
+  const k = document.getElementById('key').value.trim();
+  if(k) access(k);
+};
+document.getElementById('reset').onclick = ()=>{ order=[]; render(); document.getElementById('status').textContent='cache is empty'; };
+render();
+
+</script>
+</body>
+</html>
