@@ -10,7 +10,7 @@
   :root{
     --bg:#ffffff; --bg-soft:#f6f7fb; --card:#ffffff; --border:#e5e7eb;
     --text:#14151a; --muted:#5c5e68; --dim:#9598a3;
-    --accent:#4f46e5; --accent-soft:#eef0ff; --accent-dark:#3c34b8;
+    --accent:#2563eb; --accent-soft:#eff6ff; --accent-dark:#1d4ed8;
     --good:#16a34a; --good-soft:#e6f7ec;
     --bad:#e11d48; --bad-soft:#fdeaee;
     --warn:#f59e0b; --warn-soft:#fef3e0;
@@ -21,17 +21,26 @@
   *{box-sizing:border-box;}
   body{margin:0;background:var(--bg-soft);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
   .navbar-outer{background:var(--card);border-bottom:1px solid var(--border);}
-  nav{display:flex;align-items:center;gap:10px;max-width:1080px;margin:0 auto;padding:16px 24px;}
+  nav{display:flex;align-items:center;gap:10px;padding:14px 24px;}
   nav .tile{width:26px;height:26px;border-radius:7px;background:var(--accent-dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
   nav a.back{font-weight:600;font-size:13.5px;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:100px;border:1px solid var(--border);transition:all .15s ease;}
   nav a.back:hover{color:var(--accent-dark);border-color:var(--accent);}
+  nav .navsearch{
+    display:flex;align-items:center;gap:8px;background:var(--bg-soft);border:1px solid var(--border);
+    border-radius:8px;padding:8px 12px;color:var(--dim);font-size:13px;max-width:260px;margin-left:auto;
+  }
+  nav .navsearch .kbd{
+    margin-left:auto;font-family:var(--mono);font-size:10.5px;background:var(--card);border:1px solid var(--border);
+    border-radius:4px;padding:2px 6px;color:var(--dim);
+  }
+  @media (max-width:700px){ nav .navsearch{display:none;} }
   nav .crumb{color:var(--dim);font-size:13px;}
   nav .crumb-current{font-weight:600;color:var(--text);font-size:13px;}
-  header{max-width:1080px;margin:0 auto;padding:20px 24px 8px;}
+  header{max-width:900px;margin:0;padding:24px 32px 8px;}
   h1{font-weight:800;font-size:clamp(28px,4.5vw,38px);letter-spacing:-0.03em;margin:6px 0 12px;color:var(--accent-dark);}
   h1 span{color:var(--text);}
   p.sub{color:var(--muted);max-width:68ch;line-height:1.65;font-size:16px;margin-top:0;}
-  main{max-width:1080px;margin:0 auto;padding:8px 24px 80px;}
+  main{max-width:900px;margin:0;padding:8px 32px 80px;}
 
   .explain{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px 28px;margin:22px 0;box-shadow:var(--shadow);}
   .explain h2{font-weight:700;font-size:16px;margin:0 0 12px;}
@@ -56,8 +65,8 @@
     cursor:pointer;transition:all .15s ease;box-shadow:var(--shadow);
   }
   button:hover{border-color:var(--accent);color:var(--accent);}
-  button.primary{background:var(--good);border-color:var(--good);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.06);}
-  button.primary:hover{background:#15803d;border-color:#15803d;color:#fff;}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.06);}
+  button.primary:hover{background:var(--accent-dark);border-color:var(--accent-dark);color:#fff;}
   button:disabled{opacity:.4;cursor:not-allowed;}
 
   .panel, .stage{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px;box-shadow:var(--shadow);}
@@ -76,10 +85,89 @@
   .aitem{font-family:var(--mono);font-size:13px;background:var(--bg-soft);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-weight:600;}
   .aitem.active{background:var(--warn-soft);border-color:var(--warn);}
 
+
+  .layout{display:flex;align-items:flex-start;}
+  .sidebar{
+    width:230px;flex-shrink:0;background:var(--card);border-right:1px solid var(--border);
+    padding:18px 12px 40px;position:sticky;top:0;height:100vh;overflow-y:auto;
+  }
+  .sidebar a.navitem{
+    display:block;padding:8px 12px;border-radius:8px;color:var(--muted);text-decoration:none;
+    font-size:13.5px;font-weight:500;margin-bottom:2px;transition:all .12s ease;
+  }
+  .sidebar a.navitem:hover{background:var(--bg-soft);color:var(--text);}
+  .sidebar a.navitem.active{background:var(--accent-soft);color:var(--accent-dark);font-weight:700;}
+  .sidebar a.navitem.overview{font-weight:700;color:var(--text);margin-bottom:14px;padding-left:12px;}
+  .sidebar a.navitem.overview.active{background:var(--accent-soft);color:var(--accent-dark);}
+  .navgroup{margin-bottom:18px;}
+  .navgroup-label{
+    font-size:10.5px;font-weight:700;color:var(--dim);text-transform:uppercase;
+    letter-spacing:.07em;padding:0 12px;margin-bottom:6px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .navgroup-label .chev{font-size:11px;font-weight:400;color:var(--dim);text-transform:none;letter-spacing:0;}
+  .main-content{flex:1;min-width:0;}
+  @media (max-width:820px){
+    .layout{flex-direction:column;}
+    .sidebar{width:100%;height:auto;position:relative;border-right:none;border-bottom:1px solid var(--border);
+      display:flex;flex-wrap:wrap;gap:4px;padding:12px;}
+    .navgroup{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:8px;}
+    .navgroup-label{width:100%;}
+    .sidebar a.navitem.overview{margin-bottom:0;}
+  }
+
+  .codebox{background:#0d1117;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:20px 0;box-shadow:var(--shadow);}
+  .codetabs{display:flex;gap:2px;background:#161b22;padding:8px 8px 0;overflow-x:auto;}
+  .codetab{background:transparent;border:none;color:#8b949e;font-family:var(--mono);font-size:12.5px;font-weight:600;
+    padding:8px 14px;border-radius:6px 6px 0 0;cursor:pointer;white-space:nowrap;}
+  .codetab.active{background:#0d1117;color:#e6edf3;}
+  .codetab:hover:not(.active){color:#c9d1d9;}
+  pre.codeblock{margin:0;padding:18px 20px;overflow-x:auto;max-height:480px;}
+  pre.codeblock code{font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#e6edf3;white-space:pre;}
+  .code-heading{font-weight:700;font-size:16px;margin:28px 0 4px;color:var(--text);}
 </style>
 </head>
 <body>
-<div class="navbar-outer"><nav><span class="tile">◆</span><a class="back" href="index.html">study://lab</a><span class="crumb">/</span><span class="crumb-current">heap</span></nav></div>
+<div class="navbar-outer"><nav><span class="tile">◆</span><a class="back" href="index.html">study://lab</a><span class="crumb">/</span><span class="crumb-current">heap</span><span class="navsearch">⌕ Search topics... <span class="kbd">Ctrl K</span></span></nav></div>
+<div class="layout">
+<aside class="sidebar">
+  <a class="navitem overview" href="index.html">◆ Overview</a>
+  <div class="navgroup">
+    <div class="navgroup-label">Fundamentals <span class="chev">⌄</span></div>
+    <a class="navitem" href="pathfinding.html">Pathfinding</a>
+    <a class="navitem" href="searching.html">Searching</a>
+    <a class="navitem" href="sorting-comparison.html">Sorting Comparison</a>
+    <a class="navitem" href="recursion.html">Recursion</a>
+    <a class="navitem" href="bitwise.html">Bitwise Ops</a>
+    <a class="navitem" href="big-number-exponentiation.html">Fast Exponentiation</a>
+  </div>
+  <div class="navgroup">
+    <div class="navgroup-label">Data Structures <span class="chev">⌄</span></div>
+    <a class="navitem" href="data-structures.html">Data Structures</a>
+    <a class="navitem" href="trie.html">Trie</a>
+    <a class="navitem active" href="heap.html">Heap / Priority Queue</a>
+    <a class="navitem" href="union-find.html">Union-Find</a>
+    <a class="navitem" href="hashtable.html">Hash Table</a>
+    <a class="navitem" href="lru-cache.html">LRU Cache</a>
+    <a class="navitem" href="segment-tree.html">Segment Tree</a>
+    <a class="navitem" href="bloom-filter.html">Bloom Filter</a>
+  </div>
+  <div class="navgroup">
+    <div class="navgroup-label">Graphs <span class="chev">⌄</span></div>
+    <a class="navitem" href="graph-algorithms.html">Graph Algorithms</a>
+    <a class="navitem" href="topological-sort.html">Topological Sort</a>
+    <a class="navitem" href="consistent-hashing.html">Consistent Hashing</a>
+  </div>
+  <div class="navgroup">
+    <div class="navgroup-label">Patterns <span class="chev">⌄</span></div>
+    <a class="navitem" href="sliding-window.html">Sliding Window</a>
+    <a class="navitem" href="dp.html">Dynamic Programming</a>
+    <a class="navitem" href="regex.html">Regex Engine</a>
+    <a class="navitem" href="fsm.html">Finite State Machine</a>
+    <a class="navitem" href="huffman-coding.html">Huffman Coding</a>
+  </div>
+</aside>
+<div class="main-content">
 <header>
   <h1>Heap<span> / Priority Queue</span></h1>
   <p class="sub">A binary min-heap always keeps the smallest value at the root. Insert a value and watch it sift up; extract the min and watch the last element sift back down into place.</p>
@@ -95,7 +183,144 @@
 
   </div>
 
-  <div class="controls">
+<div class="code-heading">Code</div>
+<div class="codebox">
+  <div class="codetabs">
+    <button class="codetab active" data-lang="pseudo">Pseudocode</button>
+    <button class="codetab" data-lang="python">Python</button>
+    <button class="codetab" data-lang="js">JavaScript</button>
+    <button class="codetab" data-lang="java">Java</button>
+    <button class="codetab" data-lang="cpp">C++</button>
+  </div>
+  <pre class="codeblock" data-lang="pseudo"><code>function insert(heap, value):
+    heap.append(value)                          // add at the next open spot (keeps it balanced)
+    i &lt;- length(heap) - 1                        // start at the newly inserted position
+    while i &gt; 0 and heap[parent(i)] &gt; heap[i]:    // while the new value is smaller than its parent
+        swap(heap[parent(i)], heap[i])              // bubble it upward
+        i &lt;- parent(i)                              // continue checking from the new position
+
+function extractMin(heap):
+    min &lt;- heap[0]                              // the root is always the smallest value
+    heap[0] &lt;- heap.removeLast()                 // move the last element into the root's spot
+    siftDown(heap, 0)                            // restore the heap property from the top
+    return min
+
+function siftDown(heap, i):
+    smallest &lt;- i
+    l &lt;- 2*i + 1, r &lt;- 2*i + 2                  // indices of the two children
+    if l &lt; size and heap[l] &lt; heap[smallest]: smallest &lt;- l   // left child is smaller
+    if r &lt; size and heap[r] &lt; heap[smallest]: smallest &lt;- r   // right child is smaller still
+    if smallest != i:                            // a child was smaller than the current node
+        swap(heap[i], heap[smallest])              // swap it up
+        siftDown(heap, smallest)                    // keep sifting down from the new position</code></pre>
+  <pre class="codeblock" data-lang="python" style="display:none"><code># Python's heapq is a ready-made binary min-heap over a plain list
+import heapq
+
+heap = []
+heapq.heappush(heap, 5)   # insert, maintains heap order automatically
+heapq.heappush(heap, 2)
+heapq.heappush(heap, 8)
+
+smallest = heapq.heappop(heap)  # extract-min, O(log n)
+
+# Manual implementation, for reference:
+def sift_up(heap, i):
+    while i &gt; 0:
+        parent = (i - 1) // 2          # index arithmetic for a binary heap stored as an array
+        if heap[i] &lt; heap[parent]:      # child smaller than its parent: violates heap order
+            heap[i], heap[parent] = heap[parent], heap[i]   # bubble it upward
+            i = parent                    # continue checking from the new position
+        else:
+            break                       # heap order restored, stop early
+
+def sift_down(heap, i):
+    n = len(heap)
+    while True:
+        smallest, l, r = i, 2*i+1, 2*i+2      # indices of the two children
+        if l &lt; n and heap[l] &lt; heap[smallest]: smallest = l   # left child is smaller
+        if r &lt; n and heap[r] &lt; heap[smallest]: smallest = r   # right child is smaller still
+        if smallest == i: break                # no child smaller: heap order restored
+        heap[i], heap[smallest] = heap[smallest], heap[i]   # swap the smaller child up
+        i = smallest                            # keep sifting down from the new position</code></pre>
+  <pre class="codeblock" data-lang="js" style="display:none"><code>// JavaScript has no built-in heap — a minimal manual version:
+class MinHeap {
+  constructor() { this.heap = []; }
+
+  insert(value) {
+    this.heap.push(value);           // add at the next open spot (keeps it balanced)
+    let i = this.heap.length - 1;     // start at the newly inserted position
+    while (i &gt; 0) {
+      const parent = Math.floor((i - 1) / 2);   // index arithmetic for an array-backed heap
+      if (this.heap[i] &lt; this.heap[parent]) {     // smaller than its parent: violates order
+        [this.heap[i], this.heap[parent]] = [this.heap[parent], this.heap[i]]; // bubble up
+        i = parent;                                 // continue checking from the new position
+      } else break;                                // heap order restored, stop early
+    }
+  }
+
+  extractMin() {
+    const min = this.heap[0];          // the root is always the smallest value
+    const last = this.heap.pop();       // remove the last element
+    if (this.heap.length &gt; 0) {
+      this.heap[0] = last;               // move it into the now-empty root
+      this.siftDown(0);                  // restore heap order from the top
+    }
+    return min;
+  }
+
+  siftDown(i) {
+    const n = this.heap.length;
+    while (true) {
+      let smallest = i, l = 2*i+1, r = 2*i+2;   // indices of the two children
+      if (l &lt; n &amp;&amp; this.heap[l] &lt; this.heap[smallest]) smallest = l;  // left child smaller
+      if (r &lt; n &amp;&amp; this.heap[r] &lt; this.heap[smallest]) smallest = r;  // right child smaller
+      if (smallest === i) break;                  // no child smaller: order restored
+      [this.heap[i], this.heap[smallest]] = [this.heap[smallest], this.heap[i]]; // swap down
+      i = smallest;                                 // continue from the new position
+    }
+  }
+}</code></pre>
+  <pre class="codeblock" data-lang="java" style="display:none"><code>// Java's PriorityQueue is a ready-made binary min-heap
+PriorityQueue&lt;Integer&gt; heap = new PriorityQueue&lt;&gt;();
+heap.add(5);   // insert, maintains heap order automatically
+heap.add(2);
+heap.add(8);
+
+int smallest = heap.poll(); // extract-min, O(log n)
+
+// Manual sift-down, for reference:
+static void siftDown(int[] heap, int i, int size) {
+    while (true) {
+        int smallest = i, l = 2*i+1, r = 2*i+2;   // indices of the two children
+        if (l &lt; size &amp;&amp; heap[l] &lt; heap[smallest]) smallest = l;  // left child smaller
+        if (r &lt; size &amp;&amp; heap[r] &lt; heap[smallest]) smallest = r;  // right child smaller
+        if (smallest == i) break;                   // no child smaller: order restored
+        int tmp = heap[i]; heap[i] = heap[smallest]; heap[smallest] = tmp;  // swap down
+        i = smallest;                                 // continue from the new position
+    }
+}</code></pre>
+  <pre class="codeblock" data-lang="cpp" style="display:none"><code>// std::priority_queue is a ready-made binary max-heap
+// (pass greater&lt;&gt; for a min-heap, as below)
+priority_queue&lt;int, vector&lt;int&gt;, greater&lt;int&gt;&gt; heap;
+heap.push(5);   // insert, maintains heap order automatically
+heap.push(2);
+heap.push(8);
+
+int smallest = heap.top(); heap.pop(); // extract-min, O(log n)
+
+// Manual sift-down, for reference:
+void siftDown(vector&lt;int&gt;&amp; heap, int i, int size) {
+    while (true) {
+        int smallest = i, l = 2*i+1, r = 2*i+2;   // indices of the two children
+        if (l &lt; size &amp;&amp; heap[l] &lt; heap[smallest]) smallest = l;  // left child smaller
+        if (r &lt; size &amp;&amp; heap[r] &lt; heap[smallest]) smallest = r;  // right child smaller
+        if (smallest == i) break;                   // no child smaller: order restored
+        swap(heap[i], heap[smallest]);                // swap the smaller child up
+        i = smallest;                                  // continue from the new position
+    }
+}</code></pre>
+</div>
+<div class="controls">
     <input type="number" id="val" value="5" placeholder="value">
     <button class="primary" id="insert">insert</button>
     <button id="extract">extract-min</button>
@@ -106,6 +331,22 @@
   <div class="status" id="status">heap is empty</div>
 
 </main>
+</div>
+</div>
+<script>
+document.querySelectorAll('.codetabs').forEach(tabs=>{
+  tabs.addEventListener('click', e=>{
+    const btn = e.target.closest('.codetab');
+    if(!btn) return;
+    const box = tabs.parentElement;
+    tabs.querySelectorAll('.codetab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    box.querySelectorAll('.codeblock').forEach(p=>{
+      p.style.display = p.dataset.lang===btn.dataset.lang ? 'block' : 'none';
+    });
+  });
+});
+</script>
 <script>
 
 let heap = [];

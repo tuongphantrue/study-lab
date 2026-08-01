@@ -10,7 +10,7 @@
   :root{
     --bg:#ffffff; --bg-soft:#f6f7fb; --card:#ffffff; --border:#e5e7eb;
     --text:#14151a; --muted:#5c5e68; --dim:#9598a3;
-    --accent:#4f46e5; --accent-soft:#eef0ff; --accent-dark:#3c34b8;
+    --accent:#2563eb; --accent-soft:#eff6ff; --accent-dark:#1d4ed8;
     --good:#16a34a; --good-soft:#e6f7ec;
     --bad:#e11d48; --bad-soft:#fdeaee;
     --mono:'IBM Plex Mono',ui-monospace,Consolas,monospace;
@@ -20,17 +20,26 @@
   *{box-sizing:border-box;}
   body{margin:0;background:var(--bg-soft);color:var(--text);font-family:var(--sans);-webkit-font-smoothing:antialiased;}
   .navbar-outer{background:var(--card);border-bottom:1px solid var(--border);}
-  nav{display:flex;align-items:center;gap:10px;max-width:1080px;margin:0 auto;padding:16px 24px;}
+  nav{display:flex;align-items:center;gap:10px;padding:14px 24px;}
   nav .tile{width:26px;height:26px;border-radius:7px;background:var(--accent-dark);color:#fff;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;}
   nav a.back{font-weight:600;font-size:13.5px;color:var(--muted);text-decoration:none;padding:7px 14px;border-radius:100px;border:1px solid var(--border);transition:all .15s ease;}
   nav a.back:hover{color:var(--accent-dark);border-color:var(--accent);}
+  nav .navsearch{
+    display:flex;align-items:center;gap:8px;background:var(--bg-soft);border:1px solid var(--border);
+    border-radius:8px;padding:8px 12px;color:var(--dim);font-size:13px;max-width:260px;margin-left:auto;
+  }
+  nav .navsearch .kbd{
+    margin-left:auto;font-family:var(--mono);font-size:10.5px;background:var(--card);border:1px solid var(--border);
+    border-radius:4px;padding:2px 6px;color:var(--dim);
+  }
+  @media (max-width:700px){ nav .navsearch{display:none;} }
   nav .crumb{color:var(--dim);font-size:13px;}
   nav .crumb-current{font-weight:600;color:var(--text);font-size:13px;}
-  header{max-width:1080px;margin:0 auto;padding:20px 24px 8px;}
+  header{max-width:900px;margin:0;padding:24px 32px 8px;}
   h1{font-weight:800;font-size:clamp(28px,4.5vw,38px);letter-spacing:-0.03em;margin:6px 0 12px;color:var(--accent-dark);}
   h1 span{color:var(--text);}
   p.sub{color:var(--muted);max-width:68ch;line-height:1.65;font-size:16px;margin-top:0;}
-  main{max-width:1080px;margin:0 auto;padding:8px 24px 80px;}
+  main{max-width:900px;margin:0;padding:8px 32px 80px;}
 
   .explain{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:24px 28px;margin:22px 0;box-shadow:var(--shadow);}
   .explain h2{font-weight:700;font-size:16px;margin:0 0 12px;}
@@ -49,8 +58,8 @@
     cursor:pointer;transition:all .15s ease;box-shadow:var(--shadow);
   }
   button:hover{border-color:var(--accent);color:var(--accent);}
-  button.primary{background:var(--good);border-color:var(--good);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.06);}
-  button.primary:hover{background:#15803d;border-color:#15803d;color:#fff;}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;box-shadow:0 1px 2px rgba(16,24,40,.06);}
+  button.primary:hover{background:var(--accent-dark);border-color:var(--accent-dark);color:#fff;}
   button:disabled{opacity:.4;cursor:not-allowed;}
   .note{font-size:13px;color:var(--dim);margin-bottom:18px;}
   .note b{font-weight:600;}
@@ -71,10 +80,89 @@
   .result{font-weight:700;font-size:15px;margin-top:12px;}
   .result.ok{color:var(--good);}
   .result.bad{color:var(--bad);}
+
+  .layout{display:flex;align-items:flex-start;}
+  .sidebar{
+    width:230px;flex-shrink:0;background:var(--card);border-right:1px solid var(--border);
+    padding:18px 12px 40px;position:sticky;top:0;height:100vh;overflow-y:auto;
+  }
+  .sidebar a.navitem{
+    display:block;padding:8px 12px;border-radius:8px;color:var(--muted);text-decoration:none;
+    font-size:13.5px;font-weight:500;margin-bottom:2px;transition:all .12s ease;
+  }
+  .sidebar a.navitem:hover{background:var(--bg-soft);color:var(--text);}
+  .sidebar a.navitem.active{background:var(--accent-soft);color:var(--accent-dark);font-weight:700;}
+  .sidebar a.navitem.overview{font-weight:700;color:var(--text);margin-bottom:14px;padding-left:12px;}
+  .sidebar a.navitem.overview.active{background:var(--accent-soft);color:var(--accent-dark);}
+  .navgroup{margin-bottom:18px;}
+  .navgroup-label{
+    font-size:10.5px;font-weight:700;color:var(--dim);text-transform:uppercase;
+    letter-spacing:.07em;padding:0 12px;margin-bottom:6px;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .navgroup-label .chev{font-size:11px;font-weight:400;color:var(--dim);text-transform:none;letter-spacing:0;}
+  .main-content{flex:1;min-width:0;}
+  @media (max-width:820px){
+    .layout{flex-direction:column;}
+    .sidebar{width:100%;height:auto;position:relative;border-right:none;border-bottom:1px solid var(--border);
+      display:flex;flex-wrap:wrap;gap:4px;padding:12px;}
+    .navgroup{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:8px;}
+    .navgroup-label{width:100%;}
+    .sidebar a.navitem.overview{margin-bottom:0;}
+  }
+
+  .codebox{background:#0d1117;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:20px 0;box-shadow:var(--shadow);}
+  .codetabs{display:flex;gap:2px;background:#161b22;padding:8px 8px 0;overflow-x:auto;}
+  .codetab{background:transparent;border:none;color:#8b949e;font-family:var(--mono);font-size:12.5px;font-weight:600;
+    padding:8px 14px;border-radius:6px 6px 0 0;cursor:pointer;white-space:nowrap;}
+  .codetab.active{background:#0d1117;color:#e6edf3;}
+  .codetab:hover:not(.active){color:#c9d1d9;}
+  pre.codeblock{margin:0;padding:18px 20px;overflow-x:auto;max-height:480px;}
+  pre.codeblock code{font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#e6edf3;white-space:pre;}
+  .code-heading{font-weight:700;font-size:16px;margin:28px 0 4px;color:var(--text);}
 </style>
 </head>
 <body>
-<div class="navbar-outer"><nav><span class="tile">◆</span><a class="back" href="index.html">study://lab</a><span class="crumb">/</span><span class="crumb-current">regex-engine</span></nav></div>
+<div class="navbar-outer"><nav><span class="tile">◆</span><a class="back" href="index.html">study://lab</a><span class="crumb">/</span><span class="crumb-current">regex-engine</span><span class="navsearch">⌕ Search topics... <span class="kbd">Ctrl K</span></span></nav></div>
+<div class="layout">
+<aside class="sidebar">
+  <a class="navitem overview" href="index.html">◆ Overview</a>
+  <div class="navgroup">
+    <div class="navgroup-label">Fundamentals <span class="chev">⌄</span></div>
+    <a class="navitem" href="pathfinding.html">Pathfinding</a>
+    <a class="navitem" href="searching.html">Searching</a>
+    <a class="navitem" href="sorting-comparison.html">Sorting Comparison</a>
+    <a class="navitem" href="recursion.html">Recursion</a>
+    <a class="navitem" href="bitwise.html">Bitwise Ops</a>
+    <a class="navitem" href="big-number-exponentiation.html">Fast Exponentiation</a>
+  </div>
+  <div class="navgroup">
+    <div class="navgroup-label">Data Structures <span class="chev">⌄</span></div>
+    <a class="navitem" href="data-structures.html">Data Structures</a>
+    <a class="navitem" href="trie.html">Trie</a>
+    <a class="navitem" href="heap.html">Heap / Priority Queue</a>
+    <a class="navitem" href="union-find.html">Union-Find</a>
+    <a class="navitem" href="hashtable.html">Hash Table</a>
+    <a class="navitem" href="lru-cache.html">LRU Cache</a>
+    <a class="navitem" href="segment-tree.html">Segment Tree</a>
+    <a class="navitem" href="bloom-filter.html">Bloom Filter</a>
+  </div>
+  <div class="navgroup">
+    <div class="navgroup-label">Graphs <span class="chev">⌄</span></div>
+    <a class="navitem" href="graph-algorithms.html">Graph Algorithms</a>
+    <a class="navitem" href="topological-sort.html">Topological Sort</a>
+    <a class="navitem" href="consistent-hashing.html">Consistent Hashing</a>
+  </div>
+  <div class="navgroup">
+    <div class="navgroup-label">Patterns <span class="chev">⌄</span></div>
+    <a class="navitem" href="sliding-window.html">Sliding Window</a>
+    <a class="navitem" href="dp.html">Dynamic Programming</a>
+    <a class="navitem active" href="regex.html">Regex Engine</a>
+    <a class="navitem" href="fsm.html">Finite State Machine</a>
+    <a class="navitem" href="huffman-coding.html">Huffman Coding</a>
+  </div>
+</aside>
+<div class="main-content">
 <header>
   <h1>Regex<span>-engine</span></h1>
   <p class="sub">A simplified engine supporting literals, <code>.</code> (any char), <code>*</code> (zero or more of the previous token), and <code>+</code> (one or more). Watch it try to match the pattern against the string, position by position.</p>
@@ -86,7 +174,82 @@
     <p>A <code>*</code> or <code>+</code> token is where it gets interesting, because "zero or more" doesn't say exactly how many to take. This engine is <b style="color:var(--text)">greedy with backtracking</b>: it first grabs as many repeats as it can, then tries to match the rest of the pattern against what's left. If that fails, it gives back one repeat and tries again with one fewer — repeating until either the rest of the pattern matches, or there are no repeats left to give back (at which point that whole attempt fails). That "grab everything, then give back one at a time on failure" is exactly why it's called backtracking.</p>
     <p>Because the pattern isn't anchored to the start, the engine also retries the whole process starting from position 0, then 1, then 2, and so on — a match anywhere in the string counts as success, same as a plain <code>.match()</code> in most languages without a leading <code>^</code>.</p>
   </div>
-  <div class="controls">
+<div class="code-heading">Code</div>
+<div class="codebox">
+  <div class="codetabs">
+    <button class="codetab active" data-lang="pseudo">Pseudocode</button>
+    <button class="codetab" data-lang="python">Python</button>
+    <button class="codetab" data-lang="js">JavaScript</button>
+    <button class="codetab" data-lang="java">Java</button>
+    <button class="codetab" data-lang="cpp">C++</button>
+  </div>
+  <pre class="codeblock" data-lang="pseudo"><code>function match(text, pattern):
+    if pattern is empty:
+        return text is empty                    // both exhausted together: a full match
+
+    firstMatches &lt;- text is not empty and (pattern[0] == text[0] or pattern[0] == '.')
+
+    if length(pattern) &gt;= 2 and pattern[1] == '*':
+        // zero occurrences, or one occurrence + retry
+        return match(text, pattern[2:]) or                          // skip the starred token
+               (firstMatches and match(text[1:], pattern))            // consume one, stay on it
+
+    return firstMatches and match(text[1:], pattern[1:])   // consume one character from each</code></pre>
+  <pre class="codeblock" data-lang="python" style="display:none"><code>def is_match(text, pattern):
+    if not pattern:
+        return not text                          # both exhausted together: a full match
+
+    first_matches = bool(text) and pattern[0] in (text[0], '.')  # does the first token match?
+
+    if len(pattern) &gt;= 2 and pattern[1] == '*':
+        # zero occurrences, or one occurrence + retry
+        return (is_match(text, pattern[2:]) or             # skip the starred token entirely
+                (first_matches and is_match(text[1:], pattern)))  # consume one, stay on same token
+
+    return first_matches and is_match(text[1:], pattern[1:])  # consume one char from each side</code></pre>
+  <pre class="codeblock" data-lang="js" style="display:none"><code>function isMatch(text, pattern) {
+  if (pattern.length === 0) return text.length === 0;  // both exhausted: a full match
+
+  const firstMatches = text.length &gt; 0 &amp;&amp; (pattern[0] === text[0] || pattern[0] === '.');
+
+  if (pattern.length &gt;= 2 &amp;&amp; pattern[1] === '*') {
+    // zero occurrences, or one occurrence + retry
+    return isMatch(text, pattern.slice(2)) ||                    // skip the starred token
+           (firstMatches &amp;&amp; isMatch(text.slice(1), pattern));     // consume one, stay on it
+  }
+
+  return firstMatches &amp;&amp; isMatch(text.slice(1), pattern.slice(1));  // consume from both sides
+}</code></pre>
+  <pre class="codeblock" data-lang="java" style="display:none"><code>static boolean isMatch(String text, String pattern) {
+    if (pattern.isEmpty()) return text.isEmpty();  // both exhausted together: a full match
+
+    boolean firstMatches = !text.isEmpty() &amp;&amp;
+        (pattern.charAt(0) == text.charAt(0) || pattern.charAt(0) == '.');
+
+    if (pattern.length() &gt;= 2 &amp;&amp; pattern.charAt(1) == '*') {
+        // zero occurrences, or one occurrence + retry
+        return isMatch(text, pattern.substring(2)) ||                  // skip starred token
+               (firstMatches &amp;&amp; isMatch(text.substring(1), pattern));   // consume one, stay on it
+    }
+
+    return firstMatches &amp;&amp; isMatch(text.substring(1), pattern.substring(1)); // consume both
+}</code></pre>
+  <pre class="codeblock" data-lang="cpp" style="display:none"><code>bool isMatch(string text, string pattern) {
+    if (pattern.empty()) return text.empty();   // both exhausted together: a full match
+
+    bool firstMatches = !text.empty() &amp;&amp;
+        (pattern[0] == text[0] || pattern[0] == '.');
+
+    if (pattern.size() &gt;= 2 &amp;&amp; pattern[1] == '*') {
+        // zero occurrences, or one occurrence + retry
+        return isMatch(text, pattern.substr(2)) ||                  // skip the starred token
+               (firstMatches &amp;&amp; isMatch(text.substr(1), pattern));   // consume one, stay on it
+    }
+
+    return firstMatches &amp;&amp; isMatch(text.substr(1), pattern.substr(1));  // consume from both
+}</code></pre>
+</div>
+<div class="controls">
     <input type="text" id="pattern" value="a.c*" placeholder="pattern">
     <input type="text" id="text" value="abccc" placeholder="test string">
     <button class="primary" id="run">▶ Step through</button>
@@ -99,6 +262,22 @@
     <div class="result" id="result"></div>
   </div>
 </main>
+</div>
+</div>
+<script>
+document.querySelectorAll('.codetabs').forEach(tabs=>{
+  tabs.addEventListener('click', e=>{
+    const btn = e.target.closest('.codetab');
+    if(!btn) return;
+    const box = tabs.parentElement;
+    tabs.querySelectorAll('.codetab').forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    box.querySelectorAll('.codeblock').forEach(p=>{
+      p.style.display = p.dataset.lang===btn.dataset.lang ? 'block' : 'none';
+    });
+  });
+});
+</script>
 <script>
 function tokenize(pattern){
   const tokens = [];
