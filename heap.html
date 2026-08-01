@@ -125,6 +125,10 @@
   pre.codeblock{margin:0;padding:18px 20px;overflow-x:auto;max-height:480px;}
   pre.codeblock code{font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#e6edf3;white-space:pre;}
   .code-heading{font-weight:700;font-size:16px;margin:28px 0 4px;color:var(--text);}
+
+  .speedctl{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:var(--muted);}
+  .speedctl select{padding:8px 10px;}
+  @media (max-width:640px){ .speedctl{margin-left:0;} }
 </style>
 </head>
 <body>
@@ -325,6 +329,7 @@ void siftDown(vector&lt;int&gt;&amp; heap, int i, int size) {
     <button class="primary" id="insert">insert</button>
     <button id="extract">extract-min</button>
     <button id="reset">reset</button>
+    <span class="speedctl">speed <select id="speedSelect"><option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option></select></span>
   </div>
   <div class="panel"><div id="tree"></div></div>
   <div class="arrview" id="arrview"></div>
@@ -348,10 +353,15 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
 });
 </script>
 <script>
+let animSpeed = 1;
+document.getElementById('speedSelect').addEventListener('change', (e) => {
+  animSpeed = parseFloat(e.target.value);
+});
+
 
 let heap = [];
 
-function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function sleep(ms){ return new Promise(r=>setTimeout(r, ms / animSpeed)); }
 
 function renderArr(activeIdx){
   document.getElementById('arrview').innerHTML = heap.map((v,i)=>

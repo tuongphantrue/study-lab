@@ -120,6 +120,10 @@
   pre.codeblock{margin:0;padding:18px 20px;overflow-x:auto;max-height:480px;}
   pre.codeblock code{font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#e6edf3;white-space:pre;}
   .code-heading{font-weight:700;font-size:16px;margin:28px 0 4px;color:var(--text);}
+
+  .speedctl{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:var(--muted);}
+  .speedctl select{padding:8px 10px;}
+  @media (max-width:640px){ .speedctl{margin-left:0;} }
 </style>
 </head>
 <body>
@@ -253,6 +257,7 @@
     <input type="text" id="pattern" value="a.c*" placeholder="pattern">
     <input type="text" id="text" value="abccc" placeholder="test string">
     <button class="primary" id="run">▶ Step through</button>
+    <span class="speedctl">speed <select id="speedSelect"><option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option></select></span>
   </div>
   <div class="note">supported syntax: literals, <b style="color:var(--accent-dark)">.</b> any character, <b style="color:var(--accent-dark)">*</b> zero-or-more, <b style="color:var(--accent-dark)">+</b> one-or-more (applies to the token before it)</div>
   <div class="panel">
@@ -279,6 +284,11 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
 });
 </script>
 <script>
+let animSpeed = 1;
+document.getElementById('speedSelect').addEventListener('change', (e) => {
+  animSpeed = parseFloat(e.target.value);
+});
+
 function tokenize(pattern){
   const tokens = [];
   for(let i=0;i<pattern.length;i++){
@@ -297,7 +307,7 @@ function matchToken(tok, ch){
   return tok===ch;
 }
 
-function sleep(ms){ return new Promise(r=>setTimeout(r,ms)); }
+function sleep(ms){ return new Promise(r=>setTimeout(r, ms / animSpeed)); }
 
 function renderRow(id, items, cursorIdx, states){
   const el = document.getElementById(id);

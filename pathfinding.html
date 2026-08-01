@@ -122,6 +122,10 @@
   pre.codeblock{margin:0;padding:18px 20px;overflow-x:auto;max-height:480px;}
   pre.codeblock code{font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#e6edf3;white-space:pre;}
   .code-heading{font-weight:700;font-size:16px;margin:28px 0 4px;color:var(--text);}
+
+  .speedctl{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:var(--muted);}
+  .speedctl select{padding:8px 10px;}
+  @media (max-width:640px){ .speedctl{margin-left:0;} }
 </style>
 </head>
 <body>
@@ -308,6 +312,7 @@ return {}; // queue emptied without reaching the end</code></pre>
     <button id="clearWalls">Clear walls</button>
     <button id="maze">Random maze</button>
     <button id="reset">Reset grid</button>
+    <span class="speedctl">speed <select id="speedSelect"><option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option></select></span>
   </div>
   <div class="legend">
     <span><span class="sw" style="background:var(--good)"></span>start</span>
@@ -338,6 +343,11 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
 });
 </script>
 <script>
+let animSpeed = 1;
+document.getElementById('speedSelect').addEventListener('change', (e) => {
+  animSpeed = parseFloat(e.target.value);
+});
+
 const ROWS = 18, COLS = 32;
 const gridEl = document.getElementById('grid');
 gridEl.style.gridTemplateColumns = `repeat(${COLS}, 1fr)`;
@@ -438,7 +448,7 @@ function neighbors(r,c){
 
 function heuristic(r,c){ return Math.abs(r-end.r) + Math.abs(c-end.c); }
 
-async function sleep(ms){ return new Promise(res=>setTimeout(res,ms)); }
+async function sleep(ms){ return new Promise(res=>setTimeout(res, ms / animSpeed)); }
 
 async function run(){
   if(running) return;
