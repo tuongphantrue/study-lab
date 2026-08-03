@@ -221,112 +221,112 @@
 <span class="codeline" data-line="18">    if smallest != i:                            // a child was smaller than the current node</span>
 <span class="codeline" data-line="19">        swap(heap[i], heap[smallest])              // swap it up</span>
 <span class="codeline" data-line="20">        siftDown(heap, smallest)                    // keep sifting down from the new position</span></code></pre>
-  <pre class="codeblock" data-lang="python" style="display:none"><code># Python's heapq is a ready-made binary min-heap over a plain list
-import heapq
-
-heap = []
-heapq.heappush(heap, 5)   # insert, maintains heap order automatically
-heapq.heappush(heap, 2)
-heapq.heappush(heap, 8)
-
-smallest = heapq.heappop(heap)  # extract-min, O(log n)
-
-# Manual implementation, for reference:
-def sift_up(heap, i):
-    while i &gt; 0:
-        parent = (i - 1) // 2          # index arithmetic for a binary heap stored as an array
-        if heap[i] &lt; heap[parent]:      # child smaller than its parent: violates heap order
-            heap[i], heap[parent] = heap[parent], heap[i]   # bubble it upward
-            i = parent                    # continue checking from the new position
-        else:
-            break                       # heap order restored, stop early
-
-def sift_down(heap, i):
-    n = len(heap)
-    while True:
-        smallest, l, r = i, 2*i+1, 2*i+2      # indices of the two children
-        if l &lt; n and heap[l] &lt; heap[smallest]: smallest = l   # left child is smaller
-        if r &lt; n and heap[r] &lt; heap[smallest]: smallest = r   # right child is smaller still
-        if smallest == i: break                # no child smaller: heap order restored
-        heap[i], heap[smallest] = heap[smallest], heap[i]   # swap the smaller child up
-        i = smallest                            # keep sifting down from the new position</code></pre>
-  <pre class="codeblock" data-lang="js" style="display:none"><code>// JavaScript has no built-in heap — a minimal manual version:
-class MinHeap {
-  constructor() { this.heap = []; }
-
-  insert(value) {
-    this.heap.push(value);           // add at the next open spot (keeps it balanced)
-    let i = this.heap.length - 1;     // start at the newly inserted position
-    while (i &gt; 0) {
-      const parent = Math.floor((i - 1) / 2);   // index arithmetic for an array-backed heap
-      if (this.heap[i] &lt; this.heap[parent]) {     // smaller than its parent: violates order
-        [this.heap[i], this.heap[parent]] = [this.heap[parent], this.heap[i]]; // bubble up
-        i = parent;                                 // continue checking from the new position
-      } else break;                                // heap order restored, stop early
-    }
-  }
-
-  extractMin() {
-    const min = this.heap[0];          // the root is always the smallest value
-    const last = this.heap.pop();       // remove the last element
-    if (this.heap.length &gt; 0) {
-      this.heap[0] = last;               // move it into the now-empty root
-      this.siftDown(0);                  // restore heap order from the top
-    }
-    return min;
-  }
-
-  siftDown(i) {
-    const n = this.heap.length;
-    while (true) {
-      let smallest = i, l = 2*i+1, r = 2*i+2;   // indices of the two children
-      if (l &lt; n &amp;&amp; this.heap[l] &lt; this.heap[smallest]) smallest = l;  // left child smaller
-      if (r &lt; n &amp;&amp; this.heap[r] &lt; this.heap[smallest]) smallest = r;  // right child smaller
-      if (smallest === i) break;                  // no child smaller: order restored
-      [this.heap[i], this.heap[smallest]] = [this.heap[smallest], this.heap[i]]; // swap down
-      i = smallest;                                 // continue from the new position
-    }
-  }
-}</code></pre>
-  <pre class="codeblock" data-lang="java" style="display:none"><code>// Java's PriorityQueue is a ready-made binary min-heap
-PriorityQueue&lt;Integer&gt; heap = new PriorityQueue&lt;&gt;();
-heap.add(5);   // insert, maintains heap order automatically
-heap.add(2);
-heap.add(8);
-
-int smallest = heap.poll(); // extract-min, O(log n)
-
-// Manual sift-down, for reference:
-static void siftDown(int[] heap, int i, int size) {
-    while (true) {
-        int smallest = i, l = 2*i+1, r = 2*i+2;   // indices of the two children
-        if (l &lt; size &amp;&amp; heap[l] &lt; heap[smallest]) smallest = l;  // left child smaller
-        if (r &lt; size &amp;&amp; heap[r] &lt; heap[smallest]) smallest = r;  // right child smaller
-        if (smallest == i) break;                   // no child smaller: order restored
-        int tmp = heap[i]; heap[i] = heap[smallest]; heap[smallest] = tmp;  // swap down
-        i = smallest;                                 // continue from the new position
-    }
-}</code></pre>
-  <pre class="codeblock" data-lang="cpp" style="display:none"><code>// std::priority_queue is a ready-made binary max-heap
-// (pass greater&lt;&gt; for a min-heap, as below)
-priority_queue&lt;int, vector&lt;int&gt;, greater&lt;int&gt;&gt; heap;
-heap.push(5);   // insert, maintains heap order automatically
-heap.push(2);
-heap.push(8);
-
-int smallest = heap.top(); heap.pop(); // extract-min, O(log n)
-
-// Manual sift-down, for reference:
-void siftDown(vector&lt;int&gt;&amp; heap, int i, int size) {
-    while (true) {
-        int smallest = i, l = 2*i+1, r = 2*i+2;   // indices of the two children
-        if (l &lt; size &amp;&amp; heap[l] &lt; heap[smallest]) smallest = l;  // left child smaller
-        if (r &lt; size &amp;&amp; heap[r] &lt; heap[smallest]) smallest = r;  // right child smaller
-        if (smallest == i) break;                   // no child smaller: order restored
-        swap(heap[i], heap[smallest]);                // swap the smaller child up
-        i = smallest;                                  // continue from the new position
-    }
-}</code></pre>
+  <pre class="codeblock" data-lang="python" style="display:none"><code><span class="codeline" data-line="0"># Python's heapq is a ready-made binary min-heap over a plain list</span>
+<span class="codeline" data-line="1">import heapq</span>
+<span class="codeline" data-line="2"></span>
+<span class="codeline" data-line="3">heap = []</span>
+<span class="codeline" data-line="4">heapq.heappush(heap, 5)   # insert, maintains heap order automatically</span>
+<span class="codeline" data-line="5">heapq.heappush(heap, 2)</span>
+<span class="codeline" data-line="6">heapq.heappush(heap, 8)</span>
+<span class="codeline" data-line="7"></span>
+<span class="codeline" data-line="8">smallest = heapq.heappop(heap)  # extract-min, O(log n)</span>
+<span class="codeline" data-line="9"></span>
+<span class="codeline" data-line="10"># Manual implementation, for reference:</span>
+<span class="codeline" data-line="11">def sift_up(heap, i):</span>
+<span class="codeline" data-line="12">    while i &gt; 0:</span>
+<span class="codeline" data-line="13">        parent = (i - 1) // 2          # index arithmetic for a binary heap stored as an array</span>
+<span class="codeline" data-line="14">        if heap[i] &lt; heap[parent]:      # child smaller than its parent: violates heap order</span>
+<span class="codeline" data-line="15">            heap[i], heap[parent] = heap[parent], heap[i]   # bubble it upward</span>
+<span class="codeline" data-line="16">            i = parent                    # continue checking from the new position</span>
+<span class="codeline" data-line="17">        else:</span>
+<span class="codeline" data-line="18">            break                       # heap order restored, stop early</span>
+<span class="codeline" data-line="19"></span>
+<span class="codeline" data-line="20">def sift_down(heap, i):</span>
+<span class="codeline" data-line="21">    n = len(heap)</span>
+<span class="codeline" data-line="22">    while True:</span>
+<span class="codeline" data-line="23">        smallest, l, r = i, 2*i+1, 2*i+2      # indices of the two children</span>
+<span class="codeline" data-line="24">        if l &lt; n and heap[l] &lt; heap[smallest]: smallest = l   # left child is smaller</span>
+<span class="codeline" data-line="25">        if r &lt; n and heap[r] &lt; heap[smallest]: smallest = r   # right child is smaller still</span>
+<span class="codeline" data-line="26">        if smallest == i: break                # no child smaller: heap order restored</span>
+<span class="codeline" data-line="27">        heap[i], heap[smallest] = heap[smallest], heap[i]   # swap the smaller child up</span>
+<span class="codeline" data-line="28">        i = smallest                            # keep sifting down from the new position</span></code></pre>
+  <pre class="codeblock" data-lang="js" style="display:none"><code><span class="codeline" data-line="0">// JavaScript has no built-in heap — a minimal manual version:</span>
+<span class="codeline" data-line="1">class MinHeap {</span>
+<span class="codeline" data-line="2">  constructor() { this.heap = []; }</span>
+<span class="codeline" data-line="3"></span>
+<span class="codeline" data-line="4">  insert(value) {</span>
+<span class="codeline" data-line="5">    this.heap.push(value);           // add at the next open spot (keeps it balanced)</span>
+<span class="codeline" data-line="6">    let i = this.heap.length - 1;     // start at the newly inserted position</span>
+<span class="codeline" data-line="7">    while (i &gt; 0) {</span>
+<span class="codeline" data-line="8">      const parent = Math.floor((i - 1) / 2);   // index arithmetic for an array-backed heap</span>
+<span class="codeline" data-line="9">      if (this.heap[i] &lt; this.heap[parent]) {     // smaller than its parent: violates order</span>
+<span class="codeline" data-line="10">        [this.heap[i], this.heap[parent]] = [this.heap[parent], this.heap[i]]; // bubble up</span>
+<span class="codeline" data-line="11">        i = parent;                                 // continue checking from the new position</span>
+<span class="codeline" data-line="12">      } else break;                                // heap order restored, stop early</span>
+<span class="codeline" data-line="13">    }</span>
+<span class="codeline" data-line="14">  }</span>
+<span class="codeline" data-line="15"></span>
+<span class="codeline" data-line="16">  extractMin() {</span>
+<span class="codeline" data-line="17">    const min = this.heap[0];          // the root is always the smallest value</span>
+<span class="codeline" data-line="18">    const last = this.heap.pop();       // remove the last element</span>
+<span class="codeline" data-line="19">    if (this.heap.length &gt; 0) {</span>
+<span class="codeline" data-line="20">      this.heap[0] = last;               // move it into the now-empty root</span>
+<span class="codeline" data-line="21">      this.siftDown(0);                  // restore heap order from the top</span>
+<span class="codeline" data-line="22">    }</span>
+<span class="codeline" data-line="23">    return min;</span>
+<span class="codeline" data-line="24">  }</span>
+<span class="codeline" data-line="25"></span>
+<span class="codeline" data-line="26">  siftDown(i) {</span>
+<span class="codeline" data-line="27">    const n = this.heap.length;</span>
+<span class="codeline" data-line="28">    while (true) {</span>
+<span class="codeline" data-line="29">      let smallest = i, l = 2*i+1, r = 2*i+2;   // indices of the two children</span>
+<span class="codeline" data-line="30">      if (l &lt; n &amp;&amp; this.heap[l] &lt; this.heap[smallest]) smallest = l;  // left child smaller</span>
+<span class="codeline" data-line="31">      if (r &lt; n &amp;&amp; this.heap[r] &lt; this.heap[smallest]) smallest = r;  // right child smaller</span>
+<span class="codeline" data-line="32">      if (smallest === i) break;                  // no child smaller: order restored</span>
+<span class="codeline" data-line="33">      [this.heap[i], this.heap[smallest]] = [this.heap[smallest], this.heap[i]]; // swap down</span>
+<span class="codeline" data-line="34">      i = smallest;                                 // continue from the new position</span>
+<span class="codeline" data-line="35">    }</span>
+<span class="codeline" data-line="36">  }</span>
+<span class="codeline" data-line="37">}</span></code></pre>
+  <pre class="codeblock" data-lang="java" style="display:none"><code><span class="codeline" data-line="0">// Java's PriorityQueue is a ready-made binary min-heap</span>
+<span class="codeline" data-line="1">PriorityQueue&lt;Integer&gt; heap = new PriorityQueue&lt;&gt;();</span>
+<span class="codeline" data-line="2">heap.add(5);   // insert, maintains heap order automatically</span>
+<span class="codeline" data-line="3">heap.add(2);</span>
+<span class="codeline" data-line="4">heap.add(8);</span>
+<span class="codeline" data-line="5"></span>
+<span class="codeline" data-line="6">int smallest = heap.poll(); // extract-min, O(log n)</span>
+<span class="codeline" data-line="7"></span>
+<span class="codeline" data-line="8">// Manual sift-down, for reference:</span>
+<span class="codeline" data-line="9">static void siftDown(int[] heap, int i, int size) {</span>
+<span class="codeline" data-line="10">    while (true) {</span>
+<span class="codeline" data-line="11">        int smallest = i, l = 2*i+1, r = 2*i+2;   // indices of the two children</span>
+<span class="codeline" data-line="12">        if (l &lt; size &amp;&amp; heap[l] &lt; heap[smallest]) smallest = l;  // left child smaller</span>
+<span class="codeline" data-line="13">        if (r &lt; size &amp;&amp; heap[r] &lt; heap[smallest]) smallest = r;  // right child smaller</span>
+<span class="codeline" data-line="14">        if (smallest == i) break;                   // no child smaller: order restored</span>
+<span class="codeline" data-line="15">        int tmp = heap[i]; heap[i] = heap[smallest]; heap[smallest] = tmp;  // swap down</span>
+<span class="codeline" data-line="16">        i = smallest;                                 // continue from the new position</span>
+<span class="codeline" data-line="17">    }</span>
+<span class="codeline" data-line="18">}</span></code></pre>
+  <pre class="codeblock" data-lang="cpp" style="display:none"><code><span class="codeline" data-line="0">// std::priority_queue is a ready-made binary max-heap</span>
+<span class="codeline" data-line="1">// (pass greater&lt;&gt; for a min-heap, as below)</span>
+<span class="codeline" data-line="2">priority_queue&lt;int, vector&lt;int&gt;, greater&lt;int&gt;&gt; heap;</span>
+<span class="codeline" data-line="3">heap.push(5);   // insert, maintains heap order automatically</span>
+<span class="codeline" data-line="4">heap.push(2);</span>
+<span class="codeline" data-line="5">heap.push(8);</span>
+<span class="codeline" data-line="6"></span>
+<span class="codeline" data-line="7">int smallest = heap.top(); heap.pop(); // extract-min, O(log n)</span>
+<span class="codeline" data-line="8"></span>
+<span class="codeline" data-line="9">// Manual sift-down, for reference:</span>
+<span class="codeline" data-line="10">void siftDown(vector&lt;int&gt;&amp; heap, int i, int size) {</span>
+<span class="codeline" data-line="11">    while (true) {</span>
+<span class="codeline" data-line="12">        int smallest = i, l = 2*i+1, r = 2*i+2;   // indices of the two children</span>
+<span class="codeline" data-line="13">        if (l &lt; size &amp;&amp; heap[l] &lt; heap[smallest]) smallest = l;  // left child smaller</span>
+<span class="codeline" data-line="14">        if (r &lt; size &amp;&amp; heap[r] &lt; heap[smallest]) smallest = r;  // right child smaller</span>
+<span class="codeline" data-line="15">        if (smallest == i) break;                   // no child smaller: order restored</span>
+<span class="codeline" data-line="16">        swap(heap[i], heap[smallest]);                // swap the smaller child up</span>
+<span class="codeline" data-line="17">        i = smallest;                                  // continue from the new position</span>
+<span class="codeline" data-line="18">    }</span>
+<span class="codeline" data-line="19">}</span></code></pre>
 </div>
 <div class="controls">
     <input type="number" id="val" value="5" placeholder="value">
@@ -343,27 +343,32 @@ void siftDown(vector&lt;int&gt;&amp; heap, int i, int size) {
 </div>
 </div>
 <script>
-function highlightLine(n) {
+let __lastHighlightMap = null;
+
+function highlightLine(mapping) {
+  __lastHighlightMap = mapping;
+  applyHighlight();
+}
+
+function applyHighlight() {
   const box = document.querySelector('.codebox');
-  if (!box) return;
-  const pseudoTab = box.querySelector('.codetab[data-lang="pseudo"]');
-  const pseudoBlock = box.querySelector('.codeblock[data-lang="pseudo"]');
-  if (!pseudoBlock) return;
-  if (pseudoTab && !pseudoTab.classList.contains('active')) {
-    box.querySelectorAll('.codetab').forEach(t => t.classList.remove('active'));
-    pseudoTab.classList.add('active');
-    box.querySelectorAll('.codeblock').forEach(p => {
-      p.style.display = p.dataset.lang === 'pseudo' ? 'block' : 'none';
-    });
-  }
-  pseudoBlock.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
-  const target = pseudoBlock.querySelector('.codeline[data-line="' + n + '"]');
+  if (!box || !__lastHighlightMap) return;
+  const activeTab = box.querySelector('.codetab.active');
+  const lang = activeTab ? activeTab.dataset.lang : 'pseudo';
+  const lineNum = __lastHighlightMap[lang];
+  box.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  if (lineNum === undefined || lineNum === null) return;
+  const activeBlock = box.querySelector('.codeblock[data-lang="' + lang + '"]');
+  if (!activeBlock) return;
+  const target = activeBlock.querySelector('.codeline[data-line="' + lineNum + '"]');
   if (target) {
     target.classList.add('active');
     target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 }
+
 function clearHighlight() {
+  __lastHighlightMap = null;
   document.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
 }
 
@@ -377,6 +382,7 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
     box.querySelectorAll('.codeblock').forEach(p=>{
       p.style.display = p.dataset.lang===btn.dataset.lang ? 'block' : 'none';
     });
+    applyHighlight();
   });
 });
 </script>
@@ -424,13 +430,13 @@ async function siftUp(i){
     const parent = Math.floor((i-1)/2);
     renderTree(i);
     document.getElementById('status').innerHTML = `comparing new value at index ${i} with parent at index ${parent}`;
-    highlightLine(3);
+    highlightLine({pseudo:3, js:9});
     await sleep(450);
     if(heap[i] < heap[parent]){
       [heap[i],heap[parent]]=[heap[parent],heap[i]];
       i = parent;
       renderArr(i); renderTree(i);
-      highlightLine(4);
+      highlightLine({pseudo:4, js:10});
       await sleep(300);
     } else break;
   }
@@ -445,13 +451,13 @@ async function siftDown(i){
     if(r<n && heap[r]<heap[smallest]) smallest=r;
     renderTree(i);
     document.getElementById('status').innerHTML = `checking children of index ${i} for the smaller value`;
-    highlightLine(16);
+    highlightLine({pseudo:16, python:24, js:30, java:12, cpp:13});
     await sleep(450);
     if(smallest!==i){
       [heap[i],heap[smallest]]=[heap[smallest],heap[i]];
       i = smallest;
       renderArr(i); renderTree(i);
-      highlightLine(19);
+      highlightLine({pseudo:19, python:27, js:33, java:15, cpp:16});
       await sleep(300);
     } else break;
   }
@@ -464,7 +470,7 @@ document.getElementById('insert').onclick = async ()=>{
   heap.push(v);
   renderArr(heap.length-1); renderTree(heap.length-1);
   document.getElementById('status').innerHTML = `inserted ${v} at the end, now sifting up`;
-  highlightLine(1);
+  highlightLine({pseudo:1, python:4, js:5, java:2, cpp:3});
   await sleep(350);
   await siftUp(heap.length-1);
   document.getElementById('status').innerHTML = `done — heap property restored`;
@@ -475,7 +481,7 @@ document.getElementById('extract').onclick = async ()=>{
   if(heap.length===0){ document.getElementById('status').textContent = 'heap is empty'; return; }
   const min = heap[0];
   document.getElementById('status').innerHTML = `extracting min (${min}) from the root`;
-  highlightLine(8);
+  highlightLine({pseudo:8, python:8, js:17, java:6, cpp:7});
   const last = heap.pop();
   if(heap.length>0){
     heap[0] = last;

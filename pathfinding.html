@@ -215,95 +215,95 @@
 <span class="codeline" data-line="14">                queue.enqueue(neighbor)                        // schedule it for exploration</span>
 <span class="codeline" data-line="15"></span>
 <span class="codeline" data-line="16">    return "no path found"        // queue emptied without reaching the end</span></code></pre>
-  <pre class="codeblock" data-lang="python" style="display:none"><code>from collections import deque   # deque gives O(1) pops from the front
-
-def bfs(grid, start, end):
-    queue = deque([start])          # cells waiting to be explored, oldest first
-    visited = {start}               # cells already queued, so we don't requeue them
-    parent = {}                     # maps a cell to the cell we reached it from
-
-    while queue:                              # keep going until nothing left to explore
-        node = queue.popleft()                 # take the oldest queued cell, O(1)
-        if node == end:                        # reached the destination
-            return reconstruct_path(parent, end)
-
-        for neighbor in neighbors(grid, node): # check every adjacent, non-wall cell
-            if neighbor not in visited:
-                visited.add(neighbor)           # mark so it's never queued twice
-                parent[neighbor] = node         # remember how we got here
-                queue.append(neighbor)          # schedule it for exploration
-
-    return None  # queue emptied without reaching the end
-
-def reconstruct_path(parent, end):
-    path = [end]                    # start from the destination and work backwards
-    while path[-1] in parent:       # keep walking until we hit the start (no parent)
-        path.append(parent[path[-1]])
-    path.reverse()                  # we built it backwards, so flip it
-    return path</code></pre>
-  <pre class="codeblock" data-lang="js" style="display:none"><code>function bfs(grid, start, end) {
-  const queue = [start];                    // cells waiting to be explored, oldest first
-  const visited = new Set([key(start)]);    // stringified coords already queued
-  const parent = new Map();                 // cell -&gt; the cell we reached it from
-
-  while (queue.length) {                    // keep going until nothing left to explore
-    const node = queue.shift();              // take the oldest queued cell
-    if (node.r === end.r &amp;&amp; node.c === end.c) { // reached the destination
-      return reconstructPath(parent, end);
-    }
-
-    for (const neighbor of neighbors(grid, node)) { // check every adjacent, non-wall cell
-      const k = key(neighbor);
-      if (!visited.has(k)) {
-        visited.add(k);                      // mark so it's never queued twice
-        parent.set(k, node);                  // remember how we got here
-        queue.push(neighbor);                 // schedule it for exploration
-      }
-    }
-  }
-  return null; // queue emptied without reaching the end
-}</code></pre>
-  <pre class="codeblock" data-lang="java" style="display:none"><code>Queue&lt;Point&gt; queue = new LinkedList&lt;&gt;();     // cells waiting to be explored, oldest first
-Set&lt;Point&gt; visited = new HashSet&lt;&gt;();        // cells already queued
-Map&lt;Point, Point&gt; parent = new HashMap&lt;&gt;();  // cell -&gt; the cell we reached it from
-
-queue.add(start);       // seed the search with the starting cell
-visited.add(start);     // mark the start as seen immediately
-
-while (!queue.isEmpty()) {                 // keep going until nothing left to explore
-    Point node = queue.poll();              // take the oldest queued cell
-    if (node.equals(end)) {                 // reached the destination
-        return reconstructPath(parent, end);
-    }
-    for (Point neighbor : neighbors(grid, node)) { // check every adjacent, non-wall cell
-        if (!visited.contains(neighbor)) {
-            visited.add(neighbor);           // mark so it's never queued twice
-            parent.put(neighbor, node);       // remember how we got here
-            queue.add(neighbor);              // schedule it for exploration
-        }
-    }
-}
-return null; // queue emptied without reaching the end</code></pre>
-  <pre class="codeblock" data-lang="cpp" style="display:none"><code>queue&lt;Point&gt; q;                                  // cells waiting to be explored, oldest first
-unordered_set&lt;Point, PointHash&gt; visited;         // cells already queued
-unordered_map&lt;Point, Point, PointHash&gt; parent;   // cell -&gt; the cell we reached it from
-
-q.push(start);            // seed the search with the starting cell
-visited.insert(start);    // mark the start as seen immediately
-
-while (!q.empty()) {                       // keep going until nothing left to explore
-    Point node = q.front(); q.pop();        // take the oldest queued cell
-    if (node == end) return reconstructPath(parent, end); // reached the destination
-
-    for (auto&amp; neighbor : neighbors(grid, node)) { // check every adjacent, non-wall cell
-        if (!visited.count(neighbor)) {
-            visited.insert(neighbor);        // mark so it's never queued twice
-            parent[neighbor] = node;          // remember how we got here
-            q.push(neighbor);                 // schedule it for exploration
-        }
-    }
-}
-return {}; // queue emptied without reaching the end</code></pre>
+  <pre class="codeblock" data-lang="python" style="display:none"><code><span class="codeline" data-line="0">from collections import deque   # deque gives O(1) pops from the front</span>
+<span class="codeline" data-line="1"></span>
+<span class="codeline" data-line="2">def bfs(grid, start, end):</span>
+<span class="codeline" data-line="3">    queue = deque([start])          # cells waiting to be explored, oldest first</span>
+<span class="codeline" data-line="4">    visited = {start}               # cells already queued, so we don't requeue them</span>
+<span class="codeline" data-line="5">    parent = {}                     # maps a cell to the cell we reached it from</span>
+<span class="codeline" data-line="6"></span>
+<span class="codeline" data-line="7">    while queue:                              # keep going until nothing left to explore</span>
+<span class="codeline" data-line="8">        node = queue.popleft()                 # take the oldest queued cell, O(1)</span>
+<span class="codeline" data-line="9">        if node == end:                        # reached the destination</span>
+<span class="codeline" data-line="10">            return reconstruct_path(parent, end)</span>
+<span class="codeline" data-line="11"></span>
+<span class="codeline" data-line="12">        for neighbor in neighbors(grid, node): # check every adjacent, non-wall cell</span>
+<span class="codeline" data-line="13">            if neighbor not in visited:</span>
+<span class="codeline" data-line="14">                visited.add(neighbor)           # mark so it's never queued twice</span>
+<span class="codeline" data-line="15">                parent[neighbor] = node         # remember how we got here</span>
+<span class="codeline" data-line="16">                queue.append(neighbor)          # schedule it for exploration</span>
+<span class="codeline" data-line="17"></span>
+<span class="codeline" data-line="18">    return None  # queue emptied without reaching the end</span>
+<span class="codeline" data-line="19"></span>
+<span class="codeline" data-line="20">def reconstruct_path(parent, end):</span>
+<span class="codeline" data-line="21">    path = [end]                    # start from the destination and work backwards</span>
+<span class="codeline" data-line="22">    while path[-1] in parent:       # keep walking until we hit the start (no parent)</span>
+<span class="codeline" data-line="23">        path.append(parent[path[-1]])</span>
+<span class="codeline" data-line="24">    path.reverse()                  # we built it backwards, so flip it</span>
+<span class="codeline" data-line="25">    return path</span></code></pre>
+  <pre class="codeblock" data-lang="js" style="display:none"><code><span class="codeline" data-line="0">function bfs(grid, start, end) {</span>
+<span class="codeline" data-line="1">  const queue = [start];                    // cells waiting to be explored, oldest first</span>
+<span class="codeline" data-line="2">  const visited = new Set([key(start)]);    // stringified coords already queued</span>
+<span class="codeline" data-line="3">  const parent = new Map();                 // cell -&gt; the cell we reached it from</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">  while (queue.length) {                    // keep going until nothing left to explore</span>
+<span class="codeline" data-line="6">    const node = queue.shift();              // take the oldest queued cell</span>
+<span class="codeline" data-line="7">    if (node.r === end.r &amp;&amp; node.c === end.c) { // reached the destination</span>
+<span class="codeline" data-line="8">      return reconstructPath(parent, end);</span>
+<span class="codeline" data-line="9">    }</span>
+<span class="codeline" data-line="10"></span>
+<span class="codeline" data-line="11">    for (const neighbor of neighbors(grid, node)) { // check every adjacent, non-wall cell</span>
+<span class="codeline" data-line="12">      const k = key(neighbor);</span>
+<span class="codeline" data-line="13">      if (!visited.has(k)) {</span>
+<span class="codeline" data-line="14">        visited.add(k);                      // mark so it's never queued twice</span>
+<span class="codeline" data-line="15">        parent.set(k, node);                  // remember how we got here</span>
+<span class="codeline" data-line="16">        queue.push(neighbor);                 // schedule it for exploration</span>
+<span class="codeline" data-line="17">      }</span>
+<span class="codeline" data-line="18">    }</span>
+<span class="codeline" data-line="19">  }</span>
+<span class="codeline" data-line="20">  return null; // queue emptied without reaching the end</span>
+<span class="codeline" data-line="21">}</span></code></pre>
+  <pre class="codeblock" data-lang="java" style="display:none"><code><span class="codeline" data-line="0">Queue&lt;Point&gt; queue = new LinkedList&lt;&gt;();     // cells waiting to be explored, oldest first</span>
+<span class="codeline" data-line="1">Set&lt;Point&gt; visited = new HashSet&lt;&gt;();        // cells already queued</span>
+<span class="codeline" data-line="2">Map&lt;Point, Point&gt; parent = new HashMap&lt;&gt;();  // cell -&gt; the cell we reached it from</span>
+<span class="codeline" data-line="3"></span>
+<span class="codeline" data-line="4">queue.add(start);       // seed the search with the starting cell</span>
+<span class="codeline" data-line="5">visited.add(start);     // mark the start as seen immediately</span>
+<span class="codeline" data-line="6"></span>
+<span class="codeline" data-line="7">while (!queue.isEmpty()) {                 // keep going until nothing left to explore</span>
+<span class="codeline" data-line="8">    Point node = queue.poll();              // take the oldest queued cell</span>
+<span class="codeline" data-line="9">    if (node.equals(end)) {                 // reached the destination</span>
+<span class="codeline" data-line="10">        return reconstructPath(parent, end);</span>
+<span class="codeline" data-line="11">    }</span>
+<span class="codeline" data-line="12">    for (Point neighbor : neighbors(grid, node)) { // check every adjacent, non-wall cell</span>
+<span class="codeline" data-line="13">        if (!visited.contains(neighbor)) {</span>
+<span class="codeline" data-line="14">            visited.add(neighbor);           // mark so it's never queued twice</span>
+<span class="codeline" data-line="15">            parent.put(neighbor, node);       // remember how we got here</span>
+<span class="codeline" data-line="16">            queue.add(neighbor);              // schedule it for exploration</span>
+<span class="codeline" data-line="17">        }</span>
+<span class="codeline" data-line="18">    }</span>
+<span class="codeline" data-line="19">}</span>
+<span class="codeline" data-line="20">return null; // queue emptied without reaching the end</span></code></pre>
+  <pre class="codeblock" data-lang="cpp" style="display:none"><code><span class="codeline" data-line="0">queue&lt;Point&gt; q;                                  // cells waiting to be explored, oldest first</span>
+<span class="codeline" data-line="1">unordered_set&lt;Point, PointHash&gt; visited;         // cells already queued</span>
+<span class="codeline" data-line="2">unordered_map&lt;Point, Point, PointHash&gt; parent;   // cell -&gt; the cell we reached it from</span>
+<span class="codeline" data-line="3"></span>
+<span class="codeline" data-line="4">q.push(start);            // seed the search with the starting cell</span>
+<span class="codeline" data-line="5">visited.insert(start);    // mark the start as seen immediately</span>
+<span class="codeline" data-line="6"></span>
+<span class="codeline" data-line="7">while (!q.empty()) {                       // keep going until nothing left to explore</span>
+<span class="codeline" data-line="8">    Point node = q.front(); q.pop();        // take the oldest queued cell</span>
+<span class="codeline" data-line="9">    if (node == end) return reconstructPath(parent, end); // reached the destination</span>
+<span class="codeline" data-line="10"></span>
+<span class="codeline" data-line="11">    for (auto&amp; neighbor : neighbors(grid, node)) { // check every adjacent, non-wall cell</span>
+<span class="codeline" data-line="12">        if (!visited.count(neighbor)) {</span>
+<span class="codeline" data-line="13">            visited.insert(neighbor);        // mark so it's never queued twice</span>
+<span class="codeline" data-line="14">            parent[neighbor] = node;          // remember how we got here</span>
+<span class="codeline" data-line="15">            q.push(neighbor);                 // schedule it for exploration</span>
+<span class="codeline" data-line="16">        }</span>
+<span class="codeline" data-line="17">    }</span>
+<span class="codeline" data-line="18">}</span>
+<span class="codeline" data-line="19">return {}; // queue emptied without reaching the end</span></code></pre>
 </div>
 <div class="controls">
     <select id="algo">
@@ -333,27 +333,32 @@ return {}; // queue emptied without reaching the end</code></pre>
 </div>
 </div>
 <script>
-function highlightLine(n) {
+let __lastHighlightMap = null;
+
+function highlightLine(mapping) {
+  __lastHighlightMap = mapping;
+  applyHighlight();
+}
+
+function applyHighlight() {
   const box = document.querySelector('.codebox');
-  if (!box) return;
-  const pseudoTab = box.querySelector('.codetab[data-lang="pseudo"]');
-  const pseudoBlock = box.querySelector('.codeblock[data-lang="pseudo"]');
-  if (!pseudoBlock) return;
-  if (pseudoTab && !pseudoTab.classList.contains('active')) {
-    box.querySelectorAll('.codetab').forEach(t => t.classList.remove('active'));
-    pseudoTab.classList.add('active');
-    box.querySelectorAll('.codeblock').forEach(p => {
-      p.style.display = p.dataset.lang === 'pseudo' ? 'block' : 'none';
-    });
-  }
-  pseudoBlock.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
-  const target = pseudoBlock.querySelector('.codeline[data-line="' + n + '"]');
+  if (!box || !__lastHighlightMap) return;
+  const activeTab = box.querySelector('.codetab.active');
+  const lang = activeTab ? activeTab.dataset.lang : 'pseudo';
+  const lineNum = __lastHighlightMap[lang];
+  box.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  if (lineNum === undefined || lineNum === null) return;
+  const activeBlock = box.querySelector('.codeblock[data-lang="' + lang + '"]');
+  if (!activeBlock) return;
+  const target = activeBlock.querySelector('.codeline[data-line="' + lineNum + '"]');
   if (target) {
     target.classList.add('active');
     target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 }
+
 function clearHighlight() {
+  __lastHighlightMap = null;
   document.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
 }
 
@@ -367,6 +372,7 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
     box.querySelectorAll('.codeblock').forEach(p=>{
       p.style.display = p.dataset.lang===btn.dataset.lang ? 'block' : 'none';
     });
+    applyHighlight();
   });
 });
 </script>
@@ -536,7 +542,7 @@ async function run(){
   for(let i=0;i<visitedOrder.length;i++){
     const {r,c} = visitedOrder[i];
     if(!(r===start.r&&c===start.c)) cellEl(r,c).classList.add('visited');
-    highlightLine(6);
+    highlightLine({pseudo:6, python:8, js:6, java:8, cpp:8});
     if(i%batch===0) await sleep(4);
   }
 
@@ -552,7 +558,7 @@ async function run(){
     for(let i=path.length-1;i>=0;i--){
       const {r,c} = path[i];
       if(!(r===end.r&&c===end.c)) cellEl(r,c).classList.add('path');
-      highlightLine(8);
+      highlightLine({pseudo:8, python:10, js:8, java:10, cpp:9});
       await sleep(10);
     }
   }

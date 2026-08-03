@@ -202,39 +202,39 @@
 <span class="codeline" data-line="3">NOT(a):    flips every bit                                    // 0 becomes 1, 1 becomes 0</span>
 <span class="codeline" data-line="4">a &lt;&lt; n:    shift bits left by n   (multiplies by 2^n)         // fills new low bits with 0</span>
 <span class="codeline" data-line="5">a &gt;&gt; n:    shift bits right by n  (divides by 2^n)            // discards the low bits shifted out</span></code></pre>
-  <pre class="codeblock" data-lang="python" style="display:none"><code>a, b = 0b11001011, 0b01011010   # two 8-bit values written in binary
-
-a &amp; b        # AND -&gt; masks: keep only bits set in both a and b
-a | b        # OR  -&gt; combine: set bits present in either a or b
-a ^ b        # XOR -&gt; toggle: set bits where a and b differ
-~a           # NOT -&gt; flips every bit (Python ints are infinite-width,
-             #        so this looks different from a fixed 8-bit flip)
-a &lt;&lt; 1       # shift left  -&gt; multiply by 2, a 0 fills the new low bit
-a &gt;&gt; 1       # shift right -&gt; divide by 2 (integer division), low bit is discarded</code></pre>
-  <pre class="codeblock" data-lang="js" style="display:none"><code>const a = 0b11001011, b = 0b01011010;   // two 8-bit values written in binary
-
-a &amp; b;        // AND -&gt; masks: keep only bits set in both a and b
-a | b;        // OR  -&gt; combine: set bits present in either a or b
-a ^ b;        // XOR -&gt; toggle: set bits where a and b differ
-~a &amp; 0xFF;    // NOT -&gt; flip every bit, masked to 8 bits so it displays cleanly
-a &lt;&lt; 1;       // shift left  -&gt; multiply by 2, a 0 fills the new low bit
-a &gt;&gt; 1;       // shift right -&gt; divide by 2 (integer division), low bit is discarded</code></pre>
-  <pre class="codeblock" data-lang="java" style="display:none"><code>int a = 0b11001011, b = 0b01011010;   // two 8-bit values written in binary
-
-a &amp; b;        // AND -&gt; masks: keep only bits set in both a and b
-a | b;        // OR  -&gt; combine: set bits present in either a or b
-a ^ b;        // XOR -&gt; toggle: set bits where a and b differ
-~a &amp; 0xFF;    // NOT -&gt; flip every bit, masked to 8 bits so it displays cleanly
-a &lt;&lt; 1;       // shift left  -&gt; multiply by 2, a 0 fills the new low bit
-a &gt;&gt; 1;       // shift right -&gt; divide by 2 (integer division), low bit is discarded</code></pre>
-  <pre class="codeblock" data-lang="cpp" style="display:none"><code>unsigned char a = 0b11001011, b = 0b01011010;   // two 8-bit values written in binary
-
-a &amp; b;        // AND -&gt; masks: keep only bits set in both a and b
-a | b;        // OR  -&gt; combine: set bits present in either a or b
-a ^ b;        // XOR -&gt; toggle: set bits where a and b differ
-~a;           // NOT -&gt; flip every bit (unsigned char wraps naturally at 8 bits)
-a &lt;&lt; 1;       // shift left  -&gt; multiply by 2, a 0 fills the new low bit
-a &gt;&gt; 1;       // shift right -&gt; divide by 2 (integer division), low bit is discarded</code></pre>
+  <pre class="codeblock" data-lang="python" style="display:none"><code><span class="codeline" data-line="0">a, b = 0b11001011, 0b01011010   # two 8-bit values written in binary</span>
+<span class="codeline" data-line="1"></span>
+<span class="codeline" data-line="2">a &amp; b        # AND -&gt; masks: keep only bits set in both a and b</span>
+<span class="codeline" data-line="3">a | b        # OR  -&gt; combine: set bits present in either a or b</span>
+<span class="codeline" data-line="4">a ^ b        # XOR -&gt; toggle: set bits where a and b differ</span>
+<span class="codeline" data-line="5">~a           # NOT -&gt; flips every bit (Python ints are infinite-width,</span>
+<span class="codeline" data-line="6">             #        so this looks different from a fixed 8-bit flip)</span>
+<span class="codeline" data-line="7">a &lt;&lt; 1       # shift left  -&gt; multiply by 2, a 0 fills the new low bit</span>
+<span class="codeline" data-line="8">a &gt;&gt; 1       # shift right -&gt; divide by 2 (integer division), low bit is discarded</span></code></pre>
+  <pre class="codeblock" data-lang="js" style="display:none"><code><span class="codeline" data-line="0">const a = 0b11001011, b = 0b01011010;   // two 8-bit values written in binary</span>
+<span class="codeline" data-line="1"></span>
+<span class="codeline" data-line="2">a &amp; b;        // AND -&gt; masks: keep only bits set in both a and b</span>
+<span class="codeline" data-line="3">a | b;        // OR  -&gt; combine: set bits present in either a or b</span>
+<span class="codeline" data-line="4">a ^ b;        // XOR -&gt; toggle: set bits where a and b differ</span>
+<span class="codeline" data-line="5">~a &amp; 0xFF;    // NOT -&gt; flip every bit, masked to 8 bits so it displays cleanly</span>
+<span class="codeline" data-line="6">a &lt;&lt; 1;       // shift left  -&gt; multiply by 2, a 0 fills the new low bit</span>
+<span class="codeline" data-line="7">a &gt;&gt; 1;       // shift right -&gt; divide by 2 (integer division), low bit is discarded</span></code></pre>
+  <pre class="codeblock" data-lang="java" style="display:none"><code><span class="codeline" data-line="0">int a = 0b11001011, b = 0b01011010;   // two 8-bit values written in binary</span>
+<span class="codeline" data-line="1"></span>
+<span class="codeline" data-line="2">a &amp; b;        // AND -&gt; masks: keep only bits set in both a and b</span>
+<span class="codeline" data-line="3">a | b;        // OR  -&gt; combine: set bits present in either a or b</span>
+<span class="codeline" data-line="4">a ^ b;        // XOR -&gt; toggle: set bits where a and b differ</span>
+<span class="codeline" data-line="5">~a &amp; 0xFF;    // NOT -&gt; flip every bit, masked to 8 bits so it displays cleanly</span>
+<span class="codeline" data-line="6">a &lt;&lt; 1;       // shift left  -&gt; multiply by 2, a 0 fills the new low bit</span>
+<span class="codeline" data-line="7">a &gt;&gt; 1;       // shift right -&gt; divide by 2 (integer division), low bit is discarded</span></code></pre>
+  <pre class="codeblock" data-lang="cpp" style="display:none"><code><span class="codeline" data-line="0">unsigned char a = 0b11001011, b = 0b01011010;   // two 8-bit values written in binary</span>
+<span class="codeline" data-line="1"></span>
+<span class="codeline" data-line="2">a &amp; b;        // AND -&gt; masks: keep only bits set in both a and b</span>
+<span class="codeline" data-line="3">a | b;        // OR  -&gt; combine: set bits present in either a or b</span>
+<span class="codeline" data-line="4">a ^ b;        // XOR -&gt; toggle: set bits where a and b differ</span>
+<span class="codeline" data-line="5">~a;           // NOT -&gt; flip every bit (unsigned char wraps naturally at 8 bits)</span>
+<span class="codeline" data-line="6">a &lt;&lt; 1;       // shift left  -&gt; multiply by 2, a 0 fills the new low bit</span>
+<span class="codeline" data-line="7">a &gt;&gt; 1;       // shift right -&gt; divide by 2 (integer division), low bit is discarded</span></code></pre>
 </div>
 <div class="controls">
     <label>A <input type="number" id="valA" value="203" min="0" max="255"></label>
@@ -273,27 +273,32 @@ a &gt;&gt; 1;       // shift right -&gt; divide by 2 (integer division), low bit
 </div>
 </div>
 <script>
-function highlightLine(n) {
+let __lastHighlightMap = null;
+
+function highlightLine(mapping) {
+  __lastHighlightMap = mapping;
+  applyHighlight();
+}
+
+function applyHighlight() {
   const box = document.querySelector('.codebox');
-  if (!box) return;
-  const pseudoTab = box.querySelector('.codetab[data-lang="pseudo"]');
-  const pseudoBlock = box.querySelector('.codeblock[data-lang="pseudo"]');
-  if (!pseudoBlock) return;
-  if (pseudoTab && !pseudoTab.classList.contains('active')) {
-    box.querySelectorAll('.codetab').forEach(t => t.classList.remove('active'));
-    pseudoTab.classList.add('active');
-    box.querySelectorAll('.codeblock').forEach(p => {
-      p.style.display = p.dataset.lang === 'pseudo' ? 'block' : 'none';
-    });
-  }
-  pseudoBlock.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
-  const target = pseudoBlock.querySelector('.codeline[data-line="' + n + '"]');
+  if (!box || !__lastHighlightMap) return;
+  const activeTab = box.querySelector('.codetab.active');
+  const lang = activeTab ? activeTab.dataset.lang : 'pseudo';
+  const lineNum = __lastHighlightMap[lang];
+  box.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  if (lineNum === undefined || lineNum === null) return;
+  const activeBlock = box.querySelector('.codeblock[data-lang="' + lang + '"]');
+  if (!activeBlock) return;
+  const target = activeBlock.querySelector('.codeline[data-line="' + lineNum + '"]');
   if (target) {
     target.classList.add('active');
     target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 }
+
 function clearHighlight() {
+  __lastHighlightMap = null;
   document.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
 }
 
@@ -307,6 +312,7 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
     box.querySelectorAll('.codeblock').forEach(p=>{
       p.style.display = p.dataset.lang===btn.dataset.lang ? 'block' : 'none';
     });
+    applyHighlight();
   });
 });
 </script>
@@ -359,7 +365,14 @@ async function compute(){
   renderOperand('bitsB', B, true);
   const op = document.getElementById('op').value;
   document.getElementById('opline').textContent = opLabels[op];
-  const opLineMap = {and:0, or:1, xor:2, not:3, shl:4, shr:5};
+  const opLineMap = {
+    and: {pseudo:0, python:2, js:2, java:2, cpp:2},
+    or:  {pseudo:1, python:3, js:3, java:3, cpp:3},
+    xor: {pseudo:2, python:4, js:4, java:4, cpp:4},
+    not: {pseudo:3, python:5, js:5, java:5, cpp:5},
+    shl: {pseudo:4, python:7, js:6, java:6, cpp:6},
+    shr: {pseudo:5, python:8, js:7, java:7, cpp:7}
+  };
   highlightLine(opLineMap[op]);
 
   const bitsA = toBits(A), bitsB = toBits(B);

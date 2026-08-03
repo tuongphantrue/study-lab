@@ -131,6 +131,10 @@
   .speedctl{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:var(--muted);}
   .speedctl select{padding:8px 10px;}
   @media (max-width:640px){ .speedctl{margin-left:0;} }
+
+  .codeline{display:block;}
+  .codeline.active{background:rgba(37,99,235,.22);border-left:3px solid #2563eb;margin-left:-23px;padding-left:20px;border-radius:2px;}
+  .run-hint{font-size:12px;color:var(--dim);margin-top:-4px;margin-bottom:10px;}
 </style>
 </head>
 <body>
@@ -197,122 +201,122 @@
     <button class="codetab" data-lang="java">Java</button>
     <button class="codetab" data-lang="cpp">C++</button>
   </div>
-  <pre class="codeblock" data-lang="pseudo"><code>function insert(bits, key):
-    for each hashFunction in [h1, h2, h3]:      // run the key through every hash function
-        index &lt;- hashFunction(key) mod size(bits)
-        bits[index] &lt;- 1                          // flip that bit on
-
-function mightContain(bits, key):
-    for each hashFunction in [h1, h2, h3]:      // check every bit the key would have set
-        index &lt;- hashFunction(key) mod size(bits)
-        if bits[index] == 0:
-            return false                           // this bit is off: key was never inserted
-    return true  // every relevant bit is on: maybe present (could be a false positive)</code></pre>
-  <pre class="codeblock" data-lang="python" style="display:none"><code>class BloomFilter:
-    def __init__(self, size=24):
-        self.size = size
-        self.bits = [0] * size   # start with every bit off
-
-    def _hashes(self, key):
-        # three independent-ish hash functions over the same key
-        h1 = sum((i+1) * ord(c) for i, c in enumerate(key)) % self.size
-        h2 = sum((i*3+7) * ord(c) for i, c in enumerate(key)) % self.size
-        h3 = sum((i*5+13) * ord(c) for i, c in enumerate(key)) % self.size
-        return [h1, h2, h3]
-
-    def insert(self, key):
-        for index in self._hashes(key):
-            self.bits[index] = 1   # flip each of this key's three bits on
-
-    def might_contain(self, key):
-        return all(self.bits[index] for index in self._hashes(key))
-        # True only if every one of the key's three bits is already on</code></pre>
-  <pre class="codeblock" data-lang="js" style="display:none"><code>class BloomFilter {
-  constructor(size = 24) {
-    this.size = size;
-    this.bits = new Array(size).fill(0);   // start with every bit off
-  }
-
-  hashes(key) {
-    // three independent-ish hash functions over the same key
-    let h1 = 0, h2 = 7, h3 = 13;
-    for (const c of key) {
-      h1 = (h1 * 31 + c.charCodeAt(0)) % this.size;
-      h2 = (h2 * 17 + c.charCodeAt(0) * 3) % this.size;
-      h3 = (h3 * 23 + c.charCodeAt(0) * 7 + 11) % this.size;
-    }
-    return [h1, h2, h3];
-  }
-
-  insert(key) {
-    for (const index of this.hashes(key)) this.bits[index] = 1;   // flip each bit on
-  }
-
-  mightContain(key) {
-    return this.hashes(key).every(index =&gt; this.bits[index] === 1);
-    // true only if every one of the key's three bits is already on
-  }
-}</code></pre>
-  <pre class="codeblock" data-lang="java" style="display:none"><code>class BloomFilter {
-    boolean[] bits;
-    int size;
-
-    BloomFilter(int size) {
-        this.size = size;
-        bits = new boolean[size];   // starts with every bit false (off)
-    }
-
-    int[] hashes(String key) {
-        // three independent-ish hash functions over the same key
-        int h1 = 0, h2 = 7, h3 = 13;
-        for (char c : key.toCharArray()) {
-            h1 = (h1 * 31 + c) % size;
-            h2 = (h2 * 17 + c * 3) % size;
-            h3 = (h3 * 23 + c * 7 + 11) % size;
-        }
-        return new int[]{h1, h2, h3};
-    }
-
-    void insert(String key) {
-        for (int index : hashes(key)) bits[index] = true;   // flip each bit on
-    }
-
-    boolean mightContain(String key) {
-        for (int index : hashes(key)) {
-            if (!bits[index]) return false;   // this bit is off: definitely never inserted
-        }
-        return true;   // every relevant bit is on: maybe present
-    }
-}</code></pre>
-  <pre class="codeblock" data-lang="cpp" style="display:none"><code>class BloomFilter {
-    vector&lt;bool&gt; bits;
-    int size;
-
-    array&lt;int,3&gt; hashes(const string&amp; key) {
-        // three independent-ish hash functions over the same key
-        int h1=0, h2=7, h3=13;
-        for (char c : key) {
-            h1 = (h1 * 31 + c) % size;
-            h2 = (h2 * 17 + c * 3) % size;
-            h3 = (h3 * 23 + c * 7 + 11) % size;
-        }
-        return {h1, h2, h3};
-    }
-
-public:
-    BloomFilter(int size) : size(size), bits(size, false) {}   // starts all bits off
-
-    void insert(const string&amp; key) {
-        for (int index : hashes(key)) bits[index] = true;   // flip each bit on
-    }
-
-    bool mightContain(const string&amp; key) {
-        for (int index : hashes(key)) {
-            if (!bits[index]) return false;   // this bit is off: definitely never inserted
-        }
-        return true;   // every relevant bit is on: maybe present
-    }
-};</code></pre>
+  <pre class="codeblock" data-lang="pseudo"><code><span class="codeline" data-line="0">function insert(bits, key):</span>
+<span class="codeline" data-line="1">    for each hashFunction in [h1, h2, h3]:      // run the key through every hash function</span>
+<span class="codeline" data-line="2">        index &lt;- hashFunction(key) mod size(bits)</span>
+<span class="codeline" data-line="3">        bits[index] &lt;- 1                          // flip that bit on</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">function mightContain(bits, key):</span>
+<span class="codeline" data-line="6">    for each hashFunction in [h1, h2, h3]:      // check every bit the key would have set</span>
+<span class="codeline" data-line="7">        index &lt;- hashFunction(key) mod size(bits)</span>
+<span class="codeline" data-line="8">        if bits[index] == 0:</span>
+<span class="codeline" data-line="9">            return false                           // this bit is off: key was never inserted</span>
+<span class="codeline" data-line="10">    return true  // every relevant bit is on: maybe present (could be a false positive)</span></code></pre>
+  <pre class="codeblock" data-lang="python" style="display:none"><code><span class="codeline" data-line="0">class BloomFilter:</span>
+<span class="codeline" data-line="1">    def __init__(self, size=24):</span>
+<span class="codeline" data-line="2">        self.size = size</span>
+<span class="codeline" data-line="3">        self.bits = [0] * size   # start with every bit off</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">    def _hashes(self, key):</span>
+<span class="codeline" data-line="6">        # three independent-ish hash functions over the same key</span>
+<span class="codeline" data-line="7">        h1 = sum((i+1) * ord(c) for i, c in enumerate(key)) % self.size</span>
+<span class="codeline" data-line="8">        h2 = sum((i*3+7) * ord(c) for i, c in enumerate(key)) % self.size</span>
+<span class="codeline" data-line="9">        h3 = sum((i*5+13) * ord(c) for i, c in enumerate(key)) % self.size</span>
+<span class="codeline" data-line="10">        return [h1, h2, h3]</span>
+<span class="codeline" data-line="11"></span>
+<span class="codeline" data-line="12">    def insert(self, key):</span>
+<span class="codeline" data-line="13">        for index in self._hashes(key):</span>
+<span class="codeline" data-line="14">            self.bits[index] = 1   # flip each of this key's three bits on</span>
+<span class="codeline" data-line="15"></span>
+<span class="codeline" data-line="16">    def might_contain(self, key):</span>
+<span class="codeline" data-line="17">        return all(self.bits[index] for index in self._hashes(key))</span>
+<span class="codeline" data-line="18">        # True only if every one of the key's three bits is already on</span></code></pre>
+  <pre class="codeblock" data-lang="js" style="display:none"><code><span class="codeline" data-line="0">class BloomFilter {</span>
+<span class="codeline" data-line="1">  constructor(size = 24) {</span>
+<span class="codeline" data-line="2">    this.size = size;</span>
+<span class="codeline" data-line="3">    this.bits = new Array(size).fill(0);   // start with every bit off</span>
+<span class="codeline" data-line="4">  }</span>
+<span class="codeline" data-line="5"></span>
+<span class="codeline" data-line="6">  hashes(key) {</span>
+<span class="codeline" data-line="7">    // three independent-ish hash functions over the same key</span>
+<span class="codeline" data-line="8">    let h1 = 0, h2 = 7, h3 = 13;</span>
+<span class="codeline" data-line="9">    for (const c of key) {</span>
+<span class="codeline" data-line="10">      h1 = (h1 * 31 + c.charCodeAt(0)) % this.size;</span>
+<span class="codeline" data-line="11">      h2 = (h2 * 17 + c.charCodeAt(0) * 3) % this.size;</span>
+<span class="codeline" data-line="12">      h3 = (h3 * 23 + c.charCodeAt(0) * 7 + 11) % this.size;</span>
+<span class="codeline" data-line="13">    }</span>
+<span class="codeline" data-line="14">    return [h1, h2, h3];</span>
+<span class="codeline" data-line="15">  }</span>
+<span class="codeline" data-line="16"></span>
+<span class="codeline" data-line="17">  insert(key) {</span>
+<span class="codeline" data-line="18">    for (const index of this.hashes(key)) this.bits[index] = 1;   // flip each bit on</span>
+<span class="codeline" data-line="19">  }</span>
+<span class="codeline" data-line="20"></span>
+<span class="codeline" data-line="21">  mightContain(key) {</span>
+<span class="codeline" data-line="22">    return this.hashes(key).every(index =&gt; this.bits[index] === 1);</span>
+<span class="codeline" data-line="23">    // true only if every one of the key's three bits is already on</span>
+<span class="codeline" data-line="24">  }</span>
+<span class="codeline" data-line="25">}</span></code></pre>
+  <pre class="codeblock" data-lang="java" style="display:none"><code><span class="codeline" data-line="0">class BloomFilter {</span>
+<span class="codeline" data-line="1">    boolean[] bits;</span>
+<span class="codeline" data-line="2">    int size;</span>
+<span class="codeline" data-line="3"></span>
+<span class="codeline" data-line="4">    BloomFilter(int size) {</span>
+<span class="codeline" data-line="5">        this.size = size;</span>
+<span class="codeline" data-line="6">        bits = new boolean[size];   // starts with every bit false (off)</span>
+<span class="codeline" data-line="7">    }</span>
+<span class="codeline" data-line="8"></span>
+<span class="codeline" data-line="9">    int[] hashes(String key) {</span>
+<span class="codeline" data-line="10">        // three independent-ish hash functions over the same key</span>
+<span class="codeline" data-line="11">        int h1 = 0, h2 = 7, h3 = 13;</span>
+<span class="codeline" data-line="12">        for (char c : key.toCharArray()) {</span>
+<span class="codeline" data-line="13">            h1 = (h1 * 31 + c) % size;</span>
+<span class="codeline" data-line="14">            h2 = (h2 * 17 + c * 3) % size;</span>
+<span class="codeline" data-line="15">            h3 = (h3 * 23 + c * 7 + 11) % size;</span>
+<span class="codeline" data-line="16">        }</span>
+<span class="codeline" data-line="17">        return new int[]{h1, h2, h3};</span>
+<span class="codeline" data-line="18">    }</span>
+<span class="codeline" data-line="19"></span>
+<span class="codeline" data-line="20">    void insert(String key) {</span>
+<span class="codeline" data-line="21">        for (int index : hashes(key)) bits[index] = true;   // flip each bit on</span>
+<span class="codeline" data-line="22">    }</span>
+<span class="codeline" data-line="23"></span>
+<span class="codeline" data-line="24">    boolean mightContain(String key) {</span>
+<span class="codeline" data-line="25">        for (int index : hashes(key)) {</span>
+<span class="codeline" data-line="26">            if (!bits[index]) return false;   // this bit is off: definitely never inserted</span>
+<span class="codeline" data-line="27">        }</span>
+<span class="codeline" data-line="28">        return true;   // every relevant bit is on: maybe present</span>
+<span class="codeline" data-line="29">    }</span>
+<span class="codeline" data-line="30">}</span></code></pre>
+  <pre class="codeblock" data-lang="cpp" style="display:none"><code><span class="codeline" data-line="0">class BloomFilter {</span>
+<span class="codeline" data-line="1">    vector&lt;bool&gt; bits;</span>
+<span class="codeline" data-line="2">    int size;</span>
+<span class="codeline" data-line="3"></span>
+<span class="codeline" data-line="4">    array&lt;int,3&gt; hashes(const string&amp; key) {</span>
+<span class="codeline" data-line="5">        // three independent-ish hash functions over the same key</span>
+<span class="codeline" data-line="6">        int h1=0, h2=7, h3=13;</span>
+<span class="codeline" data-line="7">        for (char c : key) {</span>
+<span class="codeline" data-line="8">            h1 = (h1 * 31 + c) % size;</span>
+<span class="codeline" data-line="9">            h2 = (h2 * 17 + c * 3) % size;</span>
+<span class="codeline" data-line="10">            h3 = (h3 * 23 + c * 7 + 11) % size;</span>
+<span class="codeline" data-line="11">        }</span>
+<span class="codeline" data-line="12">        return {h1, h2, h3};</span>
+<span class="codeline" data-line="13">    }</span>
+<span class="codeline" data-line="14"></span>
+<span class="codeline" data-line="15">public:</span>
+<span class="codeline" data-line="16">    BloomFilter(int size) : size(size), bits(size, false) {}   // starts all bits off</span>
+<span class="codeline" data-line="17"></span>
+<span class="codeline" data-line="18">    void insert(const string&amp; key) {</span>
+<span class="codeline" data-line="19">        for (int index : hashes(key)) bits[index] = true;   // flip each bit on</span>
+<span class="codeline" data-line="20">    }</span>
+<span class="codeline" data-line="21"></span>
+<span class="codeline" data-line="22">    bool mightContain(const string&amp; key) {</span>
+<span class="codeline" data-line="23">        for (int index : hashes(key)) {</span>
+<span class="codeline" data-line="24">            if (!bits[index]) return false;   // this bit is off: definitely never inserted</span>
+<span class="codeline" data-line="25">        }</span>
+<span class="codeline" data-line="26">        return true;   // every relevant bit is on: maybe present</span>
+<span class="codeline" data-line="27">    }</span>
+<span class="codeline" data-line="28">};</span></code></pre>
 </div>
 <div class="controls">
     <input type="text" id="key" placeholder="key to add or check" value="apple">
@@ -329,6 +333,35 @@ public:
 </div>
 </div>
 <script>
+let __lastHighlightMap = null;
+
+function highlightLine(mapping) {
+  __lastHighlightMap = mapping;
+  applyHighlight();
+}
+
+function applyHighlight() {
+  const box = document.querySelector('.codebox');
+  if (!box || !__lastHighlightMap) return;
+  const activeTab = box.querySelector('.codetab.active');
+  const lang = activeTab ? activeTab.dataset.lang : 'pseudo';
+  const lineNum = __lastHighlightMap[lang];
+  box.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  if (lineNum === undefined || lineNum === null) return;
+  const activeBlock = box.querySelector('.codeblock[data-lang="' + lang + '"]');
+  if (!activeBlock) return;
+  const target = activeBlock.querySelector('.codeline[data-line="' + lineNum + '"]');
+  if (target) {
+    target.classList.add('active');
+    target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+}
+
+function clearHighlight() {
+  __lastHighlightMap = null;
+  document.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+}
+
 document.querySelectorAll('.codetabs').forEach(tabs=>{
   tabs.addEventListener('click', e=>{
     const btn = e.target.closest('.codetab');
@@ -339,6 +372,7 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
     box.querySelectorAll('.codeblock').forEach(p=>{
       p.style.display = p.dataset.lang===btn.dataset.lang ? 'block' : 'none';
     });
+    applyHighlight();
   });
 });
 </script>
@@ -370,9 +404,11 @@ function render(hitSet){
 }
 
 async function add(key){
+  clearHighlight();
   const positions = [h1(key), h2(key), h3(key)];
   document.getElementById('status').innerHTML = `hashing "${key}" → positions ${positions.join(', ')}`;
   render(new Set(positions));
+  highlightLine({pseudo:3, python:14, js:18, java:21, cpp:19});
   await sleep(600);
   positions.forEach(p=>bits[p]=1);
   inserted.push(key);
@@ -381,9 +417,11 @@ async function add(key){
 }
 
 async function check(key){
+  clearHighlight();
   const positions = [h1(key), h2(key), h3(key)];
   document.getElementById('status').innerHTML = `checking "${key}" → positions ${positions.join(', ')}`;
   render(new Set(positions));
+  highlightLine({pseudo:8, python:17, js:22, java:26, cpp:24});
   await sleep(600);
   const allSet = positions.every(p=>bits[p]===1);
   if(allSet){

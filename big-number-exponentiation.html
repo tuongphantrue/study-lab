@@ -205,59 +205,59 @@
 <span class="codeline" data-line="5">        base &lt;- base * base                // square the base for the next bit position</span>
 <span class="codeline" data-line="6">        exp &lt;- exp / 2                     // move to the next bit (integer division)</span>
 <span class="codeline" data-line="7">    return result</span></code></pre>
-  <pre class="codeblock" data-lang="python" style="display:none"><code>def power(base, exp):
-    result = 1
-    while exp &gt; 0:
-        if exp % 2 == 1:      # this bit of the exponent is 1
-            result *= base      # fold the current squared base into the answer
-        base *= base           # square the base for the next bit position
-        exp //= 2              # move to the next bit (integer division)
-
-    return result
-
-# Python's built-in pow(base, exp) already does this internally</code></pre>
-  <pre class="codeblock" data-lang="js" style="display:none"><code>function power(base, exp) {
-  let result = 1n;            // BigInt, so results stay exact for large exponents
-  base = BigInt(base);
-
-  while (exp &gt; 0) {
-    if (exp % 2 === 1) {        // this bit of the exponent is 1
-      result *= base;             // fold the current squared base into the answer
-    }
-    base *= base;                // square the base for the next bit position
-    exp = Math.floor(exp / 2);   // move to the next bit (integer division)
-  }
-
-  return result;
-}</code></pre>
-  <pre class="codeblock" data-lang="java" style="display:none"><code>static long power(long base, long exp) {
-    long result = 1;
-
-    while (exp &gt; 0) {
-        if (exp % 2 == 1) {      // this bit of the exponent is 1
-            result *= base;        // fold the current squared base into the answer
-        }
-        base *= base;             // square the base for the next bit position
-        exp /= 2;                 // move to the next bit (integer division)
-    }
-
-    return result;
-    // for very large results, use java.math.BigInteger instead of long
-}</code></pre>
-  <pre class="codeblock" data-lang="cpp" style="display:none"><code>long long power(long long base, long long exp) {
-    long long result = 1;
-
-    while (exp &gt; 0) {
-        if (exp % 2 == 1) {      // this bit of the exponent is 1
-            result *= base;        // fold the current squared base into the answer
-        }
-        base *= base;             // square the base for the next bit position
-        exp /= 2;                 // move to the next bit (integer division)
-    }
-
-    return result;
-    // for arbitrarily large results, use a bignum library
-}</code></pre>
+  <pre class="codeblock" data-lang="python" style="display:none"><code><span class="codeline" data-line="0">def power(base, exp):</span>
+<span class="codeline" data-line="1">    result = 1</span>
+<span class="codeline" data-line="2">    while exp &gt; 0:</span>
+<span class="codeline" data-line="3">        if exp % 2 == 1:      # this bit of the exponent is 1</span>
+<span class="codeline" data-line="4">            result *= base      # fold the current squared base into the answer</span>
+<span class="codeline" data-line="5">        base *= base           # square the base for the next bit position</span>
+<span class="codeline" data-line="6">        exp //= 2              # move to the next bit (integer division)</span>
+<span class="codeline" data-line="7"></span>
+<span class="codeline" data-line="8">    return result</span>
+<span class="codeline" data-line="9"></span>
+<span class="codeline" data-line="10"># Python's built-in pow(base, exp) already does this internally</span></code></pre>
+  <pre class="codeblock" data-lang="js" style="display:none"><code><span class="codeline" data-line="0">function power(base, exp) {</span>
+<span class="codeline" data-line="1">  let result = 1n;            // BigInt, so results stay exact for large exponents</span>
+<span class="codeline" data-line="2">  base = BigInt(base);</span>
+<span class="codeline" data-line="3"></span>
+<span class="codeline" data-line="4">  while (exp &gt; 0) {</span>
+<span class="codeline" data-line="5">    if (exp % 2 === 1) {        // this bit of the exponent is 1</span>
+<span class="codeline" data-line="6">      result *= base;             // fold the current squared base into the answer</span>
+<span class="codeline" data-line="7">    }</span>
+<span class="codeline" data-line="8">    base *= base;                // square the base for the next bit position</span>
+<span class="codeline" data-line="9">    exp = Math.floor(exp / 2);   // move to the next bit (integer division)</span>
+<span class="codeline" data-line="10">  }</span>
+<span class="codeline" data-line="11"></span>
+<span class="codeline" data-line="12">  return result;</span>
+<span class="codeline" data-line="13">}</span></code></pre>
+  <pre class="codeblock" data-lang="java" style="display:none"><code><span class="codeline" data-line="0">static long power(long base, long exp) {</span>
+<span class="codeline" data-line="1">    long result = 1;</span>
+<span class="codeline" data-line="2"></span>
+<span class="codeline" data-line="3">    while (exp &gt; 0) {</span>
+<span class="codeline" data-line="4">        if (exp % 2 == 1) {      // this bit of the exponent is 1</span>
+<span class="codeline" data-line="5">            result *= base;        // fold the current squared base into the answer</span>
+<span class="codeline" data-line="6">        }</span>
+<span class="codeline" data-line="7">        base *= base;             // square the base for the next bit position</span>
+<span class="codeline" data-line="8">        exp /= 2;                 // move to the next bit (integer division)</span>
+<span class="codeline" data-line="9">    }</span>
+<span class="codeline" data-line="10"></span>
+<span class="codeline" data-line="11">    return result;</span>
+<span class="codeline" data-line="12">    // for very large results, use java.math.BigInteger instead of long</span>
+<span class="codeline" data-line="13">}</span></code></pre>
+  <pre class="codeblock" data-lang="cpp" style="display:none"><code><span class="codeline" data-line="0">long long power(long long base, long long exp) {</span>
+<span class="codeline" data-line="1">    long long result = 1;</span>
+<span class="codeline" data-line="2"></span>
+<span class="codeline" data-line="3">    while (exp &gt; 0) {</span>
+<span class="codeline" data-line="4">        if (exp % 2 == 1) {      // this bit of the exponent is 1</span>
+<span class="codeline" data-line="5">            result *= base;        // fold the current squared base into the answer</span>
+<span class="codeline" data-line="6">        }</span>
+<span class="codeline" data-line="7">        base *= base;             // square the base for the next bit position</span>
+<span class="codeline" data-line="8">        exp /= 2;                 // move to the next bit (integer division)</span>
+<span class="codeline" data-line="9">    }</span>
+<span class="codeline" data-line="10"></span>
+<span class="codeline" data-line="11">    return result;</span>
+<span class="codeline" data-line="12">    // for arbitrarily large results, use a bignum library</span>
+<span class="codeline" data-line="13">}</span></code></pre>
 </div>
 <div class="controls">
     <label>base <input type="number" id="base" value="3" style="width:70px"></label>
@@ -276,27 +276,32 @@
 </div>
 </div>
 <script>
-function highlightLine(n) {
+let __lastHighlightMap = null;
+
+function highlightLine(mapping) {
+  __lastHighlightMap = mapping;
+  applyHighlight();
+}
+
+function applyHighlight() {
   const box = document.querySelector('.codebox');
-  if (!box) return;
-  const pseudoTab = box.querySelector('.codetab[data-lang="pseudo"]');
-  const pseudoBlock = box.querySelector('.codeblock[data-lang="pseudo"]');
-  if (!pseudoBlock) return;
-  if (pseudoTab && !pseudoTab.classList.contains('active')) {
-    box.querySelectorAll('.codetab').forEach(t => t.classList.remove('active'));
-    pseudoTab.classList.add('active');
-    box.querySelectorAll('.codeblock').forEach(p => {
-      p.style.display = p.dataset.lang === 'pseudo' ? 'block' : 'none';
-    });
-  }
-  pseudoBlock.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
-  const target = pseudoBlock.querySelector('.codeline[data-line="' + n + '"]');
+  if (!box || !__lastHighlightMap) return;
+  const activeTab = box.querySelector('.codetab.active');
+  const lang = activeTab ? activeTab.dataset.lang : 'pseudo';
+  const lineNum = __lastHighlightMap[lang];
+  box.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  if (lineNum === undefined || lineNum === null) return;
+  const activeBlock = box.querySelector('.codeblock[data-lang="' + lang + '"]');
+  if (!activeBlock) return;
+  const target = activeBlock.querySelector('.codeline[data-line="' + lineNum + '"]');
   if (target) {
     target.classList.add('active');
     target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 }
+
 function clearHighlight() {
+  __lastHighlightMap = null;
   document.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
 }
 
@@ -310,6 +315,7 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
     box.querySelectorAll('.codeblock').forEach(p=>{
       p.style.display = p.dataset.lang===btn.dataset.lang ? 'block' : 'none';
     });
+    applyHighlight();
   });
 });
 </script>
@@ -341,7 +347,7 @@ async function run(){
   let log = [];
   renderBits(exp, 0);
   document.getElementById('result').textContent = '';
-  highlightLine(2);
+  highlightLine({pseudo:2, python:2, js:4, java:3, cpp:3});
   await sleep(400);
 
   for(let i=0; i<bin.length; i++){
@@ -350,10 +356,10 @@ async function run(){
     if(bit==='1'){
       result = result * curBase;
       log.push(`bit ${i} is 1 → result = result × current² = <span class="cur">${result}</span>`);
-      highlightLine(4);
+      highlightLine({pseudo:4, python:4, js:6, java:5, cpp:5});
     } else {
       log.push(`bit ${i} is 0 → skip (don't multiply into result)`);
-      highlightLine(3);
+      highlightLine({pseudo:3, python:3, js:5, java:4, cpp:4});
     }
     stepsEl.innerHTML = log.join('<br>');
     await sleep(700);
@@ -361,7 +367,7 @@ async function run(){
       curBase = curBase * curBase;
       log.push(`square the running base: ${curBase.toString().length > 20 ? curBase.toString().slice(0,20)+'…' : curBase} (this represents ${originalBase}^${2**(i+1)})`);
       stepsEl.innerHTML = log.join('<br>');
-      highlightLine(5);
+      highlightLine({pseudo:5, python:5, js:8, java:7, cpp:7});
       await sleep(500);
     }
   }

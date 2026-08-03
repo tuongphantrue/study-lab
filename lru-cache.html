@@ -130,6 +130,10 @@
   .speedctl{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:var(--muted);}
   .speedctl select{padding:8px 10px;}
   @media (max-width:640px){ .speedctl{margin-left:0;} }
+
+  .codeline{display:block;}
+  .codeline.active{background:rgba(37,99,235,.22);border-left:3px solid #2563eb;margin-left:-23px;padding-left:20px;border-radius:2px;}
+  .run-hint{font-size:12px;color:var(--dim);margin-top:-4px;margin-bottom:10px;}
 </style>
 </head>
 <body>
@@ -196,103 +200,103 @@
     <button class="codetab" data-lang="java">Java</button>
     <button class="codetab" data-lang="cpp">C++</button>
   </div>
-  <pre class="codeblock" data-lang="pseudo"><code>function get(cache, key):
-    if key not in cache.map: return not found   // key was never cached, or already evicted
-    moveToFront(cache, key)                      // touching a key marks it most-recently-used
-    return cache.map[key]
-
-function put(cache, key, value):
-    if key in cache.map:
-        moveToFront(cache, key)                    // already cached: just refresh its position
-    else:
-        if size(cache) == cache.capacity:
-            evictLeastRecentlyUsed(cache)            // full: drop the back of the list first
-        addToFront(cache, key, value)              // insert the new key as most-recently-used</code></pre>
-  <pre class="codeblock" data-lang="python" style="display:none"><code>from collections import OrderedDict   # remembers insertion/access order
-
-class LRUCache:
-    def __init__(self, capacity):
-        self.capacity = capacity
-        self.cache = OrderedDict()   # front = least recent, back = most recent
-
-    def get(self, key):
-        if key not in self.cache:
-            return -1                        # key was never cached, or already evicted
-        self.cache.move_to_end(key)           # mark as most recently used
-        return self.cache[key]
-
-    def put(self, key, value):
-        if key in self.cache:
-            self.cache.move_to_end(key)         # already cached: refresh its position
-        self.cache[key] = value                # insert or overwrite
-        if len(self.cache) &gt; self.capacity:
-            self.cache.popitem(last=False)      # over capacity: evict the least recently used</code></pre>
-  <pre class="codeblock" data-lang="js" style="display:none"><code>class LRUCache {
-  constructor(capacity) {
-    this.capacity = capacity;
-    this.cache = new Map();   // Maps preserve insertion order in JS, which we exploit here
-  }
-
-  get(key) {
-    if (!this.cache.has(key)) return -1;   // key was never cached, or already evicted
-    const value = this.cache.get(key);
-    this.cache.delete(key);                 // remove and re-add to move it to the "recent" end
-    this.cache.set(key, value);              // now it's the most recently used entry
-    return value;
-  }
-
-  put(key, value) {
-    if (this.cache.has(key)) this.cache.delete(key);   // remove old position first, if any
-    this.cache.set(key, value);                          // insert as most recently used
-    if (this.cache.size &gt; this.capacity) {
-      const oldest = this.cache.keys().next().value;      // Map iterates oldest-first
-      this.cache.delete(oldest);                            // evict least recently used
-    }
-  }
-}</code></pre>
-  <pre class="codeblock" data-lang="java" style="display:none"><code>class LRUCache extends LinkedHashMap&lt;Integer, Integer&gt; {
-    private int capacity;
-
-    LRUCache(int capacity) {
-        super(capacity, 0.75f, true);   // accessOrder=true reorders entries on every get()
-        this.capacity = capacity;
-    }
-
-    @Override
-    protected boolean removeEldestEntry(Map.Entry&lt;Integer, Integer&gt; eldest) {
-        return size() &gt; capacity;   // returning true here auto-evicts the least recently used
-    }
-}
-
-// usage:
-// LRUCache cache = new LRUCache(4);
-// cache.put(1, 100);
-// cache.get(1); // marks key 1 as most recently used</code></pre>
-  <pre class="codeblock" data-lang="cpp" style="display:none"><code>class LRUCache {
-    int capacity;
-    list&lt;pair&lt;int,int&gt;&gt; order;   // doubly linked list; front = most recently used
-    unordered_map&lt;int, list&lt;pair&lt;int,int&gt;&gt;::iterator&gt; map;   // key -&gt; position in the list
-
-public:
-    LRUCache(int capacity) : capacity(capacity) {}
-
-    int get(int key) {
-        if (!map.count(key)) return -1;               // key was never cached, or evicted
-        order.splice(order.begin(), order, map[key]);   // move this node to the front, O(1)
-        return map[key]-&gt;second;
-    }
-
-    void put(int key, int value) {
-        if (map.count(key)) order.erase(map[key]);      // remove old entry first, if present
-        order.push_front({key, value});                 // insert as most recently used
-        map[key] = order.begin();                         // remember its new position
-        if ((int)map.size() &gt; capacity) {
-            auto last = order.back();                       // the least recently used entry
-            map.erase(last.first);
-            order.pop_back();                                 // evict it
-        }
-    }
-};</code></pre>
+  <pre class="codeblock" data-lang="pseudo"><code><span class="codeline" data-line="0">function get(cache, key):</span>
+<span class="codeline" data-line="1">    if key not in cache.map: return not found   // key was never cached, or already evicted</span>
+<span class="codeline" data-line="2">    moveToFront(cache, key)                      // touching a key marks it most-recently-used</span>
+<span class="codeline" data-line="3">    return cache.map[key]</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">function put(cache, key, value):</span>
+<span class="codeline" data-line="6">    if key in cache.map:</span>
+<span class="codeline" data-line="7">        moveToFront(cache, key)                    // already cached: just refresh its position</span>
+<span class="codeline" data-line="8">    else:</span>
+<span class="codeline" data-line="9">        if size(cache) == cache.capacity:</span>
+<span class="codeline" data-line="10">            evictLeastRecentlyUsed(cache)            // full: drop the back of the list first</span>
+<span class="codeline" data-line="11">        addToFront(cache, key, value)              // insert the new key as most-recently-used</span></code></pre>
+  <pre class="codeblock" data-lang="python" style="display:none"><code><span class="codeline" data-line="0">from collections import OrderedDict   # remembers insertion/access order</span>
+<span class="codeline" data-line="1"></span>
+<span class="codeline" data-line="2">class LRUCache:</span>
+<span class="codeline" data-line="3">    def __init__(self, capacity):</span>
+<span class="codeline" data-line="4">        self.capacity = capacity</span>
+<span class="codeline" data-line="5">        self.cache = OrderedDict()   # front = least recent, back = most recent</span>
+<span class="codeline" data-line="6"></span>
+<span class="codeline" data-line="7">    def get(self, key):</span>
+<span class="codeline" data-line="8">        if key not in self.cache:</span>
+<span class="codeline" data-line="9">            return -1                        # key was never cached, or already evicted</span>
+<span class="codeline" data-line="10">        self.cache.move_to_end(key)           # mark as most recently used</span>
+<span class="codeline" data-line="11">        return self.cache[key]</span>
+<span class="codeline" data-line="12"></span>
+<span class="codeline" data-line="13">    def put(self, key, value):</span>
+<span class="codeline" data-line="14">        if key in self.cache:</span>
+<span class="codeline" data-line="15">            self.cache.move_to_end(key)         # already cached: refresh its position</span>
+<span class="codeline" data-line="16">        self.cache[key] = value                # insert or overwrite</span>
+<span class="codeline" data-line="17">        if len(self.cache) &gt; self.capacity:</span>
+<span class="codeline" data-line="18">            self.cache.popitem(last=False)      # over capacity: evict the least recently used</span></code></pre>
+  <pre class="codeblock" data-lang="js" style="display:none"><code><span class="codeline" data-line="0">class LRUCache {</span>
+<span class="codeline" data-line="1">  constructor(capacity) {</span>
+<span class="codeline" data-line="2">    this.capacity = capacity;</span>
+<span class="codeline" data-line="3">    this.cache = new Map();   // Maps preserve insertion order in JS, which we exploit here</span>
+<span class="codeline" data-line="4">  }</span>
+<span class="codeline" data-line="5"></span>
+<span class="codeline" data-line="6">  get(key) {</span>
+<span class="codeline" data-line="7">    if (!this.cache.has(key)) return -1;   // key was never cached, or already evicted</span>
+<span class="codeline" data-line="8">    const value = this.cache.get(key);</span>
+<span class="codeline" data-line="9">    this.cache.delete(key);                 // remove and re-add to move it to the "recent" end</span>
+<span class="codeline" data-line="10">    this.cache.set(key, value);              // now it's the most recently used entry</span>
+<span class="codeline" data-line="11">    return value;</span>
+<span class="codeline" data-line="12">  }</span>
+<span class="codeline" data-line="13"></span>
+<span class="codeline" data-line="14">  put(key, value) {</span>
+<span class="codeline" data-line="15">    if (this.cache.has(key)) this.cache.delete(key);   // remove old position first, if any</span>
+<span class="codeline" data-line="16">    this.cache.set(key, value);                          // insert as most recently used</span>
+<span class="codeline" data-line="17">    if (this.cache.size &gt; this.capacity) {</span>
+<span class="codeline" data-line="18">      const oldest = this.cache.keys().next().value;      // Map iterates oldest-first</span>
+<span class="codeline" data-line="19">      this.cache.delete(oldest);                            // evict least recently used</span>
+<span class="codeline" data-line="20">    }</span>
+<span class="codeline" data-line="21">  }</span>
+<span class="codeline" data-line="22">}</span></code></pre>
+  <pre class="codeblock" data-lang="java" style="display:none"><code><span class="codeline" data-line="0">class LRUCache extends LinkedHashMap&lt;Integer, Integer&gt; {</span>
+<span class="codeline" data-line="1">    private int capacity;</span>
+<span class="codeline" data-line="2"></span>
+<span class="codeline" data-line="3">    LRUCache(int capacity) {</span>
+<span class="codeline" data-line="4">        super(capacity, 0.75f, true);   // accessOrder=true reorders entries on every get()</span>
+<span class="codeline" data-line="5">        this.capacity = capacity;</span>
+<span class="codeline" data-line="6">    }</span>
+<span class="codeline" data-line="7"></span>
+<span class="codeline" data-line="8">    @Override</span>
+<span class="codeline" data-line="9">    protected boolean removeEldestEntry(Map.Entry&lt;Integer, Integer&gt; eldest) {</span>
+<span class="codeline" data-line="10">        return size() &gt; capacity;   // returning true here auto-evicts the least recently used</span>
+<span class="codeline" data-line="11">    }</span>
+<span class="codeline" data-line="12">}</span>
+<span class="codeline" data-line="13"></span>
+<span class="codeline" data-line="14">// usage:</span>
+<span class="codeline" data-line="15">// LRUCache cache = new LRUCache(4);</span>
+<span class="codeline" data-line="16">// cache.put(1, 100);</span>
+<span class="codeline" data-line="17">// cache.get(1); // marks key 1 as most recently used</span></code></pre>
+  <pre class="codeblock" data-lang="cpp" style="display:none"><code><span class="codeline" data-line="0">class LRUCache {</span>
+<span class="codeline" data-line="1">    int capacity;</span>
+<span class="codeline" data-line="2">    list&lt;pair&lt;int,int&gt;&gt; order;   // doubly linked list; front = most recently used</span>
+<span class="codeline" data-line="3">    unordered_map&lt;int, list&lt;pair&lt;int,int&gt;&gt;::iterator&gt; map;   // key -&gt; position in the list</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">public:</span>
+<span class="codeline" data-line="6">    LRUCache(int capacity) : capacity(capacity) {}</span>
+<span class="codeline" data-line="7"></span>
+<span class="codeline" data-line="8">    int get(int key) {</span>
+<span class="codeline" data-line="9">        if (!map.count(key)) return -1;               // key was never cached, or evicted</span>
+<span class="codeline" data-line="10">        order.splice(order.begin(), order, map[key]);   // move this node to the front, O(1)</span>
+<span class="codeline" data-line="11">        return map[key]-&gt;second;</span>
+<span class="codeline" data-line="12">    }</span>
+<span class="codeline" data-line="13"></span>
+<span class="codeline" data-line="14">    void put(int key, int value) {</span>
+<span class="codeline" data-line="15">        if (map.count(key)) order.erase(map[key]);      // remove old entry first, if present</span>
+<span class="codeline" data-line="16">        order.push_front({key, value});                 // insert as most recently used</span>
+<span class="codeline" data-line="17">        map[key] = order.begin();                         // remember its new position</span>
+<span class="codeline" data-line="18">        if ((int)map.size() &gt; capacity) {</span>
+<span class="codeline" data-line="19">            auto last = order.back();                       // the least recently used entry</span>
+<span class="codeline" data-line="20">            map.erase(last.first);</span>
+<span class="codeline" data-line="21">            order.pop_back();                                 // evict it</span>
+<span class="codeline" data-line="22">        }</span>
+<span class="codeline" data-line="23">    }</span>
+<span class="codeline" data-line="24">};</span></code></pre>
 </div>
 <div class="controls">
     <label>capacity <input type="number" id="cap" value="4" min="2" max="8" style="width:70px"></label>
@@ -309,6 +313,35 @@ public:
 </div>
 </div>
 <script>
+let __lastHighlightMap = null;
+
+function highlightLine(mapping) {
+  __lastHighlightMap = mapping;
+  applyHighlight();
+}
+
+function applyHighlight() {
+  const box = document.querySelector('.codebox');
+  if (!box || !__lastHighlightMap) return;
+  const activeTab = box.querySelector('.codetab.active');
+  const lang = activeTab ? activeTab.dataset.lang : 'pseudo';
+  const lineNum = __lastHighlightMap[lang];
+  box.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  if (lineNum === undefined || lineNum === null) return;
+  const activeBlock = box.querySelector('.codeblock[data-lang="' + lang + '"]');
+  if (!activeBlock) return;
+  const target = activeBlock.querySelector('.codeline[data-line="' + lineNum + '"]');
+  if (target) {
+    target.classList.add('active');
+    target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+}
+
+function clearHighlight() {
+  __lastHighlightMap = null;
+  document.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+}
+
 document.querySelectorAll('.codetabs').forEach(tabs=>{
   tabs.addEventListener('click', e=>{
     const btn = e.target.closest('.codetab');
@@ -319,6 +352,7 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
     box.querySelectorAll('.codeblock').forEach(p=>{
       p.style.display = p.dataset.lang===btn.dataset.lang ? 'block' : 'none';
     });
+    applyHighlight();
   });
 });
 </script>
@@ -344,6 +378,7 @@ function render(highlight, evicting){
 }
 
 async function access(key){
+  clearHighlight();
   cap = Math.max(2, Math.min(8, +document.getElementById('cap').value||4));
   const idx = order.indexOf(key);
   if(idx!==-1){
@@ -351,16 +386,19 @@ async function access(key){
     order.splice(idx,1);
     order.unshift(key);
     render(key);
+    highlightLine({pseudo:2, python:10, js:10, cpp:10});
     await sleep(500);
   } else {
     document.getElementById('status').innerHTML = `cache miss on "${key}" — inserting at the front`;
     order.unshift(key);
     render(key);
+    highlightLine({pseudo:11, python:16, js:16, cpp:16});
     await sleep(500);
     if(order.length > cap){
       const evicted = order[order.length-1];
       render(key, evicted);
       document.getElementById('status').innerHTML = `cache full — evicting least-recently-used: "<b>${evicted}</b>"`;
+      highlightLine({pseudo:10, python:18, js:19, java:10, cpp:21});
       await sleep(600);
       order.pop();
     }

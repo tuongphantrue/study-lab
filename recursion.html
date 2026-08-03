@@ -208,80 +208,80 @@
 <span class="codeline" data-line="10">                return true                   // downstream succeeded, bubble success up</span>
 <span class="codeline" data-line="11">            cols[row] &lt;- -1               // backtrack: undo the placement, try next column</span>
 <span class="codeline" data-line="12">    return false                       // no column in this row worked</span></code></pre>
-  <pre class="codeblock" data-lang="python" style="display:none"><code>def fib(n):
-    if n &lt;= 1:
-        return n                     # base case: fib(0)=0, fib(1)=1
-    return fib(n - 1) + fib(n - 2)   # recursive case: sum of the two prior values
-
-def solve_n_queens(row, cols, n):
-    if row == n:
-        return True   # every row has a queen placed: solution found
-
-    for col in range(n):              # try each column in this row
-        if is_safe(row, col, cols):    # no earlier queen attacks this square
-            cols[row] = col              # place the queen here
-            if solve_n_queens(row + 1, cols, n):  # recurse into the next row
-                return True                          # success! bubble it back up
-            cols[row] = -1               # backtrack: undo the placement, try next column
-
-    return False   # no column in this row led to a solution
-
-def is_safe(row, col, cols):
-    for r in range(row):                                    # check every earlier row
-        if cols[r] == col or abs(cols[r] - col) == row - r:  # same column or same diagonal
-            return False
-    return True</code></pre>
-  <pre class="codeblock" data-lang="js" style="display:none"><code>function fib(n) {
-  if (n &lt;= 1) return n;                 // base case: fib(0)=0, fib(1)=1
-  return fib(n - 1) + fib(n - 2);       // recursive case: sum of the two prior values
-}
-
-function solveNQueens(row, cols, n) {
-  if (row === n) return true;   // every row has a queen placed: solution found
-
-  for (let col = 0; col &lt; n; col++) {   // try each column in this row
-    if (isSafe(row, col, cols)) {        // no earlier queen attacks this square
-      cols[row] = col;                    // place the queen here
-      if (solveNQueens(row + 1, cols, n)) return true; // recurse; success bubbles up
-      cols[row] = -1;                     // backtrack: undo, try the next column
-    }
-  }
-  return false;   // no column in this row led to a solution
-}</code></pre>
-  <pre class="codeblock" data-lang="java" style="display:none"><code>static int fib(int n) {
-    if (n &lt;= 1) return n;                // base case: fib(0)=0, fib(1)=1
-    return fib(n - 1) + fib(n - 2);      // recursive case: sum of the two prior values
-}
-
-static boolean solveNQueens(int row, int[] cols, int n) {
-    if (row == n) return true;   // every row has a queen placed: solution found
-
-    for (int col = 0; col &lt; n; col++) {    // try each column in this row
-        if (isSafe(row, col, cols)) {       // no earlier queen attacks this square
-            cols[row] = col;                 // place the queen here
-            if (solveNQueens(row + 1, cols, n)) return true; // recurse; bubble success up
-            cols[row] = -1;                  // backtrack: undo, try next column
-        }
-    }
-    return false;   // no column in this row led to a solution
-}</code></pre>
-  <pre class="codeblock" data-lang="cpp" style="display:none"><code>int fib(int n) {
-    if (n &lt;= 1) return n;                // base case: fib(0)=0, fib(1)=1
-    return fib(n - 1) + fib(n - 2);      // recursive case: sum of the two prior values
-}
-
-bool solveNQueens(int row, vector&lt;int&gt;&amp; cols, int n) {
-    if (row == n) return true;   // every row has a queen placed: solution found
-
-    for (int col = 0; col &lt; n; col++) {    // try each column in this row
-        if (isSafe(row, col, cols)) {       // no earlier queen attacks this square
-            cols[row] = col;                 // place the queen here
-            if (solveNQueens(row + 1, cols, n)) return true; // recurse; bubble success up
-            cols[row] = -1;                  // backtrack: undo, try next column
-        }
-    }
-    return false;   // no column in this row led to a solution
-}</code></pre>
+  <pre class="codeblock" data-lang="python" style="display:none"><code><span class="codeline" data-line="0">def fib(n):</span>
+<span class="codeline" data-line="1">    if n &lt;= 1:</span>
+<span class="codeline" data-line="2">        return n                     # base case: fib(0)=0, fib(1)=1</span>
+<span class="codeline" data-line="3">    return fib(n - 1) + fib(n - 2)   # recursive case: sum of the two prior values</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">def solve_n_queens(row, cols, n):</span>
+<span class="codeline" data-line="6">    if row == n:</span>
+<span class="codeline" data-line="7">        return True   # every row has a queen placed: solution found</span>
+<span class="codeline" data-line="8"></span>
+<span class="codeline" data-line="9">    for col in range(n):              # try each column in this row</span>
+<span class="codeline" data-line="10">        if is_safe(row, col, cols):    # no earlier queen attacks this square</span>
+<span class="codeline" data-line="11">            cols[row] = col              # place the queen here</span>
+<span class="codeline" data-line="12">            if solve_n_queens(row + 1, cols, n):  # recurse into the next row</span>
+<span class="codeline" data-line="13">                return True                          # success! bubble it back up</span>
+<span class="codeline" data-line="14">            cols[row] = -1               # backtrack: undo the placement, try next column</span>
+<span class="codeline" data-line="15"></span>
+<span class="codeline" data-line="16">    return False   # no column in this row led to a solution</span>
+<span class="codeline" data-line="17"></span>
+<span class="codeline" data-line="18">def is_safe(row, col, cols):</span>
+<span class="codeline" data-line="19">    for r in range(row):                                    # check every earlier row</span>
+<span class="codeline" data-line="20">        if cols[r] == col or abs(cols[r] - col) == row - r:  # same column or same diagonal</span>
+<span class="codeline" data-line="21">            return False</span>
+<span class="codeline" data-line="22">    return True</span></code></pre>
+  <pre class="codeblock" data-lang="js" style="display:none"><code><span class="codeline" data-line="0">function fib(n) {</span>
+<span class="codeline" data-line="1">  if (n &lt;= 1) return n;                 // base case: fib(0)=0, fib(1)=1</span>
+<span class="codeline" data-line="2">  return fib(n - 1) + fib(n - 2);       // recursive case: sum of the two prior values</span>
+<span class="codeline" data-line="3">}</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">function solveNQueens(row, cols, n) {</span>
+<span class="codeline" data-line="6">  if (row === n) return true;   // every row has a queen placed: solution found</span>
+<span class="codeline" data-line="7"></span>
+<span class="codeline" data-line="8">  for (let col = 0; col &lt; n; col++) {   // try each column in this row</span>
+<span class="codeline" data-line="9">    if (isSafe(row, col, cols)) {        // no earlier queen attacks this square</span>
+<span class="codeline" data-line="10">      cols[row] = col;                    // place the queen here</span>
+<span class="codeline" data-line="11">      if (solveNQueens(row + 1, cols, n)) return true; // recurse; success bubbles up</span>
+<span class="codeline" data-line="12">      cols[row] = -1;                     // backtrack: undo, try the next column</span>
+<span class="codeline" data-line="13">    }</span>
+<span class="codeline" data-line="14">  }</span>
+<span class="codeline" data-line="15">  return false;   // no column in this row led to a solution</span>
+<span class="codeline" data-line="16">}</span></code></pre>
+  <pre class="codeblock" data-lang="java" style="display:none"><code><span class="codeline" data-line="0">static int fib(int n) {</span>
+<span class="codeline" data-line="1">    if (n &lt;= 1) return n;                // base case: fib(0)=0, fib(1)=1</span>
+<span class="codeline" data-line="2">    return fib(n - 1) + fib(n - 2);      // recursive case: sum of the two prior values</span>
+<span class="codeline" data-line="3">}</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">static boolean solveNQueens(int row, int[] cols, int n) {</span>
+<span class="codeline" data-line="6">    if (row == n) return true;   // every row has a queen placed: solution found</span>
+<span class="codeline" data-line="7"></span>
+<span class="codeline" data-line="8">    for (int col = 0; col &lt; n; col++) {    // try each column in this row</span>
+<span class="codeline" data-line="9">        if (isSafe(row, col, cols)) {       // no earlier queen attacks this square</span>
+<span class="codeline" data-line="10">            cols[row] = col;                 // place the queen here</span>
+<span class="codeline" data-line="11">            if (solveNQueens(row + 1, cols, n)) return true; // recurse; bubble success up</span>
+<span class="codeline" data-line="12">            cols[row] = -1;                  // backtrack: undo, try next column</span>
+<span class="codeline" data-line="13">        }</span>
+<span class="codeline" data-line="14">    }</span>
+<span class="codeline" data-line="15">    return false;   // no column in this row led to a solution</span>
+<span class="codeline" data-line="16">}</span></code></pre>
+  <pre class="codeblock" data-lang="cpp" style="display:none"><code><span class="codeline" data-line="0">int fib(int n) {</span>
+<span class="codeline" data-line="1">    if (n &lt;= 1) return n;                // base case: fib(0)=0, fib(1)=1</span>
+<span class="codeline" data-line="2">    return fib(n - 1) + fib(n - 2);      // recursive case: sum of the two prior values</span>
+<span class="codeline" data-line="3">}</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">bool solveNQueens(int row, vector&lt;int&gt;&amp; cols, int n) {</span>
+<span class="codeline" data-line="6">    if (row == n) return true;   // every row has a queen placed: solution found</span>
+<span class="codeline" data-line="7"></span>
+<span class="codeline" data-line="8">    for (int col = 0; col &lt; n; col++) {    // try each column in this row</span>
+<span class="codeline" data-line="9">        if (isSafe(row, col, cols)) {       // no earlier queen attacks this square</span>
+<span class="codeline" data-line="10">            cols[row] = col;                 // place the queen here</span>
+<span class="codeline" data-line="11">            if (solveNQueens(row + 1, cols, n)) return true; // recurse; bubble success up</span>
+<span class="codeline" data-line="12">            cols[row] = -1;                  // backtrack: undo, try next column</span>
+<span class="codeline" data-line="13">        }</span>
+<span class="codeline" data-line="14">    }</span>
+<span class="codeline" data-line="15">    return false;   // no column in this row led to a solution</span>
+<span class="codeline" data-line="16">}</span></code></pre>
 </div>
 <div class="tabs">
     <div class="tab active" data-tab="fib">fibonacci call tree</div>
@@ -317,27 +317,32 @@ bool solveNQueens(int row, vector&lt;int&gt;&amp; cols, int n) {
 </div>
 </div>
 <script>
-function highlightLine(n) {
+let __lastHighlightMap = null;
+
+function highlightLine(mapping) {
+  __lastHighlightMap = mapping;
+  applyHighlight();
+}
+
+function applyHighlight() {
   const box = document.querySelector('.codebox');
-  if (!box) return;
-  const pseudoTab = box.querySelector('.codetab[data-lang="pseudo"]');
-  const pseudoBlock = box.querySelector('.codeblock[data-lang="pseudo"]');
-  if (!pseudoBlock) return;
-  if (pseudoTab && !pseudoTab.classList.contains('active')) {
-    box.querySelectorAll('.codetab').forEach(t => t.classList.remove('active'));
-    pseudoTab.classList.add('active');
-    box.querySelectorAll('.codeblock').forEach(p => {
-      p.style.display = p.dataset.lang === 'pseudo' ? 'block' : 'none';
-    });
-  }
-  pseudoBlock.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
-  const target = pseudoBlock.querySelector('.codeline[data-line="' + n + '"]');
+  if (!box || !__lastHighlightMap) return;
+  const activeTab = box.querySelector('.codetab.active');
+  const lang = activeTab ? activeTab.dataset.lang : 'pseudo';
+  const lineNum = __lastHighlightMap[lang];
+  box.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  if (lineNum === undefined || lineNum === null) return;
+  const activeBlock = box.querySelector('.codeblock[data-lang="' + lang + '"]');
+  if (!activeBlock) return;
+  const target = activeBlock.querySelector('.codeline[data-line="' + lineNum + '"]');
   if (target) {
     target.classList.add('active');
     target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 }
+
 function clearHighlight() {
+  __lastHighlightMap = null;
   document.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
 }
 
@@ -351,6 +356,7 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
     box.querySelectorAll('.codeblock').forEach(p=>{
       p.style.display = p.dataset.lang===btn.dataset.lang ? 'block' : 'none';
     });
+    applyHighlight();
   });
 });
 </script>
@@ -397,7 +403,7 @@ async function fib(n, id, parent, depth, x0, x1){
   treeNodes.push(node);
   renderTree();
   document.getElementById('fibStatus').innerHTML = `total calls: <b>${fibCalls}</b>`;
-  highlightLine(n<=1 ? 1 : 2);
+  highlightLine(n<=1 ? {pseudo:1,python:2,js:1,java:1,cpp:1} : {pseudo:2,python:3,js:2,java:2,cpp:2});
   await sleep(260);
 
   let result;
@@ -457,7 +463,7 @@ async function solveQueens(n){
       document.getElementById('qStatus').innerHTML = `placements tried: <b>${qTries}</b>`;
       cols[row]=col;
       drawBoard(n, cols, {row,col,state:'try'});
-      highlightLine(7);
+      highlightLine({pseudo:7, python:10, js:9, java:9, cpp:9});
       await sleep(140);
       let ok = true;
       for(let r=0;r<row;r++){
@@ -465,11 +471,11 @@ async function solveQueens(n){
       }
       if(ok){
         drawBoard(n, cols, {row,col,state:'queen'});
-        highlightLine(9);
+        highlightLine({pseudo:9, python:12, js:11, java:11, cpp:11});
         if(await place(row+1)) return true;
       } else {
         drawBoard(n, cols, {row,col,state:'reject'});
-        highlightLine(11);
+        highlightLine({pseudo:11, python:14, js:12, java:12, cpp:12});
         await sleep(100);
       }
       cols[row]=-1;

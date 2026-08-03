@@ -130,6 +130,10 @@
   .speedctl{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:var(--muted);}
   .speedctl select{padding:8px 10px;}
   @media (max-width:640px){ .speedctl{margin-left:0;} }
+
+  .codeline{display:block;}
+  .codeline.active{background:rgba(37,99,235,.22);border-left:3px solid #2563eb;margin-left:-23px;padding-left:20px;border-radius:2px;}
+  .run-hint{font-size:12px;color:var(--dim);margin-top:-4px;margin-bottom:10px;}
 </style>
 </head>
 <body>
@@ -196,107 +200,107 @@
     <button class="codetab" data-lang="java">Java</button>
     <button class="codetab" data-lang="cpp">C++</button>
   </div>
-  <pre class="codeblock" data-lang="pseudo"><code>function topologicalSort(graph):
-    inDegree &lt;- count of incoming edges for each node    // how many prerequisites each node has
-    queue &lt;- all nodes with inDegree == 0                 // nodes with no unfinished prerequisites
-    order &lt;- []
-
-    while queue is not empty:
-        node &lt;- queue.dequeue()                             // schedule this ready node next
-        order.append(node)
-        for neighbor in graph[node]:                        // node "unlocks" each of its dependents
-            inDegree[neighbor] &lt;- inDegree[neighbor] - 1       // one fewer prerequisite remains
-            if inDegree[neighbor] == 0:                        // no prerequisites left: it's ready
-                queue.enqueue(neighbor)
-
-    if length(order) &lt; number of nodes:                    // some nodes never hit inDegree 0
-        return "cycle detected"
-    return order</code></pre>
-  <pre class="codeblock" data-lang="python" style="display:none"><code>from collections import deque
-
-def topological_sort(graph, num_nodes):
-    in_degree = [0] * num_nodes             # how many prerequisites each node has
-    for node in graph:
-        for neighbor in graph[node]:
-            in_degree[neighbor] += 1          # neighbor gains one more prerequisite
-
-    queue = deque([n for n in range(num_nodes) if in_degree[n] == 0])  # ready nodes now
-    order = []
-
-    while queue:
-        node = queue.popleft()                # schedule this ready node next
-        order.append(node)
-        for neighbor in graph[node]:            # node "unlocks" each of its dependents
-            in_degree[neighbor] -= 1              # one fewer prerequisite remains
-            if in_degree[neighbor] == 0:           # no prerequisites left: it's ready now
-                queue.append(neighbor)
-
-    if len(order) &lt; num_nodes:               # some nodes never reached in-degree 0
-        raise ValueError("cycle detected")
-    return order</code></pre>
-  <pre class="codeblock" data-lang="js" style="display:none"><code>function topologicalSort(graph, numNodes) {
-  const inDegree = new Array(numNodes).fill(0);   // how many prerequisites each node has
-  for (const node in graph) {
-    for (const neighbor of graph[node]) inDegree[neighbor]++;  // neighbor gains a prerequisite
-  }
-
-  const queue = [];
-  for (let n = 0; n &lt; numNodes; n++) if (inDegree[n] === 0) queue.push(n); // ready nodes now
-  const order = [];
-
-  while (queue.length) {
-    const node = queue.shift();                // schedule this ready node next
-    order.push(node);
-    for (const neighbor of graph[node] || []) {  // node "unlocks" each of its dependents
-      if (--inDegree[neighbor] === 0) queue.push(neighbor); // no prereqs left: ready now
-    }
-  }
-
-  if (order.length &lt; numNodes) throw new Error("cycle detected"); // some nodes never unlocked
-  return order;
-}</code></pre>
-  <pre class="codeblock" data-lang="java" style="display:none"><code>static List&lt;Integer&gt; topologicalSort(Map&lt;Integer, List&lt;Integer&gt;&gt; graph, int numNodes) {
-    int[] inDegree = new int[numNodes];              // how many prerequisites each node has
-    for (var entry : graph.entrySet()) {
-        for (int neighbor : entry.getValue()) inDegree[neighbor]++;  // gains a prerequisite
-    }
-
-    Queue&lt;Integer&gt; queue = new LinkedList&lt;&gt;();
-    for (int n = 0; n &lt; numNodes; n++) if (inDegree[n] == 0) queue.add(n); // ready now
-
-    List&lt;Integer&gt; order = new ArrayList&lt;&gt;();
-    while (!queue.isEmpty()) {
-        int node = queue.poll();                       // schedule this ready node next
-        order.add(node);
-        for (int neighbor : graph.getOrDefault(node, List.of())) { // unlock dependents
-            if (--inDegree[neighbor] == 0) queue.add(neighbor);      // ready now
-        }
-    }
-
-    if (order.size() &lt; numNodes) throw new RuntimeException("cycle detected"); // never unlocked
-    return order;
-}</code></pre>
-  <pre class="codeblock" data-lang="cpp" style="display:none"><code>vector&lt;int&gt; topologicalSort(vector&lt;vector&lt;int&gt;&gt;&amp; graph, int numNodes) {
-    vector&lt;int&gt; inDegree(numNodes, 0);                 // how many prerequisites each node has
-    for (int node = 0; node &lt; numNodes; node++) {
-        for (int neighbor : graph[node]) inDegree[neighbor]++;  // gains a prerequisite
-    }
-
-    queue&lt;int&gt; q;
-    for (int n = 0; n &lt; numNodes; n++) if (inDegree[n] == 0) q.push(n); // ready nodes now
-
-    vector&lt;int&gt; order;
-    while (!q.empty()) {
-        int node = q.front(); q.pop();                    // schedule this ready node next
-        order.push_back(node);
-        for (int neighbor : graph[node]) {                  // unlock its dependents
-            if (--inDegree[neighbor] == 0) q.push(neighbor);  // no prereqs left: ready now
-        }
-    }
-
-    if ((int)order.size() &lt; numNodes) throw runtime_error("cycle detected"); // never unlocked
-    return order;
-}</code></pre>
+  <pre class="codeblock" data-lang="pseudo"><code><span class="codeline" data-line="0">function topologicalSort(graph):</span>
+<span class="codeline" data-line="1">    inDegree &lt;- count of incoming edges for each node    // how many prerequisites each node has</span>
+<span class="codeline" data-line="2">    queue &lt;- all nodes with inDegree == 0                 // nodes with no unfinished prerequisites</span>
+<span class="codeline" data-line="3">    order &lt;- []</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">    while queue is not empty:</span>
+<span class="codeline" data-line="6">        node &lt;- queue.dequeue()                             // schedule this ready node next</span>
+<span class="codeline" data-line="7">        order.append(node)</span>
+<span class="codeline" data-line="8">        for neighbor in graph[node]:                        // node "unlocks" each of its dependents</span>
+<span class="codeline" data-line="9">            inDegree[neighbor] &lt;- inDegree[neighbor] - 1       // one fewer prerequisite remains</span>
+<span class="codeline" data-line="10">            if inDegree[neighbor] == 0:                        // no prerequisites left: it's ready</span>
+<span class="codeline" data-line="11">                queue.enqueue(neighbor)</span>
+<span class="codeline" data-line="12"></span>
+<span class="codeline" data-line="13">    if length(order) &lt; number of nodes:                    // some nodes never hit inDegree 0</span>
+<span class="codeline" data-line="14">        return "cycle detected"</span>
+<span class="codeline" data-line="15">    return order</span></code></pre>
+  <pre class="codeblock" data-lang="python" style="display:none"><code><span class="codeline" data-line="0">from collections import deque</span>
+<span class="codeline" data-line="1"></span>
+<span class="codeline" data-line="2">def topological_sort(graph, num_nodes):</span>
+<span class="codeline" data-line="3">    in_degree = [0] * num_nodes             # how many prerequisites each node has</span>
+<span class="codeline" data-line="4">    for node in graph:</span>
+<span class="codeline" data-line="5">        for neighbor in graph[node]:</span>
+<span class="codeline" data-line="6">            in_degree[neighbor] += 1          # neighbor gains one more prerequisite</span>
+<span class="codeline" data-line="7"></span>
+<span class="codeline" data-line="8">    queue = deque([n for n in range(num_nodes) if in_degree[n] == 0])  # ready nodes now</span>
+<span class="codeline" data-line="9">    order = []</span>
+<span class="codeline" data-line="10"></span>
+<span class="codeline" data-line="11">    while queue:</span>
+<span class="codeline" data-line="12">        node = queue.popleft()                # schedule this ready node next</span>
+<span class="codeline" data-line="13">        order.append(node)</span>
+<span class="codeline" data-line="14">        for neighbor in graph[node]:            # node "unlocks" each of its dependents</span>
+<span class="codeline" data-line="15">            in_degree[neighbor] -= 1              # one fewer prerequisite remains</span>
+<span class="codeline" data-line="16">            if in_degree[neighbor] == 0:           # no prerequisites left: it's ready now</span>
+<span class="codeline" data-line="17">                queue.append(neighbor)</span>
+<span class="codeline" data-line="18"></span>
+<span class="codeline" data-line="19">    if len(order) &lt; num_nodes:               # some nodes never reached in-degree 0</span>
+<span class="codeline" data-line="20">        raise ValueError("cycle detected")</span>
+<span class="codeline" data-line="21">    return order</span></code></pre>
+  <pre class="codeblock" data-lang="js" style="display:none"><code><span class="codeline" data-line="0">function topologicalSort(graph, numNodes) {</span>
+<span class="codeline" data-line="1">  const inDegree = new Array(numNodes).fill(0);   // how many prerequisites each node has</span>
+<span class="codeline" data-line="2">  for (const node in graph) {</span>
+<span class="codeline" data-line="3">    for (const neighbor of graph[node]) inDegree[neighbor]++;  // neighbor gains a prerequisite</span>
+<span class="codeline" data-line="4">  }</span>
+<span class="codeline" data-line="5"></span>
+<span class="codeline" data-line="6">  const queue = [];</span>
+<span class="codeline" data-line="7">  for (let n = 0; n &lt; numNodes; n++) if (inDegree[n] === 0) queue.push(n); // ready nodes now</span>
+<span class="codeline" data-line="8">  const order = [];</span>
+<span class="codeline" data-line="9"></span>
+<span class="codeline" data-line="10">  while (queue.length) {</span>
+<span class="codeline" data-line="11">    const node = queue.shift();                // schedule this ready node next</span>
+<span class="codeline" data-line="12">    order.push(node);</span>
+<span class="codeline" data-line="13">    for (const neighbor of graph[node] || []) {  // node "unlocks" each of its dependents</span>
+<span class="codeline" data-line="14">      if (--inDegree[neighbor] === 0) queue.push(neighbor); // no prereqs left: ready now</span>
+<span class="codeline" data-line="15">    }</span>
+<span class="codeline" data-line="16">  }</span>
+<span class="codeline" data-line="17"></span>
+<span class="codeline" data-line="18">  if (order.length &lt; numNodes) throw new Error("cycle detected"); // some nodes never unlocked</span>
+<span class="codeline" data-line="19">  return order;</span>
+<span class="codeline" data-line="20">}</span></code></pre>
+  <pre class="codeblock" data-lang="java" style="display:none"><code><span class="codeline" data-line="0">static List&lt;Integer&gt; topologicalSort(Map&lt;Integer, List&lt;Integer&gt;&gt; graph, int numNodes) {</span>
+<span class="codeline" data-line="1">    int[] inDegree = new int[numNodes];              // how many prerequisites each node has</span>
+<span class="codeline" data-line="2">    for (var entry : graph.entrySet()) {</span>
+<span class="codeline" data-line="3">        for (int neighbor : entry.getValue()) inDegree[neighbor]++;  // gains a prerequisite</span>
+<span class="codeline" data-line="4">    }</span>
+<span class="codeline" data-line="5"></span>
+<span class="codeline" data-line="6">    Queue&lt;Integer&gt; queue = new LinkedList&lt;&gt;();</span>
+<span class="codeline" data-line="7">    for (int n = 0; n &lt; numNodes; n++) if (inDegree[n] == 0) queue.add(n); // ready now</span>
+<span class="codeline" data-line="8"></span>
+<span class="codeline" data-line="9">    List&lt;Integer&gt; order = new ArrayList&lt;&gt;();</span>
+<span class="codeline" data-line="10">    while (!queue.isEmpty()) {</span>
+<span class="codeline" data-line="11">        int node = queue.poll();                       // schedule this ready node next</span>
+<span class="codeline" data-line="12">        order.add(node);</span>
+<span class="codeline" data-line="13">        for (int neighbor : graph.getOrDefault(node, List.of())) { // unlock dependents</span>
+<span class="codeline" data-line="14">            if (--inDegree[neighbor] == 0) queue.add(neighbor);      // ready now</span>
+<span class="codeline" data-line="15">        }</span>
+<span class="codeline" data-line="16">    }</span>
+<span class="codeline" data-line="17"></span>
+<span class="codeline" data-line="18">    if (order.size() &lt; numNodes) throw new RuntimeException("cycle detected"); // never unlocked</span>
+<span class="codeline" data-line="19">    return order;</span>
+<span class="codeline" data-line="20">}</span></code></pre>
+  <pre class="codeblock" data-lang="cpp" style="display:none"><code><span class="codeline" data-line="0">vector&lt;int&gt; topologicalSort(vector&lt;vector&lt;int&gt;&gt;&amp; graph, int numNodes) {</span>
+<span class="codeline" data-line="1">    vector&lt;int&gt; inDegree(numNodes, 0);                 // how many prerequisites each node has</span>
+<span class="codeline" data-line="2">    for (int node = 0; node &lt; numNodes; node++) {</span>
+<span class="codeline" data-line="3">        for (int neighbor : graph[node]) inDegree[neighbor]++;  // gains a prerequisite</span>
+<span class="codeline" data-line="4">    }</span>
+<span class="codeline" data-line="5"></span>
+<span class="codeline" data-line="6">    queue&lt;int&gt; q;</span>
+<span class="codeline" data-line="7">    for (int n = 0; n &lt; numNodes; n++) if (inDegree[n] == 0) q.push(n); // ready nodes now</span>
+<span class="codeline" data-line="8"></span>
+<span class="codeline" data-line="9">    vector&lt;int&gt; order;</span>
+<span class="codeline" data-line="10">    while (!q.empty()) {</span>
+<span class="codeline" data-line="11">        int node = q.front(); q.pop();                    // schedule this ready node next</span>
+<span class="codeline" data-line="12">        order.push_back(node);</span>
+<span class="codeline" data-line="13">        for (int neighbor : graph[node]) {                  // unlock its dependents</span>
+<span class="codeline" data-line="14">            if (--inDegree[neighbor] == 0) q.push(neighbor);  // no prereqs left: ready now</span>
+<span class="codeline" data-line="15">        }</span>
+<span class="codeline" data-line="16">    }</span>
+<span class="codeline" data-line="17"></span>
+<span class="codeline" data-line="18">    if ((int)order.size() &lt; numNodes) throw runtime_error("cycle detected"); // never unlocked</span>
+<span class="codeline" data-line="19">    return order;</span>
+<span class="codeline" data-line="20">}</span></code></pre>
 </div>
 <div class="controls">
     <button class="primary" id="run">▶ Run Kahn's algorithm</button>
@@ -311,6 +315,35 @@ def topological_sort(graph, num_nodes):
 </div>
 </div>
 <script>
+let __lastHighlightMap = null;
+
+function highlightLine(mapping) {
+  __lastHighlightMap = mapping;
+  applyHighlight();
+}
+
+function applyHighlight() {
+  const box = document.querySelector('.codebox');
+  if (!box || !__lastHighlightMap) return;
+  const activeTab = box.querySelector('.codetab.active');
+  const lang = activeTab ? activeTab.dataset.lang : 'pseudo';
+  const lineNum = __lastHighlightMap[lang];
+  box.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  if (lineNum === undefined || lineNum === null) return;
+  const activeBlock = box.querySelector('.codeblock[data-lang="' + lang + '"]');
+  if (!activeBlock) return;
+  const target = activeBlock.querySelector('.codeline[data-line="' + lineNum + '"]');
+  if (target) {
+    target.classList.add('active');
+    target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+}
+
+function clearHighlight() {
+  __lastHighlightMap = null;
+  document.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+}
+
 document.querySelectorAll('.codetabs').forEach(tabs=>{
   tabs.addEventListener('click', e=>{
     const btn = e.target.closest('.codetab');
@@ -321,6 +354,7 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
     box.querySelectorAll('.codeblock').forEach(p=>{
       p.style.display = p.dataset.lang===btn.dataset.lang ? 'block' : 'none';
     });
+    applyHighlight();
   });
 });
 </script>
@@ -392,6 +426,7 @@ function sleep(ms){ return new Promise(r=>setTimeout(r, ms / animSpeed)); }
 
 async function run(){
   document.getElementById('run').disabled = true;
+  clearHighlight();
   document.getElementById('order').innerHTML = '';
   const indeg = nodes.map(()=>0);
   edges.forEach(e=>indeg[e.b]++);
@@ -405,6 +440,7 @@ async function run(){
     if(ready.length===0){ document.getElementById('status').textContent = 'cycle detected — no valid order'; break; }
     draw(new Set(ready), doneSet);
     document.getElementById('status').innerHTML = `ready now (in-degree 0): ${ready.map(i=>nodes[i].name).join(', ')}`;
+    highlightLine({pseudo:2, python:8, js:7, java:7, cpp:7});
     await sleep(700);
     const pick = ready[0];
     doneSet.add(pick);
@@ -413,6 +449,7 @@ async function run(){
     for(const v of adj[pick]) indeg[v]--;
     draw(new Set(), doneSet);
     document.getElementById('status').innerHTML = `scheduled "${nodes[pick].name}" — decrementing in-degree of its dependents`;
+    highlightLine({pseudo:9, python:15, js:14, java:14, cpp:14});
     await sleep(500);
   }
   if(doneSet.size===nodes.length) document.getElementById('status').innerHTML = `done — valid order: <b>${order.map(i=>nodes[i].name).join(' → ')}</b>`;
