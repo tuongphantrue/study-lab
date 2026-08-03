@@ -129,6 +129,10 @@
   .speedctl{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:var(--muted);}
   .speedctl select{padding:8px 10px;}
   @media (max-width:640px){ .speedctl{margin-left:0;} }
+
+  .codeline{display:block;}
+  .codeline.active{background:rgba(37,99,235,.22);border-left:3px solid #2563eb;margin-left:-23px;padding-left:20px;border-radius:2px;}
+  .run-hint{font-size:12px;color:var(--dim);margin-top:-4px;margin-bottom:10px;}
 </style>
 </head>
 <body>
@@ -196,27 +200,27 @@
     <button class="codetab" data-lang="java">Java</button>
     <button class="codetab" data-lang="cpp">C++</button>
   </div>
-  <pre class="codeblock" data-lang="pseudo"><code>function insert(heap, value):
-    heap.append(value)                          // add at the next open spot (keeps it balanced)
-    i &lt;- length(heap) - 1                        // start at the newly inserted position
-    while i &gt; 0 and heap[parent(i)] &gt; heap[i]:    // while the new value is smaller than its parent
-        swap(heap[parent(i)], heap[i])              // bubble it upward
-        i &lt;- parent(i)                              // continue checking from the new position
-
-function extractMin(heap):
-    min &lt;- heap[0]                              // the root is always the smallest value
-    heap[0] &lt;- heap.removeLast()                 // move the last element into the root's spot
-    siftDown(heap, 0)                            // restore the heap property from the top
-    return min
-
-function siftDown(heap, i):
-    smallest &lt;- i
-    l &lt;- 2*i + 1, r &lt;- 2*i + 2                  // indices of the two children
-    if l &lt; size and heap[l] &lt; heap[smallest]: smallest &lt;- l   // left child is smaller
-    if r &lt; size and heap[r] &lt; heap[smallest]: smallest &lt;- r   // right child is smaller still
-    if smallest != i:                            // a child was smaller than the current node
-        swap(heap[i], heap[smallest])              // swap it up
-        siftDown(heap, smallest)                    // keep sifting down from the new position</code></pre>
+  <pre class="codeblock" data-lang="pseudo"><code><span class="codeline" data-line="0">function insert(heap, value):</span>
+<span class="codeline" data-line="1">    heap.append(value)                          // add at the next open spot (keeps it balanced)</span>
+<span class="codeline" data-line="2">    i &lt;- length(heap) - 1                        // start at the newly inserted position</span>
+<span class="codeline" data-line="3">    while i &gt; 0 and heap[parent(i)] &gt; heap[i]:    // while the new value is smaller than its parent</span>
+<span class="codeline" data-line="4">        swap(heap[parent(i)], heap[i])              // bubble it upward</span>
+<span class="codeline" data-line="5">        i &lt;- parent(i)                              // continue checking from the new position</span>
+<span class="codeline" data-line="6"></span>
+<span class="codeline" data-line="7">function extractMin(heap):</span>
+<span class="codeline" data-line="8">    min &lt;- heap[0]                              // the root is always the smallest value</span>
+<span class="codeline" data-line="9">    heap[0] &lt;- heap.removeLast()                 // move the last element into the root's spot</span>
+<span class="codeline" data-line="10">    siftDown(heap, 0)                            // restore the heap property from the top</span>
+<span class="codeline" data-line="11">    return min</span>
+<span class="codeline" data-line="12"></span>
+<span class="codeline" data-line="13">function siftDown(heap, i):</span>
+<span class="codeline" data-line="14">    smallest &lt;- i</span>
+<span class="codeline" data-line="15">    l &lt;- 2*i + 1, r &lt;- 2*i + 2                  // indices of the two children</span>
+<span class="codeline" data-line="16">    if l &lt; size and heap[l] &lt; heap[smallest]: smallest &lt;- l   // left child is smaller</span>
+<span class="codeline" data-line="17">    if r &lt; size and heap[r] &lt; heap[smallest]: smallest &lt;- r   // right child is smaller still</span>
+<span class="codeline" data-line="18">    if smallest != i:                            // a child was smaller than the current node</span>
+<span class="codeline" data-line="19">        swap(heap[i], heap[smallest])              // swap it up</span>
+<span class="codeline" data-line="20">        siftDown(heap, smallest)                    // keep sifting down from the new position</span></code></pre>
   <pre class="codeblock" data-lang="python" style="display:none"><code># Python's heapq is a ready-made binary min-heap over a plain list
 import heapq
 
@@ -339,6 +343,30 @@ void siftDown(vector&lt;int&gt;&amp; heap, int i, int size) {
 </div>
 </div>
 <script>
+function highlightLine(n) {
+  const box = document.querySelector('.codebox');
+  if (!box) return;
+  const pseudoTab = box.querySelector('.codetab[data-lang="pseudo"]');
+  const pseudoBlock = box.querySelector('.codeblock[data-lang="pseudo"]');
+  if (!pseudoBlock) return;
+  if (pseudoTab && !pseudoTab.classList.contains('active')) {
+    box.querySelectorAll('.codetab').forEach(t => t.classList.remove('active'));
+    pseudoTab.classList.add('active');
+    box.querySelectorAll('.codeblock').forEach(p => {
+      p.style.display = p.dataset.lang === 'pseudo' ? 'block' : 'none';
+    });
+  }
+  pseudoBlock.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  const target = pseudoBlock.querySelector('.codeline[data-line="' + n + '"]');
+  if (target) {
+    target.classList.add('active');
+    target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+}
+function clearHighlight() {
+  document.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+}
+
 document.querySelectorAll('.codetabs').forEach(tabs=>{
   tabs.addEventListener('click', e=>{
     const btn = e.target.closest('.codetab');
@@ -396,11 +424,13 @@ async function siftUp(i){
     const parent = Math.floor((i-1)/2);
     renderTree(i);
     document.getElementById('status').innerHTML = `comparing new value at index ${i} with parent at index ${parent}`;
+    highlightLine(3);
     await sleep(450);
     if(heap[i] < heap[parent]){
       [heap[i],heap[parent]]=[heap[parent],heap[i]];
       i = parent;
       renderArr(i); renderTree(i);
+      highlightLine(4);
       await sleep(300);
     } else break;
   }
@@ -415,11 +445,13 @@ async function siftDown(i){
     if(r<n && heap[r]<heap[smallest]) smallest=r;
     renderTree(i);
     document.getElementById('status').innerHTML = `checking children of index ${i} for the smaller value`;
+    highlightLine(16);
     await sleep(450);
     if(smallest!==i){
       [heap[i],heap[smallest]]=[heap[smallest],heap[i]];
       i = smallest;
       renderArr(i); renderTree(i);
+      highlightLine(19);
       await sleep(300);
     } else break;
   }
@@ -427,19 +459,23 @@ async function siftDown(i){
 }
 
 document.getElementById('insert').onclick = async ()=>{
+  clearHighlight();
   const v = +document.getElementById('val').value || Math.floor(Math.random()*90);
   heap.push(v);
   renderArr(heap.length-1); renderTree(heap.length-1);
   document.getElementById('status').innerHTML = `inserted ${v} at the end, now sifting up`;
+  highlightLine(1);
   await sleep(350);
   await siftUp(heap.length-1);
   document.getElementById('status').innerHTML = `done — heap property restored`;
 };
 
 document.getElementById('extract').onclick = async ()=>{
+  clearHighlight();
   if(heap.length===0){ document.getElementById('status').textContent = 'heap is empty'; return; }
   const min = heap[0];
   document.getElementById('status').innerHTML = `extracting min (${min}) from the root`;
+  highlightLine(8);
   const last = heap.pop();
   if(heap.length>0){
     heap[0] = last;
