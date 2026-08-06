@@ -49,6 +49,11 @@
   .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
   .explain li{margin-bottom:8px;}
   .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+  .example-box{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:14px;}
+  .example-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:8px;}
+  .example-box p{margin:0 0 8px;font-size:14px;color:var(--text);line-height:1.65;}
+  .example-box p:last-child{margin-bottom:0;}
+  .example-box code{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
 
   .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
   .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
@@ -121,19 +126,36 @@
     .sidebar a.navitem.overview{margin-bottom:0;}
   }
 
-  .codebox{background:#0d1117;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:20px 0;box-shadow:var(--shadow);}
-  .codetabs{display:flex;gap:2px;background:#161b22;padding:8px 8px 0;overflow-x:auto;}
-  .codetab{background:transparent;border:none;color:#8b949e;font-family:var(--mono);font-size:12.5px;font-weight:600;
-    padding:8px 14px;border-radius:6px 6px 0 0;cursor:pointer;white-space:nowrap;}
-  .codetab.active{background:#0d1117;color:#e6edf3;}
-  .codetab:hover:not(.active){color:#c9d1d9;}
-  pre.codeblock{margin:0;padding:18px 20px;overflow-x:auto;max-height:480px;}
-  pre.codeblock code{font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#e6edf3;white-space:pre;}
-  .code-heading{font-weight:700;font-size:16px;margin:28px 0 4px;color:var(--text);}
+  .codebox{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:16px 0 8px;box-shadow:var(--shadow);max-width:720px;}
+  .codetabs{display:flex;gap:2px;background:var(--bg-soft);padding:5px 6px 0;overflow-x:auto;}
+  .codetab{background:transparent;border:none;color:var(--dim);font-family:var(--mono);font-size:11.5px;font-weight:600;
+    padding:6px 11px;border-radius:5px 5px 0 0;cursor:pointer;white-space:nowrap;}
+  .codetab.active{background:var(--card);color:var(--text);}
+  .codetab:hover:not(.active){color:var(--text);}
+  pre.codeblock{margin:0;padding:12px 16px;overflow-x:auto;max-height:220px;}
+  pre.codeblock code{font-family:var(--mono);font-size:11.5px;line-height:1.55;color:var(--text);white-space:pre;}
+  .code-heading{font-weight:700;font-size:14px;margin:32px 0 8px;color:var(--text);}
 
   .speedctl{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:var(--muted);}
   .speedctl select{padding:8px 10px;}
   @media (max-width:640px){ .speedctl{margin-left:0;} }
+
+  .codeline{display:block;}
+  .tok-comment{color:#6a737d;}
+  .tok-string{color:#032f62;}
+  .tok-keyword{color:#d73a49;font-weight:600;}
+  .tok-number{color:#005cc5;}
+  .tok-function{color:#6f42c1;}
+  .code-explain{
+    display:none;align-items:flex-start;gap:8px;padding:10px 16px;
+    background:var(--accent-soft);color:var(--accent-dark);font-size:12.5px;
+    line-height:1.5;border-top:1px solid var(--border);font-family:var(--sans);
+  }
+  .code-explain.show{display:flex;}
+  .code-explain .ico{flex-shrink:0;}
+
+  .codeline.active{background:var(--accent-soft);border-left:3px solid var(--accent);margin-left:-23px;padding-left:20px;border-radius:2px;}
+  .run-hint{font-size:12px;color:var(--dim);margin-top:-4px;margin-bottom:10px;}
 </style>
 </head>
 <body>
@@ -184,104 +206,17 @@
 <main>
   <div class="explain">
     <h2>How it works</h2>
-    
-<p>Union-Find (Disjoint Set Union) answers one question fast: <b style="color:var(--text)">are these two elements already connected?</b> Every element starts as its own group of one, pointing to itself as its "parent."</p>
-<p><code>find(x)</code> follows parent pointers upward until it reaches an element that points to itself — the <b style="color:var(--text)">root</b> of that group. Two elements are connected exactly when <code>find</code> gives the same root for both.</p>
-<p><code>union(a, b)</code> connects two groups by making one root point to the other. This is exactly what Kruskal's algorithm (on the graph-algorithms page) uses to check "would adding this edge create a cycle?" — a cycle would mean both endpoints already share a root.</p>
-<p><b style="color:var(--text)">Path compression</b> is the optimization shown below: every time <code>find</code> walks up to a root, it rewires every node it passed through to point directly at that root. Future lookups for those nodes become instant instead of re-walking the same chain — this is why real-world union-find is nearly <code>O(1)</code> per operation.</p>
+    <p>Union-Find answers one question quickly: <b style="color:var(--text)">are these two things already connected?</b> Every element starts out in its own group, pointing to itself.</p>
+    <p><code>find(x)</code> follows the chain of pointers upward until it reaches something that points to itself — that's the <b style="color:var(--text)">root</b> of the group. Two elements are connected exactly when they share the same root.</p>
+    <p><code>union(a, b)</code> connects two groups by making one root point to the other. This is exactly the trick Kruskal's algorithm (on the graph-algorithms page) uses to check "would adding this edge create a loop?" — if both ends already share a root, adding the edge would just create a loop.</p>
+    <p><b style="color:var(--text)">Path compression</b> is the optimization you'll see below: every time <code>find</code> walks up to a root, it re-points every node along the way straight to that root. So the next time you look up any of those nodes, it's instant — no more walking the same chain again.</p>
+    <div class="example-box">
+      <div class="example-label">Example</div>
+      <p>Start with 4 separate elements: <code>1, 2, 3, 4</code>. After <code>union(1, 2)</code> and <code>union(3, 4)</code>, there are two groups: <code>{1, 2}</code> and <code>{3, 4}</code>. <code>find(1)</code> and <code>find(2)</code> return the same root, but <code>find(1)</code> and <code>find(3)</code> return different roots — they're still in separate groups.</p>
+    </div>
 
   </div>
 
-<div class="code-heading">Code</div>
-<div class="codebox">
-  <div class="codetabs">
-    <button class="codetab active" data-lang="pseudo">Pseudocode</button>
-    <button class="codetab" data-lang="python">Python</button>
-    <button class="codetab" data-lang="js">JavaScript</button>
-    <button class="codetab" data-lang="java">Java</button>
-    <button class="codetab" data-lang="cpp">C++</button>
-  </div>
-  <pre class="codeblock" data-lang="pseudo"><code>function find(parent, x):
-    if parent[x] != x:                          // x is not its own root yet
-        parent[x] &lt;- find(parent, parent[x])      // path compression: point straight at the root
-    return parent[x]                            // the group's representative
-
-function union(parent, a, b):
-    rootA &lt;- find(parent, a)                    // find a's group representative
-    rootB &lt;- find(parent, b)                    // find b's group representative
-    if rootA != rootB:                          // only merge if they're in different groups
-        parent[rootA] &lt;- rootB                    // attach one root to the other</code></pre>
-  <pre class="codeblock" data-lang="python" style="display:none"><code>class UnionFind:
-    def __init__(self, n):
-        self.parent = list(range(n))   # everyone starts as their own group (parent = self)
-
-    def find(self, x):
-        if self.parent[x] != x:                      # x is not its own root yet
-            self.parent[x] = self.find(self.parent[x])  # path compression: point at the root
-        return self.parent[x]                        # the group's representative
-
-    def union(self, a, b):
-        root_a, root_b = self.find(a), self.find(b)  # find each side's group representative
-        if root_a != root_b:                          # only merge if in different groups
-            self.parent[root_a] = root_b                # attach one root to the other</code></pre>
-  <pre class="codeblock" data-lang="js" style="display:none"><code>class UnionFind {
-  constructor(n) {
-    this.parent = Array.from({ length: n }, (_, i) =&gt; i); // everyone starts as their own group
-  }
-
-  find(x) {
-    if (this.parent[x] !== x) {                         // x is not its own root yet
-      this.parent[x] = this.find(this.parent[x]);         // path compression: point at root
-    }
-    return this.parent[x];   // the group's representative
-  }
-
-  union(a, b) {
-    const rootA = this.find(a);   // find a's group representative
-    const rootB = this.find(b);   // find b's group representative
-    if (rootA !== rootB) this.parent[rootA] = rootB;   // merge only if different groups
-  }
-}</code></pre>
-  <pre class="codeblock" data-lang="java" style="display:none"><code>class UnionFind {
-    int[] parent;
-
-    UnionFind(int n) {
-        parent = new int[n];
-        for (int i = 0; i &lt; n; i++) parent[i] = i;   // everyone starts as their own group
-    }
-
-    int find(int x) {
-        if (parent[x] != x) {                          // x is not its own root yet
-            parent[x] = find(parent[x]);                 // path compression: point at root
-        }
-        return parent[x];   // the group's representative
-    }
-
-    void union(int a, int b) {
-        int rootA = find(a), rootB = find(b);   // find each side's group representative
-        if (rootA != rootB) parent[rootA] = rootB;   // merge only if different groups
-    }
-}</code></pre>
-  <pre class="codeblock" data-lang="cpp" style="display:none"><code>class UnionFind {
-    vector&lt;int&gt; parent;
-public:
-    UnionFind(int n) : parent(n) {
-        iota(parent.begin(), parent.end(), 0);   // everyone starts as their own group
-    }
-
-    int find(int x) {
-        if (parent[x] != x) {                          // x is not its own root yet
-            parent[x] = find(parent[x]);                 // path compression: point at root
-        }
-        return parent[x];   // the group's representative
-    }
-
-    void unite(int a, int b) {
-        int rootA = find(a), rootB = find(b);   // find each side's group representative
-        if (rootA != rootB) parent[rootA] = rootB;   // merge only if different groups
-    }
-};</code></pre>
-</div>
 <div class="controls">
     <label>a <input type="number" id="ua" value="0" min="0" max="7" style="width:60px"></label>
     <label>b <input type="number" id="ub" value="1" min="0" max="7" style="width:60px"></label>
@@ -295,10 +230,163 @@ public:
   <div class="panel"><div id="tree"></div></div>
   <div class="status" id="status">8 elements, each its own group</div>
 
+<div class="code-heading">Code</div>
+<div class="codebox">
+  <div class="codetabs">
+    <button class="codetab active" data-lang="pseudo">Pseudocode</button>
+    <button class="codetab" data-lang="python">Python</button>
+    <button class="codetab" data-lang="js">JavaScript</button>
+    <button class="codetab" data-lang="java">Java</button>
+    <button class="codetab" data-lang="cpp">C++</button>
+  </div>
+  <pre class="codeblock" data-lang="pseudo"><code><span class="codeline" data-line="0">function find(parent, x):</span>
+<span class="codeline" data-line="1">    if parent[x] != x:                          // x is not its own root yet</span>
+<span class="codeline" data-line="2">        parent[x] &lt;- find(parent, parent[x])      // path compression: point straight at the root</span>
+<span class="codeline" data-line="3">    return parent[x]                            // the group's representative</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">function union(parent, a, b):</span>
+<span class="codeline" data-line="6">    rootA &lt;- find(parent, a)                    // find a's group representative</span>
+<span class="codeline" data-line="7">    rootB &lt;- find(parent, b)                    // find b's group representative</span>
+<span class="codeline" data-line="8">    if rootA != rootB:                          // only merge if they're in different groups</span>
+<span class="codeline" data-line="9">        parent[rootA] &lt;- rootB                    // attach one root to the other</span></code></pre>
+  <pre class="codeblock" data-lang="python" style="display:none"><code><span class="codeline" data-line="0">class UnionFind:</span>
+<span class="codeline" data-line="1">    def __init__(self, n):</span>
+<span class="codeline" data-line="2">        self.parent = list(range(n))   # everyone starts as their own group (parent = self)</span>
+<span class="codeline" data-line="3"></span>
+<span class="codeline" data-line="4">    def find(self, x):</span>
+<span class="codeline" data-line="5">        if self.parent[x] != x:                      # x is not its own root yet</span>
+<span class="codeline" data-line="6">            self.parent[x] = self.find(self.parent[x])  # path compression: point at the root</span>
+<span class="codeline" data-line="7">        return self.parent[x]                        # the group's representative</span>
+<span class="codeline" data-line="8"></span>
+<span class="codeline" data-line="9">    def union(self, a, b):</span>
+<span class="codeline" data-line="10">        root_a, root_b = self.find(a), self.find(b)  # find each side's group representative</span>
+<span class="codeline" data-line="11">        if root_a != root_b:                          # only merge if in different groups</span>
+<span class="codeline" data-line="12">            self.parent[root_a] = root_b                # attach one root to the other</span></code></pre>
+  <pre class="codeblock" data-lang="js" style="display:none"><code><span class="codeline" data-line="0">class UnionFind {</span>
+<span class="codeline" data-line="1">  constructor(n) {</span>
+<span class="codeline" data-line="2">    this.parent = Array.from({ length: n }, (_, i) =&gt; i); // everyone starts as their own group</span>
+<span class="codeline" data-line="3">  }</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">  find(x) {</span>
+<span class="codeline" data-line="6">    if (this.parent[x] !== x) {                         // x is not its own root yet</span>
+<span class="codeline" data-line="7">      this.parent[x] = this.find(this.parent[x]);         // path compression: point at root</span>
+<span class="codeline" data-line="8">    }</span>
+<span class="codeline" data-line="9">    return this.parent[x];   // the group's representative</span>
+<span class="codeline" data-line="10">  }</span>
+<span class="codeline" data-line="11"></span>
+<span class="codeline" data-line="12">  union(a, b) {</span>
+<span class="codeline" data-line="13">    const rootA = this.find(a);   // find a's group representative</span>
+<span class="codeline" data-line="14">    const rootB = this.find(b);   // find b's group representative</span>
+<span class="codeline" data-line="15">    if (rootA !== rootB) this.parent[rootA] = rootB;   // merge only if different groups</span>
+<span class="codeline" data-line="16">  }</span>
+<span class="codeline" data-line="17">}</span></code></pre>
+  <pre class="codeblock" data-lang="java" style="display:none"><code><span class="codeline" data-line="0">class UnionFind {</span>
+<span class="codeline" data-line="1">    int[] parent;</span>
+<span class="codeline" data-line="2"></span>
+<span class="codeline" data-line="3">    UnionFind(int n) {</span>
+<span class="codeline" data-line="4">        parent = new int[n];</span>
+<span class="codeline" data-line="5">        for (int i = 0; i &lt; n; i++) parent[i] = i;   // everyone starts as their own group</span>
+<span class="codeline" data-line="6">    }</span>
+<span class="codeline" data-line="7"></span>
+<span class="codeline" data-line="8">    int find(int x) {</span>
+<span class="codeline" data-line="9">        if (parent[x] != x) {                          // x is not its own root yet</span>
+<span class="codeline" data-line="10">            parent[x] = find(parent[x]);                 // path compression: point at root</span>
+<span class="codeline" data-line="11">        }</span>
+<span class="codeline" data-line="12">        return parent[x];   // the group's representative</span>
+<span class="codeline" data-line="13">    }</span>
+<span class="codeline" data-line="14"></span>
+<span class="codeline" data-line="15">    void union(int a, int b) {</span>
+<span class="codeline" data-line="16">        int rootA = find(a), rootB = find(b);   // find each side's group representative</span>
+<span class="codeline" data-line="17">        if (rootA != rootB) parent[rootA] = rootB;   // merge only if different groups</span>
+<span class="codeline" data-line="18">    }</span>
+<span class="codeline" data-line="19">}</span></code></pre>
+  <pre class="codeblock" data-lang="cpp" style="display:none"><code><span class="codeline" data-line="0">class UnionFind {</span>
+<span class="codeline" data-line="1">    vector&lt;int&gt; parent;</span>
+<span class="codeline" data-line="2">public:</span>
+<span class="codeline" data-line="3">    UnionFind(int n) : parent(n) {</span>
+<span class="codeline" data-line="4">        iota(parent.begin(), parent.end(), 0);   // everyone starts as their own group</span>
+<span class="codeline" data-line="5">    }</span>
+<span class="codeline" data-line="6"></span>
+<span class="codeline" data-line="7">    int find(int x) {</span>
+<span class="codeline" data-line="8">        if (parent[x] != x) {                          // x is not its own root yet</span>
+<span class="codeline" data-line="9">            parent[x] = find(parent[x]);                 // path compression: point at root</span>
+<span class="codeline" data-line="10">        }</span>
+<span class="codeline" data-line="11">        return parent[x];   // the group's representative</span>
+<span class="codeline" data-line="12">    }</span>
+<span class="codeline" data-line="13"></span>
+<span class="codeline" data-line="14">    void unite(int a, int b) {</span>
+<span class="codeline" data-line="15">        int rootA = find(a), rootB = find(b);   // find each side's group representative</span>
+<span class="codeline" data-line="16">        if (rootA != rootB) parent[rootA] = rootB;   // merge only if different groups</span>
+<span class="codeline" data-line="17">    }</span>
+<span class="codeline" data-line="18">};</span></code></pre>
+  <div class="code-explain" id="codeExplainBar"><span class="ico">💡</span><span id="codeExplainText"></span></div>
+</div>
 </main>
 </div>
 </div>
 <script>
+let __lastHighlightMap = null;
+
+function highlightLine(mapping) {
+  __lastHighlightMap = mapping;
+  applyHighlight();
+}
+
+function commentInLine(text) {
+  let idx = text.indexOf('//');
+  if (idx !== -1) return text.slice(idx + 2).trim();
+  idx = text.indexOf('#');
+  if (idx !== -1) return text.slice(idx + 1).trim();
+  return null;
+}
+
+function extractExplanation(target) {
+  const own = commentInLine(target.textContent);
+  if (own) return own;
+  const next = target.nextElementSibling;
+  if (next && next.classList.contains('codeline')) {
+    const fromNext = commentInLine(next.textContent);
+    if (fromNext) return fromNext;
+  }
+  const prev = target.previousElementSibling;
+  if (prev && prev.classList.contains('codeline')) {
+    const fromPrev = commentInLine(prev.textContent);
+    if (fromPrev) return fromPrev;
+  }
+  return null;
+}
+
+function applyHighlight() {
+  const box = document.querySelector('.codebox');
+  const bar = document.getElementById('codeExplainBar');
+  const barText = document.getElementById('codeExplainText');
+  if (!box || !__lastHighlightMap) { if (bar) bar.classList.remove('show'); return; }
+  const activeTab = box.querySelector('.codetab.active');
+  const lang = activeTab ? activeTab.dataset.lang : 'pseudo';
+  const lineNum = __lastHighlightMap[lang];
+  box.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  if (lineNum === undefined || lineNum === null) { if (bar) bar.classList.remove('show'); return; }
+  const activeBlock = box.querySelector('.codeblock[data-lang="' + lang + '"]');
+  if (!activeBlock) return;
+  const target = activeBlock.querySelector('.codeline[data-line="' + lineNum + '"]');
+  if (target) {
+    target.classList.add('active');
+    target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (bar && barText) {
+      const explanation = extractExplanation(target);
+      if (explanation) { barText.textContent = explanation; bar.classList.add('show'); }
+      else { bar.classList.remove('show'); }
+    }
+  }
+}
+
+function clearHighlight() {
+  __lastHighlightMap = null;
+  document.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  const bar = document.getElementById('codeExplainBar');
+  if (bar) bar.classList.remove('show');
+}
+
 document.querySelectorAll('.codetabs').forEach(tabs=>{
   tabs.addEventListener('click', e=>{
     const btn = e.target.closest('.codetab');
@@ -309,7 +397,27 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
     box.querySelectorAll('.codeblock').forEach(p=>{
       p.style.display = p.dataset.lang===btn.dataset.lang ? 'block' : 'none';
     });
+    applyHighlight();
   });
+});
+
+function syntaxHighlight(text) {
+  text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const pattern = /(\/\/.*$|#(?![a-zA-Z]).*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+\.?\d*n?\b)|(\b(?:function|def|return|if|else|elif|while|for|in|not|and|or|class|struct|new|const|let|var|async|await|import|from|export|default|static|public|private|protected|void|int|long|double|float|boolean|bool|char|string|String|true|false|True|False|None|null|nullptr|this|self|break|continue|switch|case|try|catch|throw|extends|implements|interface|enum|namespace|using|template|typename|auto|is|lambda|global|raise|except|finally|yield|del|pass|with|as|instanceof|typeof|super|package)\b)|(\b[A-Za-z_$][\w$]*)(?=\s*\()/gm;
+  return text.replace(pattern, (m, comment, str, num, kw, fn) => {
+    if (comment) return '<span class="tok-comment">'+comment+'</span>';
+    if (str) return '<span class="tok-string">'+str+'</span>';
+    if (num) return '<span class="tok-number">'+num+'</span>';
+    if (kw) return '<span class="tok-keyword">'+kw+'</span>';
+    if (fn) return '<span class="tok-function">'+fn+'</span>';
+    return m;
+  });
+}
+document.querySelectorAll('.codeline').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
+});
+document.querySelectorAll('.explain code').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
 });
 </script>
 <script>
@@ -383,6 +491,7 @@ async function doUnion(a,b){
   const ra = find(a), rb = find(b);
   document.getElementById('status').innerHTML = `find(${a}) = ${ra}, find(${b}) = ${rb}`;
   render(new Set([a,b,ra,rb]));
+  highlightLine({pseudo:6, python:10, js:13, java:16, cpp:15});
   await sleep(500);
   if(ra===rb){
     document.getElementById('status').innerHTML = `already in the same group (root ${ra}) — no union needed`;
@@ -400,6 +509,7 @@ async function doFind(x){
   for(const p of path){
     render(new Set(path));
     document.getElementById('status').innerHTML = `walking up: ${path.join(' → ')}${path.length>1?' (root = '+cur+')':''}`;
+    highlightLine({pseudo:2, python:6, js:7, java:10, cpp:9});
     await sleep(350);
   }
   // path compression
@@ -409,11 +519,13 @@ async function doFind(x){
 }
 
 document.getElementById('union').onclick = ()=>{
+  clearHighlight();
   const a = Math.max(0,Math.min(N-1, +document.getElementById('ua').value||0));
   const b = Math.max(0,Math.min(N-1, +document.getElementById('ub').value||0));
   doUnion(a,b);
 };
 document.getElementById('find').onclick = ()=>{
+  clearHighlight();
   const x = Math.max(0,Math.min(N-1, +document.getElementById('fx').value||0));
   doFind(x);
 };

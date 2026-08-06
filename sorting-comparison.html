@@ -49,6 +49,11 @@
   .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
   .explain li{margin-bottom:8px;}
   .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+  .example-box{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:14px;}
+  .example-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:8px;}
+  .example-box p{margin:0 0 8px;font-size:14px;color:var(--text);line-height:1.65;}
+  .example-box p:last-child{margin-bottom:0;}
+  .example-box code{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
 
   .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
   .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
@@ -119,19 +124,36 @@
     .sidebar a.navitem.overview{margin-bottom:0;}
   }
 
-  .codebox{background:#0d1117;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:20px 0;box-shadow:var(--shadow);}
-  .codetabs{display:flex;gap:2px;background:#161b22;padding:8px 8px 0;overflow-x:auto;}
-  .codetab{background:transparent;border:none;color:#8b949e;font-family:var(--mono);font-size:12.5px;font-weight:600;
-    padding:8px 14px;border-radius:6px 6px 0 0;cursor:pointer;white-space:nowrap;}
-  .codetab.active{background:#0d1117;color:#e6edf3;}
-  .codetab:hover:not(.active){color:#c9d1d9;}
-  pre.codeblock{margin:0;padding:18px 20px;overflow-x:auto;max-height:480px;}
-  pre.codeblock code{font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#e6edf3;white-space:pre;}
-  .code-heading{font-weight:700;font-size:16px;margin:28px 0 4px;color:var(--text);}
+  .codebox{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:16px 0 8px;box-shadow:var(--shadow);max-width:720px;}
+  .codetabs{display:flex;gap:2px;background:var(--bg-soft);padding:5px 6px 0;overflow-x:auto;}
+  .codetab{background:transparent;border:none;color:var(--dim);font-family:var(--mono);font-size:11.5px;font-weight:600;
+    padding:6px 11px;border-radius:5px 5px 0 0;cursor:pointer;white-space:nowrap;}
+  .codetab.active{background:var(--card);color:var(--text);}
+  .codetab:hover:not(.active){color:var(--text);}
+  pre.codeblock{margin:0;padding:12px 16px;overflow-x:auto;max-height:220px;}
+  pre.codeblock code{font-family:var(--mono);font-size:11.5px;line-height:1.55;color:var(--text);white-space:pre;}
+  .code-heading{font-weight:700;font-size:14px;margin:32px 0 8px;color:var(--text);}
 
   .speedctl{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:var(--muted);}
   .speedctl select{padding:8px 10px;}
   @media (max-width:640px){ .speedctl{margin-left:0;} }
+
+  .codeline{display:block;}
+  .tok-comment{color:#6a737d;}
+  .tok-string{color:#032f62;}
+  .tok-keyword{color:#d73a49;font-weight:600;}
+  .tok-number{color:#005cc5;}
+  .tok-function{color:#6f42c1;}
+  .code-explain{
+    display:none;align-items:flex-start;gap:8px;padding:10px 16px;
+    background:var(--accent-soft);color:var(--accent-dark);font-size:12.5px;
+    line-height:1.5;border-top:1px solid var(--border);font-family:var(--sans);
+  }
+  .code-explain.show{display:flex;}
+  .code-explain .ico{flex-shrink:0;}
+
+  .codeline.active{background:var(--accent-soft);border-left:3px solid var(--accent);margin-left:-23px;padding-left:20px;border-radius:2px;}
+  .run-hint{font-size:12px;color:var(--dim);margin-top:-4px;margin-bottom:10px;}
 </style>
 </head>
 <body>
@@ -182,102 +204,20 @@
 <main>
   <div class="explain">
     <h2>How it works</h2>
-    
-<p>All three sort the same array of numbers, but by different rules for which pair to compare or move next:</p>
-<ul>
-  <li><b style="color:var(--text)">Quicksort</b> picks a "pivot" value, then partitions the array so everything smaller goes left of it and everything larger goes right — then recursively sorts each side. Fast on average (<code>O(n log n)</code>), but a badly chosen pivot on already-sorted data can degrade to <code>O(n²)</code>.</li>
-  <li><b style="color:var(--text)">Merge sort</b> splits the array in half repeatedly until each piece has one element, then merges pairs back together in sorted order. Always <code>O(n log n)</code>, no matter the input — the cost is needing extra memory to hold the merged pieces.</li>
-  <li><b style="color:var(--text)">Heap sort</b> first arranges the array into a max-heap (a tree where every parent is ≥ its children), then repeatedly swaps the largest element (the root) to the end and shrinks the heap. Also guaranteed <code>O(n log n)</code>, and — unlike merge sort — sorts in place.</li>
-</ul>
-<p>Watch how differently they move through the same data: quicksort in sharp partitioned jumps, merge sort in clean halves, heap sort in a steady countdown from the top.</p>
+    <p>All three algorithms sort the same list of numbers, but each one decides what to compare or move in a different way.</p>
+    <ul>
+      <li><b style="color:var(--text)">Quicksort</b> — pick one number as a "pivot." Move every smaller number to its left, and every larger number to its right. Then repeat that same process separately on each side. Usually fast, but a poor pivot choice on already-sorted data can slow it down a lot.</li>
+      <li><b style="color:var(--text)">Merge sort</b> — split the list in half, then keep splitting each half in half, until you're left with single numbers. Then merge pairs back together in sorted order, over and over, until it's one sorted list again. Always reliably fast, but needs extra memory to do the merging.</li>
+      <li><b style="color:var(--text)">Heap sort</b> — first arrange the whole list into a shape called a max-heap, where the largest number is always on top. Then repeatedly pull the top number off and place it at the end. Reliably fast, and unlike merge sort, doesn't need extra memory.</li>
+    </ul>
+    <p>Watch how differently each one moves through the same numbers: quicksort jumps around in sharp partitions, merge sort works in clean, even halves, and heap sort counts down steadily from the top.</p>
+    <div class="example-box">
+      <div class="example-label">Example</div>
+      <p>Array <code>[5, 2, 8, 1]</code> with quicksort using the last item (<code>1</code>) as the pivot: nothing is smaller than 1, so it stays at the front — giving <code>[1, 5, 2, 8]</code> — then quicksort repeats separately on <code>[5, 2, 8]</code>, the part to its right.</p>
+    </div>
 
   </div>
 
-<div class="code-heading">Code</div>
-<div class="codebox">
-  <div class="codetabs">
-    <button class="codetab active" data-lang="pseudo">Pseudocode</button>
-    <button class="codetab" data-lang="python">Python</button>
-    <button class="codetab" data-lang="js">JavaScript</button>
-    <button class="codetab" data-lang="java">Java</button>
-    <button class="codetab" data-lang="cpp">C++</button>
-  </div>
-  <pre class="codeblock" data-lang="pseudo"><code>function quicksort(array, lo, hi):
-    if lo &gt;= hi: return               // fewer than 2 elements: already sorted
-    pivot &lt;- array[hi]                 // pick the last element as the pivot
-    i &lt;- lo                            // boundary: everything before i is &lt; pivot
-    for j from lo to hi - 1:            // scan the rest of the range
-        if array[j] &lt; pivot:
-            swap(array[i], array[j])     // move this smaller element into the left zone
-            i &lt;- i + 1                   // grow the "smaller than pivot" zone
-    swap(array[i], array[hi])          // put the pivot right after its smaller elements
-    quicksort(array, lo, i - 1)        // recursively sort everything left of the pivot
-    quicksort(array, i + 1, hi)        // recursively sort everything right of the pivot</code></pre>
-  <pre class="codeblock" data-lang="python" style="display:none"><code>def quicksort(arr, lo=0, hi=None):
-    if hi is None:
-        hi = len(arr) - 1     # default to sorting the whole array on first call
-    if lo &gt;= hi:
-        return                 # fewer than 2 elements: already sorted
-
-    pivot = arr[hi]            # pick the last element as the pivot
-    i = lo                     # boundary: everything before i is &lt; pivot
-    for j in range(lo, hi):     # scan the rest of the range
-        if arr[j] &lt; pivot:
-            arr[i], arr[j] = arr[j], arr[i]  # move this smaller element left of the boundary
-            i += 1                             # grow the "smaller than pivot" zone
-    arr[i], arr[hi] = arr[hi], arr[i]  # place the pivot right after its smaller elements
-
-    quicksort(arr, lo, i - 1)   # recursively sort everything left of the pivot
-    quicksort(arr, i + 1, hi)   # recursively sort everything right of the pivot</code></pre>
-  <pre class="codeblock" data-lang="js" style="display:none"><code>function quicksort(arr, lo = 0, hi = arr.length - 1) {
-  if (lo &gt;= hi) return;   // fewer than 2 elements: already sorted
-
-  const pivot = arr[hi];   // pick the last element as the pivot
-  let i = lo;               // boundary: everything before i is &lt; pivot
-  for (let j = lo; j &lt; hi; j++) {   // scan the rest of the range
-    if (arr[j] &lt; pivot) {
-      [arr[i], arr[j]] = [arr[j], arr[i]]; // move this smaller element left of the boundary
-      i++;                                  // grow the "smaller than pivot" zone
-    }
-  }
-  [arr[i], arr[hi]] = [arr[hi], arr[i]]; // place the pivot right after its smaller elements
-
-  quicksort(arr, lo, i - 1);   // recursively sort everything left of the pivot
-  quicksort(arr, i + 1, hi);   // recursively sort everything right of the pivot
-}</code></pre>
-  <pre class="codeblock" data-lang="java" style="display:none"><code>static void quicksort(int[] arr, int lo, int hi) {
-    if (lo &gt;= hi) return;   // fewer than 2 elements: already sorted
-
-    int pivot = arr[hi];     // pick the last element as the pivot
-    int i = lo;               // boundary: everything before i is &lt; pivot
-    for (int j = lo; j &lt; hi; j++) {   // scan the rest of the range
-        if (arr[j] &lt; pivot) {
-            int tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp; // swap into the left zone
-            i++;                                              // grow the left zone
-        }
-    }
-    int tmp = arr[i]; arr[i] = arr[hi]; arr[hi] = tmp; // place pivot after its smaller elements
-
-    quicksort(arr, lo, i - 1);   // recursively sort everything left of the pivot
-    quicksort(arr, i + 1, hi);   // recursively sort everything right of the pivot
-}</code></pre>
-  <pre class="codeblock" data-lang="cpp" style="display:none"><code>void quicksort(vector&lt;int&gt;&amp; arr, int lo, int hi) {
-    if (lo &gt;= hi) return;   // fewer than 2 elements: already sorted
-
-    int pivot = arr[hi];     // pick the last element as the pivot
-    int i = lo;               // boundary: everything before i is &lt; pivot
-    for (int j = lo; j &lt; hi; j++) {   // scan the rest of the range
-        if (arr[j] &lt; pivot) {
-            swap(arr[i], arr[j]);  // move this smaller element left of the boundary
-            i++;                    // grow the "smaller than pivot" zone
-        }
-    }
-    swap(arr[i], arr[hi]); // place the pivot right after its smaller elements
-
-    quicksort(arr, lo, i - 1);   // recursively sort everything left of the pivot
-    quicksort(arr, i + 1, hi);   // recursively sort everything right of the pivot
-}</code></pre>
-</div>
 <div class="controls">
     <label>size <input type="number" id="size" value="30" min="10" max="60"></label>
     <button id="regen">New array</button>
@@ -306,10 +246,158 @@
   </div>
   <div class="hint">amber = comparing · red = swapping · green = finalized in place</div>
 
+<div class="code-heading">Code</div>
+<div class="codebox">
+  <div class="codetabs">
+    <button class="codetab active" data-lang="pseudo">Pseudocode</button>
+    <button class="codetab" data-lang="python">Python</button>
+    <button class="codetab" data-lang="js">JavaScript</button>
+    <button class="codetab" data-lang="java">Java</button>
+    <button class="codetab" data-lang="cpp">C++</button>
+  </div>
+  <pre class="codeblock" data-lang="pseudo"><code><span class="codeline" data-line="0">function quicksort(array, lo, hi):</span>
+<span class="codeline" data-line="1">    if lo &gt;= hi: return               // fewer than 2 elements: already sorted</span>
+<span class="codeline" data-line="2">    pivot &lt;- array[hi]                 // pick the last element as the pivot</span>
+<span class="codeline" data-line="3">    i &lt;- lo                            // boundary: everything before i is &lt; pivot</span>
+<span class="codeline" data-line="4">    for j from lo to hi - 1:            // scan the rest of the range</span>
+<span class="codeline" data-line="5">        if array[j] &lt; pivot:</span>
+<span class="codeline" data-line="6">            swap(array[i], array[j])     // move this smaller element into the left zone</span>
+<span class="codeline" data-line="7">            i &lt;- i + 1                   // grow the "smaller than pivot" zone</span>
+<span class="codeline" data-line="8">    swap(array[i], array[hi])          // put the pivot right after its smaller elements</span>
+<span class="codeline" data-line="9">    quicksort(array, lo, i - 1)        // recursively sort everything left of the pivot</span>
+<span class="codeline" data-line="10">    quicksort(array, i + 1, hi)        // recursively sort everything right of the pivot</span></code></pre>
+  <pre class="codeblock" data-lang="python" style="display:none"><code><span class="codeline" data-line="0">def quicksort(arr, lo=0, hi=None):</span>
+<span class="codeline" data-line="1">    if hi is None:</span>
+<span class="codeline" data-line="2">        hi = len(arr) - 1     # default to sorting the whole array on first call</span>
+<span class="codeline" data-line="3">    if lo &gt;= hi:</span>
+<span class="codeline" data-line="4">        return                 # fewer than 2 elements: already sorted</span>
+<span class="codeline" data-line="5"></span>
+<span class="codeline" data-line="6">    pivot = arr[hi]            # pick the last element as the pivot</span>
+<span class="codeline" data-line="7">    i = lo                     # boundary: everything before i is &lt; pivot</span>
+<span class="codeline" data-line="8">    for j in range(lo, hi):     # scan the rest of the range</span>
+<span class="codeline" data-line="9">        if arr[j] &lt; pivot:</span>
+<span class="codeline" data-line="10">            arr[i], arr[j] = arr[j], arr[i]  # move this smaller element left of the boundary</span>
+<span class="codeline" data-line="11">            i += 1                             # grow the "smaller than pivot" zone</span>
+<span class="codeline" data-line="12">    arr[i], arr[hi] = arr[hi], arr[i]  # place the pivot right after its smaller elements</span>
+<span class="codeline" data-line="13"></span>
+<span class="codeline" data-line="14">    quicksort(arr, lo, i - 1)   # recursively sort everything left of the pivot</span>
+<span class="codeline" data-line="15">    quicksort(arr, i + 1, hi)   # recursively sort everything right of the pivot</span></code></pre>
+  <pre class="codeblock" data-lang="js" style="display:none"><code><span class="codeline" data-line="0">function quicksort(arr, lo = 0, hi = arr.length - 1) {</span>
+<span class="codeline" data-line="1">  if (lo &gt;= hi) return;   // fewer than 2 elements: already sorted</span>
+<span class="codeline" data-line="2"></span>
+<span class="codeline" data-line="3">  const pivot = arr[hi];   // pick the last element as the pivot</span>
+<span class="codeline" data-line="4">  let i = lo;               // boundary: everything before i is &lt; pivot</span>
+<span class="codeline" data-line="5">  for (let j = lo; j &lt; hi; j++) {   // scan the rest of the range</span>
+<span class="codeline" data-line="6">    if (arr[j] &lt; pivot) {</span>
+<span class="codeline" data-line="7">      [arr[i], arr[j]] = [arr[j], arr[i]]; // move this smaller element left of the boundary</span>
+<span class="codeline" data-line="8">      i++;                                  // grow the "smaller than pivot" zone</span>
+<span class="codeline" data-line="9">    }</span>
+<span class="codeline" data-line="10">  }</span>
+<span class="codeline" data-line="11">  [arr[i], arr[hi]] = [arr[hi], arr[i]]; // place the pivot right after its smaller elements</span>
+<span class="codeline" data-line="12"></span>
+<span class="codeline" data-line="13">  quicksort(arr, lo, i - 1);   // recursively sort everything left of the pivot</span>
+<span class="codeline" data-line="14">  quicksort(arr, i + 1, hi);   // recursively sort everything right of the pivot</span>
+<span class="codeline" data-line="15">}</span></code></pre>
+  <pre class="codeblock" data-lang="java" style="display:none"><code><span class="codeline" data-line="0">static void quicksort(int[] arr, int lo, int hi) {</span>
+<span class="codeline" data-line="1">    if (lo &gt;= hi) return;   // fewer than 2 elements: already sorted</span>
+<span class="codeline" data-line="2"></span>
+<span class="codeline" data-line="3">    int pivot = arr[hi];     // pick the last element as the pivot</span>
+<span class="codeline" data-line="4">    int i = lo;               // boundary: everything before i is &lt; pivot</span>
+<span class="codeline" data-line="5">    for (int j = lo; j &lt; hi; j++) {   // scan the rest of the range</span>
+<span class="codeline" data-line="6">        if (arr[j] &lt; pivot) {</span>
+<span class="codeline" data-line="7">            int tmp = arr[i]; arr[i] = arr[j]; arr[j] = tmp; // swap into the left zone</span>
+<span class="codeline" data-line="8">            i++;                                              // grow the left zone</span>
+<span class="codeline" data-line="9">        }</span>
+<span class="codeline" data-line="10">    }</span>
+<span class="codeline" data-line="11">    int tmp = arr[i]; arr[i] = arr[hi]; arr[hi] = tmp; // place pivot after its smaller elements</span>
+<span class="codeline" data-line="12"></span>
+<span class="codeline" data-line="13">    quicksort(arr, lo, i - 1);   // recursively sort everything left of the pivot</span>
+<span class="codeline" data-line="14">    quicksort(arr, i + 1, hi);   // recursively sort everything right of the pivot</span>
+<span class="codeline" data-line="15">}</span></code></pre>
+  <pre class="codeblock" data-lang="cpp" style="display:none"><code><span class="codeline" data-line="0">void quicksort(vector&lt;int&gt;&amp; arr, int lo, int hi) {</span>
+<span class="codeline" data-line="1">    if (lo &gt;= hi) return;   // fewer than 2 elements: already sorted</span>
+<span class="codeline" data-line="2"></span>
+<span class="codeline" data-line="3">    int pivot = arr[hi];     // pick the last element as the pivot</span>
+<span class="codeline" data-line="4">    int i = lo;               // boundary: everything before i is &lt; pivot</span>
+<span class="codeline" data-line="5">    for (int j = lo; j &lt; hi; j++) {   // scan the rest of the range</span>
+<span class="codeline" data-line="6">        if (arr[j] &lt; pivot) {</span>
+<span class="codeline" data-line="7">            swap(arr[i], arr[j]);  // move this smaller element left of the boundary</span>
+<span class="codeline" data-line="8">            i++;                    // grow the "smaller than pivot" zone</span>
+<span class="codeline" data-line="9">        }</span>
+<span class="codeline" data-line="10">    }</span>
+<span class="codeline" data-line="11">    swap(arr[i], arr[hi]); // place the pivot right after its smaller elements</span>
+<span class="codeline" data-line="12"></span>
+<span class="codeline" data-line="13">    quicksort(arr, lo, i - 1);   // recursively sort everything left of the pivot</span>
+<span class="codeline" data-line="14">    quicksort(arr, i + 1, hi);   // recursively sort everything right of the pivot</span>
+<span class="codeline" data-line="15">}</span></code></pre>
+  <div class="code-explain" id="codeExplainBar"><span class="ico">💡</span><span id="codeExplainText"></span></div>
+</div>
 </main>
 </div>
 </div>
 <script>
+let __lastHighlightMap = null;
+
+function highlightLine(mapping) {
+  __lastHighlightMap = mapping;
+  applyHighlight();
+}
+
+function commentInLine(text) {
+  let idx = text.indexOf('//');
+  if (idx !== -1) return text.slice(idx + 2).trim();
+  idx = text.indexOf('#');
+  if (idx !== -1) return text.slice(idx + 1).trim();
+  return null;
+}
+
+function extractExplanation(target) {
+  const own = commentInLine(target.textContent);
+  if (own) return own;
+  const next = target.nextElementSibling;
+  if (next && next.classList.contains('codeline')) {
+    const fromNext = commentInLine(next.textContent);
+    if (fromNext) return fromNext;
+  }
+  const prev = target.previousElementSibling;
+  if (prev && prev.classList.contains('codeline')) {
+    const fromPrev = commentInLine(prev.textContent);
+    if (fromPrev) return fromPrev;
+  }
+  return null;
+}
+
+function applyHighlight() {
+  const box = document.querySelector('.codebox');
+  const bar = document.getElementById('codeExplainBar');
+  const barText = document.getElementById('codeExplainText');
+  if (!box || !__lastHighlightMap) { if (bar) bar.classList.remove('show'); return; }
+  const activeTab = box.querySelector('.codetab.active');
+  const lang = activeTab ? activeTab.dataset.lang : 'pseudo';
+  const lineNum = __lastHighlightMap[lang];
+  box.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  if (lineNum === undefined || lineNum === null) { if (bar) bar.classList.remove('show'); return; }
+  const activeBlock = box.querySelector('.codeblock[data-lang="' + lang + '"]');
+  if (!activeBlock) return;
+  const target = activeBlock.querySelector('.codeline[data-line="' + lineNum + '"]');
+  if (target) {
+    target.classList.add('active');
+    target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (bar && barText) {
+      const explanation = extractExplanation(target);
+      if (explanation) { barText.textContent = explanation; bar.classList.add('show'); }
+      else { bar.classList.remove('show'); }
+    }
+  }
+}
+
+function clearHighlight() {
+  __lastHighlightMap = null;
+  document.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  const bar = document.getElementById('codeExplainBar');
+  if (bar) bar.classList.remove('show');
+}
+
 document.querySelectorAll('.codetabs').forEach(tabs=>{
   tabs.addEventListener('click', e=>{
     const btn = e.target.closest('.codetab');
@@ -320,7 +408,27 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
     box.querySelectorAll('.codeblock').forEach(p=>{
       p.style.display = p.dataset.lang===btn.dataset.lang ? 'block' : 'none';
     });
+    applyHighlight();
   });
+});
+
+function syntaxHighlight(text) {
+  text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const pattern = /(\/\/.*$|#(?![a-zA-Z]).*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+\.?\d*n?\b)|(\b(?:function|def|return|if|else|elif|while|for|in|not|and|or|class|struct|new|const|let|var|async|await|import|from|export|default|static|public|private|protected|void|int|long|double|float|boolean|bool|char|string|String|true|false|True|False|None|null|nullptr|this|self|break|continue|switch|case|try|catch|throw|extends|implements|interface|enum|namespace|using|template|typename|auto|is|lambda|global|raise|except|finally|yield|del|pass|with|as|instanceof|typeof|super|package)\b)|(\b[A-Za-z_$][\w$]*)(?=\s*\()/gm;
+  return text.replace(pattern, (m, comment, str, num, kw, fn) => {
+    if (comment) return '<span class="tok-comment">'+comment+'</span>';
+    if (str) return '<span class="tok-string">'+str+'</span>';
+    if (num) return '<span class="tok-number">'+num+'</span>';
+    if (kw) return '<span class="tok-keyword">'+kw+'</span>';
+    if (fn) return '<span class="tok-function">'+fn+'</span>';
+    return m;
+  });
+}
+document.querySelectorAll('.codeline').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
+});
+document.querySelectorAll('.explain code').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
 });
 </script>
 <script>
@@ -368,6 +476,7 @@ async function quicksort(){
       const states = new Array(a.length).fill('');
       states[j]='compare'; states[hi]='compare';
       renderBars('barsQ', a, states);
+      highlightLine({pseudo:5, python:9, js:6, java:6, cpp:6});
       await sleep(35);
       if(a[j] < pivot){
         [a[i],a[j]] = [a[j],a[i]];
@@ -378,6 +487,7 @@ async function quicksort(){
     const doneStates = new Array(a.length).fill('');
     doneStates[i]='done';
     renderBars('barsQ', a, doneStates);
+    highlightLine({pseudo:8, python:12, js:11, java:11, cpp:11});
     await sleep(20);
     await qs(lo, i-1);
     await qs(i+1, hi);
@@ -452,6 +562,7 @@ async function heapsort(){
 document.getElementById('regen').onclick = genArray;
 document.getElementById('run').onclick = async ()=>{
   document.getElementById('run').disabled = true;
+  clearHighlight();
   renderAll();
   await Promise.all([quicksort(), mergesort(), heapsort()]);
   document.getElementById('run').disabled = false;

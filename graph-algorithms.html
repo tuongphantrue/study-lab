@@ -47,6 +47,11 @@
   .explain p{color:var(--muted);font-size:15px;line-height:1.75;margin:0 0 12px;}
   .explain p:last-child{margin-bottom:0;}
   .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+  .example-box{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:14px;}
+  .example-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:8px;}
+  .example-box p{margin:0 0 8px;font-size:14px;color:var(--text);line-height:1.65;}
+  .example-box p:last-child{margin-bottom:0;}
+  .example-box code{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
 
   .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:20px 0 16px;font-size:14px;}
   select{background:var(--card);border:1px solid var(--border);color:var(--text);font-family:var(--sans);font-size:14px;padding:11px 14px;border-radius:10px;box-shadow:var(--shadow);}
@@ -105,19 +110,36 @@
     .sidebar a.navitem.overview{margin-bottom:0;}
   }
 
-  .codebox{background:#0d1117;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:20px 0;box-shadow:var(--shadow);}
-  .codetabs{display:flex;gap:2px;background:#161b22;padding:8px 8px 0;overflow-x:auto;}
-  .codetab{background:transparent;border:none;color:#8b949e;font-family:var(--mono);font-size:12.5px;font-weight:600;
-    padding:8px 14px;border-radius:6px 6px 0 0;cursor:pointer;white-space:nowrap;}
-  .codetab.active{background:#0d1117;color:#e6edf3;}
-  .codetab:hover:not(.active){color:#c9d1d9;}
-  pre.codeblock{margin:0;padding:18px 20px;overflow-x:auto;max-height:480px;}
-  pre.codeblock code{font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#e6edf3;white-space:pre;}
-  .code-heading{font-weight:700;font-size:16px;margin:28px 0 4px;color:var(--text);}
+  .codebox{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:16px 0 8px;box-shadow:var(--shadow);max-width:720px;}
+  .codetabs{display:flex;gap:2px;background:var(--bg-soft);padding:5px 6px 0;overflow-x:auto;}
+  .codetab{background:transparent;border:none;color:var(--dim);font-family:var(--mono);font-size:11.5px;font-weight:600;
+    padding:6px 11px;border-radius:5px 5px 0 0;cursor:pointer;white-space:nowrap;}
+  .codetab.active{background:var(--card);color:var(--text);}
+  .codetab:hover:not(.active){color:var(--text);}
+  pre.codeblock{margin:0;padding:12px 16px;overflow-x:auto;max-height:220px;}
+  pre.codeblock code{font-family:var(--mono);font-size:11.5px;line-height:1.55;color:var(--text);white-space:pre;}
+  .code-heading{font-weight:700;font-size:14px;margin:32px 0 8px;color:var(--text);}
 
   .speedctl{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:var(--muted);}
   .speedctl select{padding:8px 10px;}
   @media (max-width:640px){ .speedctl{margin-left:0;} }
+
+  .codeline{display:block;}
+  .tok-comment{color:#6a737d;}
+  .tok-string{color:#032f62;}
+  .tok-keyword{color:#d73a49;font-weight:600;}
+  .tok-number{color:#005cc5;}
+  .tok-function{color:#6f42c1;}
+  .code-explain{
+    display:none;align-items:flex-start;gap:8px;padding:10px 16px;
+    background:var(--accent-soft);color:var(--accent-dark);font-size:12.5px;
+    line-height:1.5;border-top:1px solid var(--border);font-family:var(--sans);
+  }
+  .code-explain.show{display:flex;}
+  .code-explain .ico{flex-shrink:0;}
+
+  .codeline.active{background:var(--accent-soft);border-left:3px solid var(--accent);margin-left:-23px;padding-left:20px;border-radius:2px;}
+  .run-hint{font-size:12px;color:var(--dim);margin-top:-4px;margin-bottom:10px;}
 </style>
 </head>
 <body>
@@ -168,119 +190,27 @@
 <main>
   <div class="explain">
     <h2>How it works</h2>
-    <p><b style="color:var(--text)">Dijkstra's algorithm</b> keeps a "best distance found so far" for every node, starting at 0 for the source and infinity for everything else. Each round, it finalizes whichever unvisited node currently has the smallest known distance — that distance can never improve later, because every edge weight is non-negative, so nothing cheaper could still be found through an unvisited (therefore farther) node. It then "relaxes" that node's edges: for each neighbor, it checks whether going through the just-finalized node beats the neighbor's current best distance, and updates it if so. Repeat until every node is finalized.</p>
-    <p><b style="color:var(--text)">Kruskal's algorithm</b> takes a completely different approach to a different problem: it sorts every edge by weight, cheapest first, then walks through that list adding an edge as long as it doesn't create a cycle — i.e. as long as its two endpoints aren't already connected through edges already chosen. A quick union-find structure tracks which nodes are already in the same connected group. It stops once every node is connected, which happens after exactly <code>(number of nodes − 1)</code> edges are added.</p>
-    <p>Green edges/nodes are finalized (kept). Amber marks what's currently being considered. Faded red edges were passed over.</p>
+    <p><b style="color:var(--text)">Dijkstra's algorithm</b> finds the shortest path from one starting node to every other node. Here's the process:</p>
+    <ol style="margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;">
+      <li>Set the starting node's distance to 0, and every other node's distance to infinity (unknown).</li>
+      <li>Pick whichever unvisited node currently has the smallest known distance, and lock in that distance as final.</li>
+      <li>Check each of that node's neighbors: would going through this node give them a shorter path than what they have now? If so, update it.</li>
+      <li>Repeat until every node is locked in.</li>
+    </ol>
+    <p>This works because all edge weights are positive — once a node has the smallest distance among what's left, nothing could ever beat it later.</p>
+    <p><b style="color:var(--text)">Kruskal's algorithm</b> solves a different problem: connect every node as cheaply as possible, using as few edges as needed. It works like this:</p>
+    <ol style="margin:0;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;">
+      <li>Sort every edge from cheapest to most expensive.</li>
+      <li>Go through them in that order. Add an edge only if it connects two groups that aren't already connected.</li>
+      <li>Skip any edge that would just create a loop between nodes already connected.</li>
+      <li>Stop once every node is connected.</li>
+    </ol>
+    <div class="example-box">
+      <div class="example-label">Example</div>
+      <p>Say node <code>A</code> connects to <code>B</code> (weight 4) and <code>C</code> (weight 1). Starting from <code>A</code>: distance to <code>C</code> becomes 1, distance to <code>B</code> becomes 4. Since <code>C</code> is cheaper, Dijkstra locks it in first, then checks C's neighbors — if <code>C</code> connects to <code>B</code> with weight 2, that's a route of <code>1 + 2 = 3</code> to <code>B</code>, beating the direct route of 4. So <code>B</code>'s distance updates to 3.</p>
+    </div>
+
   </div>
-<div class="code-heading">Code</div>
-<div class="codebox">
-  <div class="codetabs">
-    <button class="codetab active" data-lang="pseudo">Pseudocode</button>
-    <button class="codetab" data-lang="python">Python</button>
-    <button class="codetab" data-lang="js">JavaScript</button>
-    <button class="codetab" data-lang="java">Java</button>
-    <button class="codetab" data-lang="cpp">C++</button>
-  </div>
-  <pre class="codeblock" data-lang="pseudo"><code>function dijkstra(graph, source):
-    dist[source] &lt;- 0                        // zero distance to reach itself
-    for each node != source: dist[node] &lt;- infinity   // unknown distance initially
-    priorityQueue &lt;- {(0, source)}            // explore cheapest known distance first
-
-    while priorityQueue is not empty:
-        (d, node) &lt;- extractMin(priorityQueue)  // pull the currently-cheapest node
-        if d &gt; dist[node]: continue              // a cheaper route was already found: skip
-
-        for each (neighbor, weight) in graph[node]:   // check every edge out of node
-            newDist &lt;- dist[node] + weight             // cost of reaching neighbor via node
-            if newDist &lt; dist[neighbor]:               // found a cheaper route
-                dist[neighbor] &lt;- newDist                // record the improvement
-                priorityQueue.insert((newDist, neighbor)) // re-check this neighbor later
-
-    return dist   // shortest distance from source to every node</code></pre>
-  <pre class="codeblock" data-lang="python" style="display:none"><code>import heapq   # binary min-heap, used as the priority queue
-
-def dijkstra(graph, source):
-    dist = {node: float('inf') for node in graph}  # unknown distance to every node
-    dist[source] = 0                                # zero distance to reach itself
-    pq = [(0, source)]                              # (distance, node), cheapest first
-
-    while pq:
-        d, node = heapq.heappop(pq)   # pull the currently-cheapest node
-        if d &gt; dist[node]:
-            continue                    # a cheaper route was already found: skip stale entry
-
-        for neighbor, weight in graph[node]:   # check every edge out of node
-            new_dist = dist[node] + weight       # cost of reaching neighbor via node
-            if new_dist &lt; dist[neighbor]:        # found a cheaper route
-                dist[neighbor] = new_dist          # record the improvement
-                heapq.heappush(pq, (new_dist, neighbor))  # re-check this neighbor later
-
-    return dist   # shortest distance from source to every node</code></pre>
-  <pre class="codeblock" data-lang="js" style="display:none"><code>function dijkstra(graph, source) {
-  const dist = new Map();
-  for (const node of graph.keys()) dist.set(node, Infinity); // unknown distance initially
-  dist.set(source, 0);          // zero distance to reach itself
-
-  const pq = [[0, source]]; // simple array used as a priority queue (distance, node)
-
-  while (pq.length) {
-    pq.sort((a, b) =&gt; a[0] - b[0]);   // re-sort so the cheapest entry is first
-    const [d, node] = pq.shift();      // pull the currently-cheapest node
-    if (d &gt; dist.get(node)) continue;  // stale entry: a cheaper route already found
-
-    for (const [neighbor, weight] of graph.get(node)) { // check every edge out of node
-      const newDist = dist.get(node) + weight;            // cost via this node
-      if (newDist &lt; dist.get(neighbor)) {                 // found a cheaper route
-        dist.set(neighbor, newDist);                        // record the improvement
-        pq.push([newDist, neighbor]);                       // re-check this neighbor later
-      }
-    }
-  }
-  return dist; // shortest distance from source to every node
-}</code></pre>
-  <pre class="codeblock" data-lang="java" style="display:none"><code>Map&lt;Integer, Integer&gt; dist = new HashMap&lt;&gt;();
-for (int node : graph.keySet()) dist.put(node, Integer.MAX_VALUE); // unknown distance
-dist.put(source, 0);   // zero distance to reach itself
-
-PriorityQueue&lt;int[]&gt; pq = new PriorityQueue&lt;&gt;((a, b) -&gt; a[0] - b[0]); // cheapest first
-pq.add(new int[]{0, source});
-
-while (!pq.isEmpty()) {
-    int[] cur = pq.poll();          // pull the currently-cheapest node
-    int d = cur[0], node = cur[1];
-    if (d &gt; dist.get(node)) continue;  // stale entry: a cheaper route already found
-
-    for (int[] edge : graph.get(node)) {   // check every edge out of node
-        int neighbor = edge[0], weight = edge[1];
-        int newDist = dist.get(node) + weight;     // cost via this node
-        if (newDist &lt; dist.get(neighbor)) {        // found a cheaper route
-            dist.put(neighbor, newDist);              // record the improvement
-            pq.add(new int[]{newDist, neighbor});      // re-check this neighbor later
-        }
-    }
-}
-// dist now holds the shortest distance from source to every node</code></pre>
-  <pre class="codeblock" data-lang="cpp" style="display:none"><code>vector&lt;int&gt; dijkstra(vector&lt;vector&lt;pair&lt;int,int&gt;&gt;&gt;&amp; graph, int source) {
-    vector&lt;int&gt; dist(graph.size(), INT_MAX);   // unknown distance to every node
-    dist[source] = 0;                           // zero distance to reach itself
-    priority_queue&lt;pair&lt;int,int&gt;, vector&lt;pair&lt;int,int&gt;&gt;, greater&lt;&gt;&gt; pq; // min-heap
-    pq.push({0, source});
-
-    while (!pq.empty()) {
-        auto [d, node] = pq.top(); pq.pop();     // pull the currently-cheapest node
-        if (d &gt; dist[node]) continue;             // stale entry: cheaper route already found
-
-        for (auto&amp; [neighbor, weight] : graph[node]) {  // check every edge out of node
-            int newDist = dist[node] + weight;            // cost via this node
-            if (newDist &lt; dist[neighbor]) {               // found a cheaper route
-                dist[neighbor] = newDist;                   // record the improvement
-                pq.push({newDist, neighbor});                // re-check this neighbor later
-            }
-        }
-    }
-    return dist; // shortest distance from source to every node
-}</code></pre>
-</div>
 <div class="controls">
     <select id="algo">
       <option value="dijkstra">Dijkstra — shortest path from A</option>
@@ -293,10 +223,182 @@ while (!pq.isEmpty()) {
   <div class="stage"><svg id="svg" viewBox="0 0 640 400"></svg></div>
   <div class="status" id="status">select an algorithm and hit run</div>
   <div class="hint">edge labels are weights · green = finalized / included, amber = currently being considered</div>
+<div class="code-heading">Code</div>
+<div class="codebox">
+  <div class="codetabs">
+    <button class="codetab active" data-lang="pseudo">Pseudocode</button>
+    <button class="codetab" data-lang="python">Python</button>
+    <button class="codetab" data-lang="js">JavaScript</button>
+    <button class="codetab" data-lang="java">Java</button>
+    <button class="codetab" data-lang="cpp">C++</button>
+  </div>
+  <pre class="codeblock" data-lang="pseudo"><code><span class="codeline" data-line="0">function dijkstra(graph, source):</span>
+<span class="codeline" data-line="1">    dist[source] &lt;- 0                        // zero distance to reach itself</span>
+<span class="codeline" data-line="2">    for each node != source: dist[node] &lt;- infinity   // unknown distance initially</span>
+<span class="codeline" data-line="3">    priorityQueue &lt;- {(0, source)}            // explore cheapest known distance first</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">    while priorityQueue is not empty:</span>
+<span class="codeline" data-line="6">        (d, node) &lt;- extractMin(priorityQueue)  // pull the currently-cheapest node</span>
+<span class="codeline" data-line="7">        if d &gt; dist[node]: continue              // a cheaper route was already found: skip</span>
+<span class="codeline" data-line="8"></span>
+<span class="codeline" data-line="9">        for each (neighbor, weight) in graph[node]:   // check every edge out of node</span>
+<span class="codeline" data-line="10">            newDist &lt;- dist[node] + weight             // cost of reaching neighbor via node</span>
+<span class="codeline" data-line="11">            if newDist &lt; dist[neighbor]:               // found a cheaper route</span>
+<span class="codeline" data-line="12">                dist[neighbor] &lt;- newDist                // record the improvement</span>
+<span class="codeline" data-line="13">                priorityQueue.insert((newDist, neighbor)) // re-check this neighbor later</span>
+<span class="codeline" data-line="14"></span>
+<span class="codeline" data-line="15">    return dist   // shortest distance from source to every node</span></code></pre>
+  <pre class="codeblock" data-lang="python" style="display:none"><code><span class="codeline" data-line="0">import heapq   # binary min-heap, used as the priority queue</span>
+<span class="codeline" data-line="1"></span>
+<span class="codeline" data-line="2">def dijkstra(graph, source):</span>
+<span class="codeline" data-line="3">    dist = {node: float('inf') for node in graph}  # unknown distance to every node</span>
+<span class="codeline" data-line="4">    dist[source] = 0                                # zero distance to reach itself</span>
+<span class="codeline" data-line="5">    pq = [(0, source)]                              # (distance, node), cheapest first</span>
+<span class="codeline" data-line="6"></span>
+<span class="codeline" data-line="7">    while pq:</span>
+<span class="codeline" data-line="8">        d, node = heapq.heappop(pq)   # pull the currently-cheapest node</span>
+<span class="codeline" data-line="9">        if d &gt; dist[node]:</span>
+<span class="codeline" data-line="10">            continue                    # a cheaper route was already found: skip stale entry</span>
+<span class="codeline" data-line="11"></span>
+<span class="codeline" data-line="12">        for neighbor, weight in graph[node]:   # check every edge out of node</span>
+<span class="codeline" data-line="13">            new_dist = dist[node] + weight       # cost of reaching neighbor via node</span>
+<span class="codeline" data-line="14">            if new_dist &lt; dist[neighbor]:        # found a cheaper route</span>
+<span class="codeline" data-line="15">                dist[neighbor] = new_dist          # record the improvement</span>
+<span class="codeline" data-line="16">                heapq.heappush(pq, (new_dist, neighbor))  # re-check this neighbor later</span>
+<span class="codeline" data-line="17"></span>
+<span class="codeline" data-line="18">    return dist   # shortest distance from source to every node</span></code></pre>
+  <pre class="codeblock" data-lang="js" style="display:none"><code><span class="codeline" data-line="0">function dijkstra(graph, source) {</span>
+<span class="codeline" data-line="1">  const dist = new Map();</span>
+<span class="codeline" data-line="2">  for (const node of graph.keys()) dist.set(node, Infinity); // unknown distance initially</span>
+<span class="codeline" data-line="3">  dist.set(source, 0);          // zero distance to reach itself</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">  const pq = [[0, source]]; // simple array used as a priority queue (distance, node)</span>
+<span class="codeline" data-line="6"></span>
+<span class="codeline" data-line="7">  while (pq.length) {</span>
+<span class="codeline" data-line="8">    pq.sort((a, b) =&gt; a[0] - b[0]);   // re-sort so the cheapest entry is first</span>
+<span class="codeline" data-line="9">    const [d, node] = pq.shift();      // pull the currently-cheapest node</span>
+<span class="codeline" data-line="10">    if (d &gt; dist.get(node)) continue;  // stale entry: a cheaper route already found</span>
+<span class="codeline" data-line="11"></span>
+<span class="codeline" data-line="12">    for (const [neighbor, weight] of graph.get(node)) { // check every edge out of node</span>
+<span class="codeline" data-line="13">      const newDist = dist.get(node) + weight;            // cost via this node</span>
+<span class="codeline" data-line="14">      if (newDist &lt; dist.get(neighbor)) {                 // found a cheaper route</span>
+<span class="codeline" data-line="15">        dist.set(neighbor, newDist);                        // record the improvement</span>
+<span class="codeline" data-line="16">        pq.push([newDist, neighbor]);                       // re-check this neighbor later</span>
+<span class="codeline" data-line="17">      }</span>
+<span class="codeline" data-line="18">    }</span>
+<span class="codeline" data-line="19">  }</span>
+<span class="codeline" data-line="20">  return dist; // shortest distance from source to every node</span>
+<span class="codeline" data-line="21">}</span></code></pre>
+  <pre class="codeblock" data-lang="java" style="display:none"><code><span class="codeline" data-line="0">Map&lt;Integer, Integer&gt; dist = new HashMap&lt;&gt;();</span>
+<span class="codeline" data-line="1">for (int node : graph.keySet()) dist.put(node, Integer.MAX_VALUE); // unknown distance</span>
+<span class="codeline" data-line="2">dist.put(source, 0);   // zero distance to reach itself</span>
+<span class="codeline" data-line="3"></span>
+<span class="codeline" data-line="4">PriorityQueue&lt;int[]&gt; pq = new PriorityQueue&lt;&gt;((a, b) -&gt; a[0] - b[0]); // cheapest first</span>
+<span class="codeline" data-line="5">pq.add(new int[]{0, source});</span>
+<span class="codeline" data-line="6"></span>
+<span class="codeline" data-line="7">while (!pq.isEmpty()) {</span>
+<span class="codeline" data-line="8">    int[] cur = pq.poll();          // pull the currently-cheapest node</span>
+<span class="codeline" data-line="9">    int d = cur[0], node = cur[1];</span>
+<span class="codeline" data-line="10">    if (d &gt; dist.get(node)) continue;  // stale entry: a cheaper route already found</span>
+<span class="codeline" data-line="11"></span>
+<span class="codeline" data-line="12">    for (int[] edge : graph.get(node)) {   // check every edge out of node</span>
+<span class="codeline" data-line="13">        int neighbor = edge[0], weight = edge[1];</span>
+<span class="codeline" data-line="14">        int newDist = dist.get(node) + weight;     // cost via this node</span>
+<span class="codeline" data-line="15">        if (newDist &lt; dist.get(neighbor)) {        // found a cheaper route</span>
+<span class="codeline" data-line="16">            dist.put(neighbor, newDist);              // record the improvement</span>
+<span class="codeline" data-line="17">            pq.add(new int[]{newDist, neighbor});      // re-check this neighbor later</span>
+<span class="codeline" data-line="18">        }</span>
+<span class="codeline" data-line="19">    }</span>
+<span class="codeline" data-line="20">}</span>
+<span class="codeline" data-line="21">// dist now holds the shortest distance from source to every node</span></code></pre>
+  <pre class="codeblock" data-lang="cpp" style="display:none"><code><span class="codeline" data-line="0">vector&lt;int&gt; dijkstra(vector&lt;vector&lt;pair&lt;int,int&gt;&gt;&gt;&amp; graph, int source) {</span>
+<span class="codeline" data-line="1">    vector&lt;int&gt; dist(graph.size(), INT_MAX);   // unknown distance to every node</span>
+<span class="codeline" data-line="2">    dist[source] = 0;                           // zero distance to reach itself</span>
+<span class="codeline" data-line="3">    priority_queue&lt;pair&lt;int,int&gt;, vector&lt;pair&lt;int,int&gt;&gt;, greater&lt;&gt;&gt; pq; // min-heap</span>
+<span class="codeline" data-line="4">    pq.push({0, source});</span>
+<span class="codeline" data-line="5"></span>
+<span class="codeline" data-line="6">    while (!pq.empty()) {</span>
+<span class="codeline" data-line="7">        auto [d, node] = pq.top(); pq.pop();     // pull the currently-cheapest node</span>
+<span class="codeline" data-line="8">        if (d &gt; dist[node]) continue;             // stale entry: cheaper route already found</span>
+<span class="codeline" data-line="9"></span>
+<span class="codeline" data-line="10">        for (auto&amp; [neighbor, weight] : graph[node]) {  // check every edge out of node</span>
+<span class="codeline" data-line="11">            int newDist = dist[node] + weight;            // cost via this node</span>
+<span class="codeline" data-line="12">            if (newDist &lt; dist[neighbor]) {               // found a cheaper route</span>
+<span class="codeline" data-line="13">                dist[neighbor] = newDist;                   // record the improvement</span>
+<span class="codeline" data-line="14">                pq.push({newDist, neighbor});                // re-check this neighbor later</span>
+<span class="codeline" data-line="15">            }</span>
+<span class="codeline" data-line="16">        }</span>
+<span class="codeline" data-line="17">    }</span>
+<span class="codeline" data-line="18">    return dist; // shortest distance from source to every node</span>
+<span class="codeline" data-line="19">}</span></code></pre>
+  <div class="code-explain" id="codeExplainBar"><span class="ico">💡</span><span id="codeExplainText"></span></div>
+</div>
 </main>
 </div>
 </div>
 <script>
+let __lastHighlightMap = null;
+
+function highlightLine(mapping) {
+  __lastHighlightMap = mapping;
+  applyHighlight();
+}
+
+function commentInLine(text) {
+  let idx = text.indexOf('//');
+  if (idx !== -1) return text.slice(idx + 2).trim();
+  idx = text.indexOf('#');
+  if (idx !== -1) return text.slice(idx + 1).trim();
+  return null;
+}
+
+function extractExplanation(target) {
+  const own = commentInLine(target.textContent);
+  if (own) return own;
+  const next = target.nextElementSibling;
+  if (next && next.classList.contains('codeline')) {
+    const fromNext = commentInLine(next.textContent);
+    if (fromNext) return fromNext;
+  }
+  const prev = target.previousElementSibling;
+  if (prev && prev.classList.contains('codeline')) {
+    const fromPrev = commentInLine(prev.textContent);
+    if (fromPrev) return fromPrev;
+  }
+  return null;
+}
+
+function applyHighlight() {
+  const box = document.querySelector('.codebox');
+  const bar = document.getElementById('codeExplainBar');
+  const barText = document.getElementById('codeExplainText');
+  if (!box || !__lastHighlightMap) { if (bar) bar.classList.remove('show'); return; }
+  const activeTab = box.querySelector('.codetab.active');
+  const lang = activeTab ? activeTab.dataset.lang : 'pseudo';
+  const lineNum = __lastHighlightMap[lang];
+  box.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  if (lineNum === undefined || lineNum === null) { if (bar) bar.classList.remove('show'); return; }
+  const activeBlock = box.querySelector('.codeblock[data-lang="' + lang + '"]');
+  if (!activeBlock) return;
+  const target = activeBlock.querySelector('.codeline[data-line="' + lineNum + '"]');
+  if (target) {
+    target.classList.add('active');
+    target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (bar && barText) {
+      const explanation = extractExplanation(target);
+      if (explanation) { barText.textContent = explanation; bar.classList.add('show'); }
+      else { bar.classList.remove('show'); }
+    }
+  }
+}
+
+function clearHighlight() {
+  __lastHighlightMap = null;
+  document.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  const bar = document.getElementById('codeExplainBar');
+  if (bar) bar.classList.remove('show');
+}
+
 document.querySelectorAll('.codetabs').forEach(tabs=>{
   tabs.addEventListener('click', e=>{
     const btn = e.target.closest('.codetab');
@@ -307,7 +409,27 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
     box.querySelectorAll('.codeblock').forEach(p=>{
       p.style.display = p.dataset.lang===btn.dataset.lang ? 'block' : 'none';
     });
+    applyHighlight();
   });
+});
+
+function syntaxHighlight(text) {
+  text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const pattern = /(\/\/.*$|#(?![a-zA-Z]).*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+\.?\d*n?\b)|(\b(?:function|def|return|if|else|elif|while|for|in|not|and|or|class|struct|new|const|let|var|async|await|import|from|export|default|static|public|private|protected|void|int|long|double|float|boolean|bool|char|string|String|true|false|True|False|None|null|nullptr|this|self|break|continue|switch|case|try|catch|throw|extends|implements|interface|enum|namespace|using|template|typename|auto|is|lambda|global|raise|except|finally|yield|del|pass|with|as|instanceof|typeof|super|package)\b)|(\b[A-Za-z_$][\w$]*)(?=\s*\()/gm;
+  return text.replace(pattern, (m, comment, str, num, kw, fn) => {
+    if (comment) return '<span class="tok-comment">'+comment+'</span>';
+    if (str) return '<span class="tok-string">'+str+'</span>';
+    if (num) return '<span class="tok-number">'+num+'</span>';
+    if (kw) return '<span class="tok-keyword">'+kw+'</span>';
+    if (fn) return '<span class="tok-function">'+fn+'</span>';
+    return m;
+  });
+}
+document.querySelectorAll('.codeline').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
+});
+document.querySelectorAll('.explain code').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
 });
 </script>
 <script>
@@ -387,10 +509,12 @@ async function runDijkstra(){
     visited[u] = true;
     document.getElementById(`node-${u}`).classList.add('visited');
     document.getElementById('status').innerHTML = `finalizing <b>${nodes[u].name}</b> at distance <b>${dist[u]}</b>`;
+    highlightLine({pseudo:6, python:8, js:9, java:8, cpp:7});
     await sleep(500);
     for(const {to,w,idx} of adj[u]){
       const edgeEl = document.getElementById(`edge-${idx}`);
       edgeEl.classList.add('consider');
+      highlightLine({pseudo:11, python:14, js:14, java:15, cpp:12});
       await sleep(250);
       if(dist[u]+w < dist[to]){
         dist[to] = dist[u]+w;
@@ -434,6 +558,7 @@ async function runKruskal(){
 
 document.getElementById('run').onclick = async ()=>{
   document.getElementById('run').disabled = true;
+  clearHighlight();
   drawGraph();
   const algo = document.getElementById('algo').value;
   if(algo==='dijkstra') await runDijkstra(); else await runKruskal();

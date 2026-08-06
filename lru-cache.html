@@ -49,6 +49,11 @@
   .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
   .explain li{margin-bottom:8px;}
   .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+  .example-box{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:14px;}
+  .example-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:8px;}
+  .example-box p{margin:0 0 8px;font-size:14px;color:var(--text);line-height:1.65;}
+  .example-box p:last-child{margin-bottom:0;}
+  .example-box code{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
 
   .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
   .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
@@ -117,22 +122,35 @@
     .sidebar a.navitem.overview{margin-bottom:0;}
   }
 
-  .codebox{background:#0d1117;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:20px 0;box-shadow:var(--shadow);}
-  .codetabs{display:flex;gap:2px;background:#161b22;padding:8px 8px 0;overflow-x:auto;}
-  .codetab{background:transparent;border:none;color:#8b949e;font-family:var(--mono);font-size:12.5px;font-weight:600;
-    padding:8px 14px;border-radius:6px 6px 0 0;cursor:pointer;white-space:nowrap;}
-  .codetab.active{background:#0d1117;color:#e6edf3;}
-  .codetab:hover:not(.active){color:#c9d1d9;}
-  pre.codeblock{margin:0;padding:18px 20px;overflow-x:auto;max-height:480px;}
-  pre.codeblock code{font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#e6edf3;white-space:pre;}
-  .code-heading{font-weight:700;font-size:16px;margin:28px 0 4px;color:var(--text);}
+  .codebox{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:16px 0 8px;box-shadow:var(--shadow);max-width:720px;}
+  .codetabs{display:flex;gap:2px;background:var(--bg-soft);padding:5px 6px 0;overflow-x:auto;}
+  .codetab{background:transparent;border:none;color:var(--dim);font-family:var(--mono);font-size:11.5px;font-weight:600;
+    padding:6px 11px;border-radius:5px 5px 0 0;cursor:pointer;white-space:nowrap;}
+  .codetab.active{background:var(--card);color:var(--text);}
+  .codetab:hover:not(.active){color:var(--text);}
+  pre.codeblock{margin:0;padding:12px 16px;overflow-x:auto;max-height:220px;}
+  pre.codeblock code{font-family:var(--mono);font-size:11.5px;line-height:1.55;color:var(--text);white-space:pre;}
+  .code-heading{font-weight:700;font-size:14px;margin:32px 0 8px;color:var(--text);}
 
   .speedctl{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:var(--muted);}
   .speedctl select{padding:8px 10px;}
   @media (max-width:640px){ .speedctl{margin-left:0;} }
 
   .codeline{display:block;}
-  .codeline.active{background:rgba(37,99,235,.22);border-left:3px solid #2563eb;margin-left:-23px;padding-left:20px;border-radius:2px;}
+  .tok-comment{color:#6a737d;}
+  .tok-string{color:#032f62;}
+  .tok-keyword{color:#d73a49;font-weight:600;}
+  .tok-number{color:#005cc5;}
+  .tok-function{color:#6f42c1;}
+  .code-explain{
+    display:none;align-items:flex-start;gap:8px;padding:10px 16px;
+    background:var(--accent-soft);color:var(--accent-dark);font-size:12.5px;
+    line-height:1.5;border-top:1px solid var(--border);font-family:var(--sans);
+  }
+  .code-explain.show{display:flex;}
+  .code-explain .ico{flex-shrink:0;}
+
+  .codeline.active{background:var(--accent-soft);border-left:3px solid var(--accent);margin-left:-23px;padding-left:20px;border-radius:2px;}
   .run-hint{font-size:12px;color:var(--dim);margin-top:-4px;margin-bottom:10px;}
 </style>
 </head>
@@ -184,12 +202,26 @@
 <main>
   <div class="explain">
     <h2>How it works</h2>
-    
-<p>An LRU (least-recently-used) cache needs two operations to be fast: <b style="color:var(--text)">look up a key</b>, and <b style="color:var(--text)">know which item was touched longest ago</b>. Neither structure alone gives you both cheaply — a hash map gives O(1) lookup but no ordering; a plain list gives ordering but O(n) lookup — so the cache combines them.</p>
-<p>A <b style="color:var(--text)">doubly linked list</b> keeps every key in order from most- to least-recently used. A <b style="color:var(--text)">hash map</b> stores key → node, so any key can jump straight to its spot in the list in O(1), instead of scanning for it.</p>
-<p>On every <code>get</code> or <code>put</code>, the touched node is unlinked and moved to the front (most-recent end) — O(1) because doubly-linked nodes know their own neighbors. When the cache is full and a new key arrives, the node at the back (least-recently used) is evicted.</p>
+    <p>An LRU cache needs two things to be fast: looking up a key, and knowing which key hasn't been used in the longest time. Neither structure does both well on its own — a hash map gives fast lookup but no sense of order, and a plain list gives order but slow lookup. So this cache combines both.</p>
+    <p>A <b style="color:var(--text)">doubly linked list</b> keeps every key ordered from most to least recently used. A <b style="color:var(--text)">hash map</b> stores each key's exact spot in that list, so you can jump straight to it instead of searching.</p>
+    <p>Every time a key is read or written, it gets moved to the front of the list — that's fast, since a linked list node already knows its neighbors. When the cache is full and a new key comes in, whatever's at the very back of the list — the least recently used key — gets removed.</p>
+    <div class="example-box">
+      <div class="example-label">Example</div>
+      <p>Cache capacity 2. Insert <code>a</code>, then <code>b</code> — cache holds <code>[b, a]</code> (most recent first). Access <code>a</code> again — it jumps to the front: <code>[a, b]</code>. Now insert <code>c</code> — the cache is full, so <code>b</code> (the least recently used) gets evicted, leaving <code>[c, a]</code>.</p>
+    </div>
 
   </div>
+
+<div class="controls">
+    <label>capacity <input type="number" id="cap" value="4" min="2" max="8" style="width:70px"></label>
+    <input type="text" id="key" placeholder="key" value="a">
+    <button class="primary" id="access">get/put(key)</button>
+    <button id="reset">reset</button>
+    <span class="speedctl">speed <select id="speedSelect"><option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option></select></span>
+  </div>
+  <div class="maplabel">most recent ← → least recent</div>
+  <div class="listview" id="listview"></div>
+  <div class="status" id="status">cache is empty</div>
 
 <div class="code-heading">Code</div>
 <div class="codebox">
@@ -297,18 +329,8 @@
 <span class="codeline" data-line="22">        }</span>
 <span class="codeline" data-line="23">    }</span>
 <span class="codeline" data-line="24">};</span></code></pre>
+  <div class="code-explain" id="codeExplainBar"><span class="ico">💡</span><span id="codeExplainText"></span></div>
 </div>
-<div class="controls">
-    <label>capacity <input type="number" id="cap" value="4" min="2" max="8" style="width:70px"></label>
-    <input type="text" id="key" placeholder="key" value="a">
-    <button class="primary" id="access">get/put(key)</button>
-    <button id="reset">reset</button>
-    <span class="speedctl">speed <select id="speedSelect"><option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option></select></span>
-  </div>
-  <div class="maplabel">most recent ← → least recent</div>
-  <div class="listview" id="listview"></div>
-  <div class="status" id="status">cache is empty</div>
-
 </main>
 </div>
 </div>
@@ -320,26 +342,59 @@ function highlightLine(mapping) {
   applyHighlight();
 }
 
+function commentInLine(text) {
+  let idx = text.indexOf('//');
+  if (idx !== -1) return text.slice(idx + 2).trim();
+  idx = text.indexOf('#');
+  if (idx !== -1) return text.slice(idx + 1).trim();
+  return null;
+}
+
+function extractExplanation(target) {
+  const own = commentInLine(target.textContent);
+  if (own) return own;
+  const next = target.nextElementSibling;
+  if (next && next.classList.contains('codeline')) {
+    const fromNext = commentInLine(next.textContent);
+    if (fromNext) return fromNext;
+  }
+  const prev = target.previousElementSibling;
+  if (prev && prev.classList.contains('codeline')) {
+    const fromPrev = commentInLine(prev.textContent);
+    if (fromPrev) return fromPrev;
+  }
+  return null;
+}
+
 function applyHighlight() {
   const box = document.querySelector('.codebox');
-  if (!box || !__lastHighlightMap) return;
+  const bar = document.getElementById('codeExplainBar');
+  const barText = document.getElementById('codeExplainText');
+  if (!box || !__lastHighlightMap) { if (bar) bar.classList.remove('show'); return; }
   const activeTab = box.querySelector('.codetab.active');
   const lang = activeTab ? activeTab.dataset.lang : 'pseudo';
   const lineNum = __lastHighlightMap[lang];
   box.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
-  if (lineNum === undefined || lineNum === null) return;
+  if (lineNum === undefined || lineNum === null) { if (bar) bar.classList.remove('show'); return; }
   const activeBlock = box.querySelector('.codeblock[data-lang="' + lang + '"]');
   if (!activeBlock) return;
   const target = activeBlock.querySelector('.codeline[data-line="' + lineNum + '"]');
   if (target) {
     target.classList.add('active');
     target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (bar && barText) {
+      const explanation = extractExplanation(target);
+      if (explanation) { barText.textContent = explanation; bar.classList.add('show'); }
+      else { bar.classList.remove('show'); }
+    }
   }
 }
 
 function clearHighlight() {
   __lastHighlightMap = null;
   document.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  const bar = document.getElementById('codeExplainBar');
+  if (bar) bar.classList.remove('show');
 }
 
 document.querySelectorAll('.codetabs').forEach(tabs=>{
@@ -354,6 +409,25 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
     });
     applyHighlight();
   });
+});
+
+function syntaxHighlight(text) {
+  text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const pattern = /(\/\/.*$|#(?![a-zA-Z]).*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+\.?\d*n?\b)|(\b(?:function|def|return|if|else|elif|while|for|in|not|and|or|class|struct|new|const|let|var|async|await|import|from|export|default|static|public|private|protected|void|int|long|double|float|boolean|bool|char|string|String|true|false|True|False|None|null|nullptr|this|self|break|continue|switch|case|try|catch|throw|extends|implements|interface|enum|namespace|using|template|typename|auto|is|lambda|global|raise|except|finally|yield|del|pass|with|as|instanceof|typeof|super|package)\b)|(\b[A-Za-z_$][\w$]*)(?=\s*\()/gm;
+  return text.replace(pattern, (m, comment, str, num, kw, fn) => {
+    if (comment) return '<span class="tok-comment">'+comment+'</span>';
+    if (str) return '<span class="tok-string">'+str+'</span>';
+    if (num) return '<span class="tok-number">'+num+'</span>';
+    if (kw) return '<span class="tok-keyword">'+kw+'</span>';
+    if (fn) return '<span class="tok-function">'+fn+'</span>';
+    return m;
+  });
+}
+document.querySelectorAll('.codeline').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
+});
+document.querySelectorAll('.explain code').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
 });
 </script>
 <script>

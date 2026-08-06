@@ -47,6 +47,11 @@
   .explain p{color:var(--muted);font-size:15px;line-height:1.75;margin:0 0 12px;}
   .explain p:last-child{margin-bottom:0;}
   .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+  .example-box{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:14px;}
+  .example-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:8px;}
+  .example-box p{margin:0 0 8px;font-size:14px;color:var(--text);line-height:1.65;}
+  .example-box p:last-child{margin-bottom:0;}
+  .example-box code{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
 
   .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
   .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
@@ -115,22 +120,35 @@
     .sidebar a.navitem.overview{margin-bottom:0;}
   }
 
-  .codebox{background:#0d1117;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:20px 0;box-shadow:var(--shadow);}
-  .codetabs{display:flex;gap:2px;background:#161b22;padding:8px 8px 0;overflow-x:auto;}
-  .codetab{background:transparent;border:none;color:#8b949e;font-family:var(--mono);font-size:12.5px;font-weight:600;
-    padding:8px 14px;border-radius:6px 6px 0 0;cursor:pointer;white-space:nowrap;}
-  .codetab.active{background:#0d1117;color:#e6edf3;}
-  .codetab:hover:not(.active){color:#c9d1d9;}
-  pre.codeblock{margin:0;padding:18px 20px;overflow-x:auto;max-height:480px;}
-  pre.codeblock code{font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#e6edf3;white-space:pre;}
-  .code-heading{font-weight:700;font-size:16px;margin:28px 0 4px;color:var(--text);}
+  .codebox{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:16px 0 8px;box-shadow:var(--shadow);max-width:720px;}
+  .codetabs{display:flex;gap:2px;background:var(--bg-soft);padding:5px 6px 0;overflow-x:auto;}
+  .codetab{background:transparent;border:none;color:var(--dim);font-family:var(--mono);font-size:11.5px;font-weight:600;
+    padding:6px 11px;border-radius:5px 5px 0 0;cursor:pointer;white-space:nowrap;}
+  .codetab.active{background:var(--card);color:var(--text);}
+  .codetab:hover:not(.active){color:var(--text);}
+  pre.codeblock{margin:0;padding:12px 16px;overflow-x:auto;max-height:220px;}
+  pre.codeblock code{font-family:var(--mono);font-size:11.5px;line-height:1.55;color:var(--text);white-space:pre;}
+  .code-heading{font-weight:700;font-size:14px;margin:32px 0 8px;color:var(--text);}
 
   .speedctl{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:var(--muted);}
   .speedctl select{padding:8px 10px;}
   @media (max-width:640px){ .speedctl{margin-left:0;} }
 
   .codeline{display:block;}
-  .codeline.active{background:rgba(37,99,235,.22);border-left:3px solid #2563eb;margin-left:-23px;padding-left:20px;border-radius:2px;}
+  .tok-comment{color:#6a737d;}
+  .tok-string{color:#032f62;}
+  .tok-keyword{color:#d73a49;font-weight:600;}
+  .tok-number{color:#005cc5;}
+  .tok-function{color:#6f42c1;}
+  .code-explain{
+    display:none;align-items:flex-start;gap:8px;padding:10px 16px;
+    background:var(--accent-soft);color:var(--accent-dark);font-size:12.5px;
+    line-height:1.5;border-top:1px solid var(--border);font-family:var(--sans);
+  }
+  .code-explain.show{display:flex;}
+  .code-explain .ico{flex-shrink:0;}
+
+  .codeline.active{background:var(--accent-soft);border-left:3px solid var(--accent);margin-left:-23px;padding-left:20px;border-radius:2px;}
   .run-hint{font-size:12px;color:var(--dim);margin-top:-4px;margin-bottom:10px;}
 </style>
 </head>
@@ -182,9 +200,50 @@
 <main>
   <div class="explain">
     <h2>How it works</h2>
-    <p><b style="color:var(--text)">Every recursive function needs two things:</b> a base case that stops the recursion (here, <code>fib(0)</code> and <code>fib(1)</code> just return directly, no further calls), and a recursive case that calls itself on a smaller problem (<code>fib(n)</code> calls <code>fib(n-1)</code> and <code>fib(n-2)</code>). Each call gets pushed onto the call stack when it starts and popped off when it returns — that's the panel labeled "call stack (live)." A call can't finish until both of its own recursive calls have returned, which is why the tree branches out before it ever collapses back into an answer.</p>
-    <p>Naive fibonacci recomputes the same smaller values many times (<code>fib(3)</code> gets called separately inside both <code>fib(4)</code> and <code>fib(5)</code>), which is exactly the inefficiency the dynamic-programming page's memoization fixes.</p>
-    <p><b style="color:var(--text)">N-Queens is backtracking</b>: place a queen in the current row, then recursively try to place the next row. If a placement leaves no valid spot anywhere in a later row, the recursion returns failure, the queen gets removed ("backtracked"), and the algorithm tries the next column in that row instead. Nothing is smarter here than brute force with an early exit — it just abandons a branch the moment it's proven hopeless, instead of checking it all the way to the end.</p>
+    <p>A recursive function calls itself to solve a smaller version of the same problem. It always needs two parts:</p>
+    <ul>
+      <li><b style="color:var(--text)">A base case</b> — a simple version it can answer directly, with no further calls. Here, <code>fib(0)</code> and <code>fib(1)</code> just return right away.</li>
+      <li><b style="color:var(--text)">A recursive case</b> — it calls itself on a smaller input. <code>fib(n)</code> calls <code>fib(n-1)</code> and <code>fib(n-2)</code>, and adds the results.</li>
+    </ul>
+    <p>Every time a call starts, it gets added to the <b style="color:var(--text)">call stack</b> — that's the "call stack (live)" panel below. It stays there until it gets an answer back from its own recursive calls, then it's removed. This is why the tree grows outward first, before collapsing back into a final answer.</p>
+    <p>One problem with this simple version: it repeats work. <code>fib(3)</code> gets calculated separately inside both <code>fib(4)</code> and <code>fib(5)</code>. The dynamic-programming page fixes exactly this.</p>
+    <p><b style="color:var(--text)">N-Queens uses a different recursive trick called backtracking:</b> place a queen, then try to place the next one. If you ever get stuck with no valid spot, undo the last placement and try a different column instead. It's trial and error, but it gives up on bad attempts early instead of checking every possibility to the end.</p>
+    <div class="example-box">
+      <div class="example-label">Example</div>
+      <p><code>fib(4)</code> calls <code>fib(3)</code> and <code>fib(2)</code>. <code>fib(3)</code> then calls <code>fib(2)</code> and <code>fib(1)</code> — notice <code>fib(2)</code> gets computed twice, once inside <code>fib(4)</code>'s call and once inside <code>fib(3)</code>'s call. That repeated work is exactly what the dynamic-programming page avoids.</p>
+      <p>For N-Queens on a 4×4 board: place a queen at row 0, column 0. Row 1's only safe spot turns out to conflict with later rows, so the algorithm backtracks all the way to row 0, tries column 1 instead, and continues from there.</p>
+    </div>
+
+  </div>
+<div class="tabs">
+    <div class="tab active" data-tab="fib">fibonacci call tree</div>
+    <div class="tab" data-tab="queens">N-Queens backtracking</div>
+  </div>
+
+  <div class="view active" id="fibView">
+    <div class="controls">
+      <label>n <input type="number" id="fibN" value="5" min="1" max="8"></label>
+      <button class="primary" id="runFib">▶ Run fib(n)</button>
+    <span class="speedctl">speed <select id="speedSelect"><option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option></select></span>
+    </div>
+    <div class="stack-panel">
+      <h2>call stack (live)</h2>
+      <div id="callStack"></div>
+    </div>
+    <div class="stack-panel">
+      <h2>call tree (each node is one function call)</h2>
+      <div id="tree"></div>
+    </div>
+    <div class="status" id="fibStatus">total calls: <b>0</b></div>
+  </div>
+
+  <div class="view" id="queensView">
+    <div class="controls">
+      <label>board size <input type="number" id="qN" value="6" min="4" max="8"></label>
+      <button class="primary" id="runQueens">▶ Solve</button>
+    </div>
+    <div id="board"></div>
+    <div class="status" id="qStatus">placements tried: <b>0</b></div>
   </div>
 <div class="code-heading">Code</div>
 <div class="codebox">
@@ -282,37 +341,8 @@
 <span class="codeline" data-line="14">    }</span>
 <span class="codeline" data-line="15">    return false;   // no column in this row led to a solution</span>
 <span class="codeline" data-line="16">}</span></code></pre>
+  <div class="code-explain" id="codeExplainBar"><span class="ico">💡</span><span id="codeExplainText"></span></div>
 </div>
-<div class="tabs">
-    <div class="tab active" data-tab="fib">fibonacci call tree</div>
-    <div class="tab" data-tab="queens">N-Queens backtracking</div>
-  </div>
-
-  <div class="view active" id="fibView">
-    <div class="controls">
-      <label>n <input type="number" id="fibN" value="5" min="1" max="8"></label>
-      <button class="primary" id="runFib">▶ Run fib(n)</button>
-    <span class="speedctl">speed <select id="speedSelect"><option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option></select></span>
-    </div>
-    <div class="stack-panel">
-      <h2>call stack (live)</h2>
-      <div id="callStack"></div>
-    </div>
-    <div class="stack-panel">
-      <h2>call tree (each node is one function call)</h2>
-      <div id="tree"></div>
-    </div>
-    <div class="status" id="fibStatus">total calls: <b>0</b></div>
-  </div>
-
-  <div class="view" id="queensView">
-    <div class="controls">
-      <label>board size <input type="number" id="qN" value="6" min="4" max="8"></label>
-      <button class="primary" id="runQueens">▶ Solve</button>
-    </div>
-    <div id="board"></div>
-    <div class="status" id="qStatus">placements tried: <b>0</b></div>
-  </div>
 </main>
 </div>
 </div>
@@ -324,26 +354,59 @@ function highlightLine(mapping) {
   applyHighlight();
 }
 
+function commentInLine(text) {
+  let idx = text.indexOf('//');
+  if (idx !== -1) return text.slice(idx + 2).trim();
+  idx = text.indexOf('#');
+  if (idx !== -1) return text.slice(idx + 1).trim();
+  return null;
+}
+
+function extractExplanation(target) {
+  const own = commentInLine(target.textContent);
+  if (own) return own;
+  const next = target.nextElementSibling;
+  if (next && next.classList.contains('codeline')) {
+    const fromNext = commentInLine(next.textContent);
+    if (fromNext) return fromNext;
+  }
+  const prev = target.previousElementSibling;
+  if (prev && prev.classList.contains('codeline')) {
+    const fromPrev = commentInLine(prev.textContent);
+    if (fromPrev) return fromPrev;
+  }
+  return null;
+}
+
 function applyHighlight() {
   const box = document.querySelector('.codebox');
-  if (!box || !__lastHighlightMap) return;
+  const bar = document.getElementById('codeExplainBar');
+  const barText = document.getElementById('codeExplainText');
+  if (!box || !__lastHighlightMap) { if (bar) bar.classList.remove('show'); return; }
   const activeTab = box.querySelector('.codetab.active');
   const lang = activeTab ? activeTab.dataset.lang : 'pseudo';
   const lineNum = __lastHighlightMap[lang];
   box.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
-  if (lineNum === undefined || lineNum === null) return;
+  if (lineNum === undefined || lineNum === null) { if (bar) bar.classList.remove('show'); return; }
   const activeBlock = box.querySelector('.codeblock[data-lang="' + lang + '"]');
   if (!activeBlock) return;
   const target = activeBlock.querySelector('.codeline[data-line="' + lineNum + '"]');
   if (target) {
     target.classList.add('active');
     target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (bar && barText) {
+      const explanation = extractExplanation(target);
+      if (explanation) { barText.textContent = explanation; bar.classList.add('show'); }
+      else { bar.classList.remove('show'); }
+    }
   }
 }
 
 function clearHighlight() {
   __lastHighlightMap = null;
   document.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  const bar = document.getElementById('codeExplainBar');
+  if (bar) bar.classList.remove('show');
 }
 
 document.querySelectorAll('.codetabs').forEach(tabs=>{
@@ -358,6 +421,25 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
     });
     applyHighlight();
   });
+});
+
+function syntaxHighlight(text) {
+  text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const pattern = /(\/\/.*$|#(?![a-zA-Z]).*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+\.?\d*n?\b)|(\b(?:function|def|return|if|else|elif|while|for|in|not|and|or|class|struct|new|const|let|var|async|await|import|from|export|default|static|public|private|protected|void|int|long|double|float|boolean|bool|char|string|String|true|false|True|False|None|null|nullptr|this|self|break|continue|switch|case|try|catch|throw|extends|implements|interface|enum|namespace|using|template|typename|auto|is|lambda|global|raise|except|finally|yield|del|pass|with|as|instanceof|typeof|super|package)\b)|(\b[A-Za-z_$][\w$]*)(?=\s*\()/gm;
+  return text.replace(pattern, (m, comment, str, num, kw, fn) => {
+    if (comment) return '<span class="tok-comment">'+comment+'</span>';
+    if (str) return '<span class="tok-string">'+str+'</span>';
+    if (num) return '<span class="tok-number">'+num+'</span>';
+    if (kw) return '<span class="tok-keyword">'+kw+'</span>';
+    if (fn) return '<span class="tok-function">'+fn+'</span>';
+    return m;
+  });
+}
+document.querySelectorAll('.codeline').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
+});
+document.querySelectorAll('.explain code').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
 });
 </script>
 <script>
@@ -509,6 +591,11 @@ document.getElementById('runQueens').onclick = async ()=>{
   document.getElementById('runQueens').disabled = false;
 };
 
-drawBoard(6, new Array(6).fill(-1));
+(() => {
+  document.getElementById('fibN').value = 4 + Math.floor(Math.random()*5);
+  const qn = 5 + Math.floor(Math.random()*4);
+  document.getElementById('qN').value = qn;
+  drawBoard(qn, new Array(qn).fill(-1));
+})();
 </script>
 </body></html>

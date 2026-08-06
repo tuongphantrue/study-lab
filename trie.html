@@ -49,6 +49,11 @@
   .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
   .explain li{margin-bottom:8px;}
   .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+  .example-box{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:14px;}
+  .example-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:8px;}
+  .example-box p{margin:0 0 8px;font-size:14px;color:var(--text);line-height:1.65;}
+  .example-box p:last-child{margin-bottom:0;}
+  .example-box code{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
 
   .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
   .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
@@ -120,15 +125,32 @@
     .sidebar a.navitem.overview{margin-bottom:0;}
   }
 
-  .codebox{background:#0d1117;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:20px 0;box-shadow:var(--shadow);}
-  .codetabs{display:flex;gap:2px;background:#161b22;padding:8px 8px 0;overflow-x:auto;}
-  .codetab{background:transparent;border:none;color:#8b949e;font-family:var(--mono);font-size:12.5px;font-weight:600;
-    padding:8px 14px;border-radius:6px 6px 0 0;cursor:pointer;white-space:nowrap;}
-  .codetab.active{background:#0d1117;color:#e6edf3;}
-  .codetab:hover:not(.active){color:#c9d1d9;}
-  pre.codeblock{margin:0;padding:18px 20px;overflow-x:auto;max-height:480px;}
-  pre.codeblock code{font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#e6edf3;white-space:pre;}
-  .code-heading{font-weight:700;font-size:16px;margin:28px 0 4px;color:var(--text);}
+  .codebox{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:16px 0 8px;box-shadow:var(--shadow);max-width:720px;}
+  .codetabs{display:flex;gap:2px;background:var(--bg-soft);padding:5px 6px 0;overflow-x:auto;}
+  .codetab{background:transparent;border:none;color:var(--dim);font-family:var(--mono);font-size:11.5px;font-weight:600;
+    padding:6px 11px;border-radius:5px 5px 0 0;cursor:pointer;white-space:nowrap;}
+  .codetab.active{background:var(--card);color:var(--text);}
+  .codetab:hover:not(.active){color:var(--text);}
+  pre.codeblock{margin:0;padding:12px 16px;overflow-x:auto;max-height:220px;}
+  pre.codeblock code{font-family:var(--mono);font-size:11.5px;line-height:1.55;color:var(--text);white-space:pre;}
+  .code-heading{font-weight:700;font-size:14px;margin:32px 0 8px;color:var(--text);}
+
+  .codeline{display:block;}
+  .tok-comment{color:#6a737d;}
+  .tok-string{color:#032f62;}
+  .tok-keyword{color:#d73a49;font-weight:600;}
+  .tok-number{color:#005cc5;}
+  .tok-function{color:#6f42c1;}
+  .code-explain{
+    display:none;align-items:flex-start;gap:8px;padding:10px 16px;
+    background:var(--accent-soft);color:var(--accent-dark);font-size:12.5px;
+    line-height:1.5;border-top:1px solid var(--border);font-family:var(--sans);
+  }
+  .code-explain.show{display:flex;}
+  .code-explain .ico{flex-shrink:0;}
+
+  .codeline.active{background:var(--accent-soft);border-left:3px solid var(--accent);margin-left:-23px;padding-left:20px;border-radius:2px;}
+  .run-hint{font-size:12px;color:var(--dim);margin-top:-4px;margin-bottom:10px;}
 </style>
 </head>
 <body>
@@ -179,171 +201,16 @@
 <main>
   <div class="explain">
     <h2>How it works</h2>
-    
-<p>A trie (prefix tree) stores words letter by letter, with shared prefixes sharing the same path from the root. Inserting <code>"cat"</code> then <code>"car"</code> creates one shared branch for <code>c → a</code>, then splits into <code>t</code> and <code>r</code>.</p>
-<p>Each node marks whether a word <b style="color:var(--text)">ends</b> there — that's how the trie distinguishes "car" (a complete word) from "ca" (just a prefix on the way to something else) even though both are valid paths through the tree.</p>
-<p><b style="color:var(--text)">Autocomplete</b> works by walking down to the node matching the typed prefix, then collecting every complete word reachable below that point — which is why it's fast: you only ever explore the subtree under your prefix, never the whole dictionary.</p>
+    <p>A trie stores words one letter at a time, and words that start the same way share the same path. For example, inserting <code>"cat"</code> and then <code>"car"</code> creates one shared path for <code>c → a</code>, which then splits into two branches: one for <code>t</code>, one for <code>r</code>.</p>
+    <p>Each node keeps a small flag marking whether a full word ends there. That's how the trie tells the difference between <code>"car"</code> (a real word) and <code>"ca"</code> (just a step on the way to something else).</p>
+    <p><b style="color:var(--text)">Autocomplete works like this:</b> walk down the tree following the letters you've typed so far. Once you reach that point, collect every complete word found anywhere below it. Since you only ever look inside that one branch — never the rest of the tree — it stays fast even with a huge number of words stored.</p>
+    <div class="example-box">
+      <div class="example-label">Example</div>
+      <p>Insert <code>"cat"</code>, <code>"car"</code>, and <code>"dog"</code>. The trie now has two branches from the root: one for <code>c → a</code> (which splits into <code>t</code> and <code>r</code>), and one for <code>d → o → g</code>. Typing the prefix <code>"ca"</code> and asking for matches walks down to the shared <code>c → a</code> node, then finds both <code>"cat"</code> and <code>"car"</code> underneath it.</p>
+    </div>
 
   </div>
 
-<div class="code-heading">Code</div>
-<div class="codebox">
-  <div class="codetabs">
-    <button class="codetab active" data-lang="pseudo">Pseudocode</button>
-    <button class="codetab" data-lang="python">Python</button>
-    <button class="codetab" data-lang="js">JavaScript</button>
-    <button class="codetab" data-lang="java">Java</button>
-    <button class="codetab" data-lang="cpp">C++</button>
-  </div>
-  <pre class="codeblock" data-lang="pseudo"><code>function insert(root, word):
-    node &lt;- root
-    for each character c in word:
-        if node.children[c] does not exist:
-            node.children[c] &lt;- newNode()      // create the branch the first time it's needed
-        node &lt;- node.children[c]               // descend into that branch
-    node.isEnd &lt;- true                        // mark the final node as a complete word
-
-function search(root, prefix):
-    node &lt;- root
-    for each character c in prefix:
-        if node.children[c] does not exist: return not found   // prefix isn't in the trie
-        node &lt;- node.children[c]               // descend one letter at a time
-    return node  // walk further from here to collect all words under this prefix</code></pre>
-  <pre class="codeblock" data-lang="python" style="display:none"><code>class TrieNode:
-    def __init__(self):
-        self.children = {}    # letter -&gt; child TrieNode
-        self.is_end = False    # True if a word ends exactly at this node
-
-class Trie:
-    def __init__(self):
-        self.root = TrieNode()   # the empty-prefix starting point
-
-    def insert(self, word):
-        node = self.root
-        for ch in word:
-            node = node.children.setdefault(ch, TrieNode())  # create branch if missing
-        node.is_end = True   # mark the final node as a complete word
-
-    def starts_with(self, prefix):
-        node = self.root
-        for ch in prefix:
-            if ch not in node.children:
-                return []       # prefix isn't in the trie at all
-            node = node.children[ch]   # descend one letter at a time
-        return self._collect(node, prefix)   # gather every word below this point
-
-    def _collect(self, node, prefix):
-        words = [prefix] if node.is_end else []   # this node itself might be a word
-        for ch, child in node.children.items():     # recurse into every branch
-            words += self._collect(child, prefix + ch)
-        return words</code></pre>
-  <pre class="codeblock" data-lang="js" style="display:none"><code>class TrieNode {
-  constructor() {
-    this.children = {};   // letter -&gt; child TrieNode
-    this.isEnd = false;    // true if a word ends exactly at this node
-  }
-}
-
-class Trie {
-  constructor() { this.root = new TrieNode(); }   // the empty-prefix starting point
-
-  insert(word) {
-    let node = this.root;
-    for (const ch of word) {
-      if (!node.children[ch]) node.children[ch] = new TrieNode(); // create branch if missing
-      node = node.children[ch];   // descend into that branch
-    }
-    node.isEnd = true;   // mark the final node as a complete word
-  }
-
-  startsWith(prefix) {
-    let node = this.root;
-    for (const ch of prefix) {
-      if (!node.children[ch]) return [];   // prefix isn't in the trie at all
-      node = node.children[ch];             // descend one letter at a time
-    }
-    return this.collect(node, prefix);   // gather every word below this point
-  }
-
-  collect(node, prefix) {
-    let words = node.isEnd ? [prefix] : [];   // this node itself might be a word
-    for (const ch in node.children) {           // recurse into every branch
-      words = words.concat(this.collect(node.children[ch], prefix + ch));
-    }
-    return words;
-  }
-}</code></pre>
-  <pre class="codeblock" data-lang="java" style="display:none"><code>class TrieNode {
-    Map&lt;Character, TrieNode&gt; children = new HashMap&lt;&gt;();   // letter -&gt; child node
-    boolean isEnd = false;    // true if a word ends exactly at this node
-}
-
-class Trie {
-    TrieNode root = new TrieNode();   // the empty-prefix starting point
-
-    void insert(String word) {
-        TrieNode node = root;
-        for (char ch : word.toCharArray()) {
-            node = node.children.computeIfAbsent(ch, c -&gt; new TrieNode()); // create if missing
-        }
-        node.isEnd = true;   // mark the final node as a complete word
-    }
-
-    List&lt;String&gt; startsWith(String prefix) {
-        TrieNode node = root;
-        for (char ch : prefix.toCharArray()) {
-            if (!node.children.containsKey(ch)) return new ArrayList&lt;&gt;(); // not in the trie
-            node = node.children.get(ch);   // descend one letter at a time
-        }
-        List&lt;String&gt; results = new ArrayList&lt;&gt;();
-        collect(node, prefix, results);   // gather every word below this point
-        return results;
-    }
-
-    void collect(TrieNode node, String prefix, List&lt;String&gt; results) {
-        if (node.isEnd) results.add(prefix);   // this node itself might be a word
-        for (var entry : node.children.entrySet()) {   // recurse into every branch
-            collect(entry.getValue(), prefix + entry.getKey(), results);
-        }
-    }
-}</code></pre>
-  <pre class="codeblock" data-lang="cpp" style="display:none"><code>struct TrieNode {
-    unordered_map&lt;char, TrieNode*&gt; children;   // letter -&gt; child node
-    bool isEnd = false;    // true if a word ends exactly at this node
-};
-
-class Trie {
-    TrieNode* root = new TrieNode();   // the empty-prefix starting point
-
-    void collect(TrieNode* node, string prefix, vector&lt;string&gt;&amp; out) {
-        if (node-&gt;isEnd) out.push_back(prefix);   // this node itself might be a word
-        for (auto&amp; [ch, child] : node-&gt;children) {  // recurse into every branch
-            collect(child, prefix + ch, out);
-        }
-    }
-
-public:
-    void insert(const string&amp; word) {
-        TrieNode* node = root;
-        for (char ch : word) {
-            if (!node-&gt;children.count(ch)) node-&gt;children[ch] = new TrieNode(); // create if missing
-            node = node-&gt;children[ch];   // descend into that branch
-        }
-        node-&gt;isEnd = true;   // mark the final node as a complete word
-    }
-
-    vector&lt;string&gt; startsWith(const string&amp; prefix) {
-        TrieNode* node = root;
-        for (char ch : prefix) {
-            if (!node-&gt;children.count(ch)) return {};   // prefix isn't in the trie at all
-            node = node-&gt;children[ch];                    // descend one letter at a time
-        }
-        vector&lt;string&gt; results;
-        collect(node, prefix, results);   // gather every word below this point
-        return results;
-    }
-};</code></pre>
-</div>
 <div class="controls">
     <input type="text" id="word" placeholder="word to insert" value="cat">
     <button class="primary" id="insert">insert</button>
@@ -357,10 +224,231 @@ public:
   <div class="suggestions" id="suggestions"></div>
   <div class="hint">insert a few words, then type a prefix below to see live autocomplete</div>
 
+<div class="code-heading">Code</div>
+<div class="codebox">
+  <div class="codetabs">
+    <button class="codetab active" data-lang="pseudo">Pseudocode</button>
+    <button class="codetab" data-lang="python">Python</button>
+    <button class="codetab" data-lang="js">JavaScript</button>
+    <button class="codetab" data-lang="java">Java</button>
+    <button class="codetab" data-lang="cpp">C++</button>
+  </div>
+  <pre class="codeblock" data-lang="pseudo"><code><span class="codeline" data-line="0">function insert(root, word):</span>
+<span class="codeline" data-line="1">    node &lt;- root</span>
+<span class="codeline" data-line="2">    for each character c in word:</span>
+<span class="codeline" data-line="3">        if node.children[c] does not exist:</span>
+<span class="codeline" data-line="4">            node.children[c] &lt;- newNode()      // create the branch the first time it's needed</span>
+<span class="codeline" data-line="5">        node &lt;- node.children[c]               // descend into that branch</span>
+<span class="codeline" data-line="6">    node.isEnd &lt;- true                        // mark the final node as a complete word</span>
+<span class="codeline" data-line="7"></span>
+<span class="codeline" data-line="8">function search(root, prefix):</span>
+<span class="codeline" data-line="9">    node &lt;- root</span>
+<span class="codeline" data-line="10">    for each character c in prefix:</span>
+<span class="codeline" data-line="11">        if node.children[c] does not exist: return not found   // prefix isn't in the trie</span>
+<span class="codeline" data-line="12">        node &lt;- node.children[c]               // descend one letter at a time</span>
+<span class="codeline" data-line="13">    return node  // walk further from here to collect all words under this prefix</span></code></pre>
+  <pre class="codeblock" data-lang="python" style="display:none"><code><span class="codeline" data-line="0">class TrieNode:</span>
+<span class="codeline" data-line="1">    def __init__(self):</span>
+<span class="codeline" data-line="2">        self.children = {}    # letter -&gt; child TrieNode</span>
+<span class="codeline" data-line="3">        self.is_end = False    # True if a word ends exactly at this node</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">class Trie:</span>
+<span class="codeline" data-line="6">    def __init__(self):</span>
+<span class="codeline" data-line="7">        self.root = TrieNode()   # the empty-prefix starting point</span>
+<span class="codeline" data-line="8"></span>
+<span class="codeline" data-line="9">    def insert(self, word):</span>
+<span class="codeline" data-line="10">        node = self.root</span>
+<span class="codeline" data-line="11">        for ch in word:</span>
+<span class="codeline" data-line="12">            node = node.children.setdefault(ch, TrieNode())  # create branch if missing</span>
+<span class="codeline" data-line="13">        node.is_end = True   # mark the final node as a complete word</span>
+<span class="codeline" data-line="14"></span>
+<span class="codeline" data-line="15">    def starts_with(self, prefix):</span>
+<span class="codeline" data-line="16">        node = self.root</span>
+<span class="codeline" data-line="17">        for ch in prefix:</span>
+<span class="codeline" data-line="18">            if ch not in node.children:</span>
+<span class="codeline" data-line="19">                return []       # prefix isn't in the trie at all</span>
+<span class="codeline" data-line="20">            node = node.children[ch]   # descend one letter at a time</span>
+<span class="codeline" data-line="21">        return self._collect(node, prefix)   # gather every word below this point</span>
+<span class="codeline" data-line="22"></span>
+<span class="codeline" data-line="23">    def _collect(self, node, prefix):</span>
+<span class="codeline" data-line="24">        words = [prefix] if node.is_end else []   # this node itself might be a word</span>
+<span class="codeline" data-line="25">        for ch, child in node.children.items():     # recurse into every branch</span>
+<span class="codeline" data-line="26">            words += self._collect(child, prefix + ch)</span>
+<span class="codeline" data-line="27">        return words</span></code></pre>
+  <pre class="codeblock" data-lang="js" style="display:none"><code><span class="codeline" data-line="0">class TrieNode {</span>
+<span class="codeline" data-line="1">  constructor() {</span>
+<span class="codeline" data-line="2">    this.children = {};   // letter -&gt; child TrieNode</span>
+<span class="codeline" data-line="3">    this.isEnd = false;    // true if a word ends exactly at this node</span>
+<span class="codeline" data-line="4">  }</span>
+<span class="codeline" data-line="5">}</span>
+<span class="codeline" data-line="6"></span>
+<span class="codeline" data-line="7">class Trie {</span>
+<span class="codeline" data-line="8">  constructor() { this.root = new TrieNode(); }   // the empty-prefix starting point</span>
+<span class="codeline" data-line="9"></span>
+<span class="codeline" data-line="10">  insert(word) {</span>
+<span class="codeline" data-line="11">    let node = this.root;</span>
+<span class="codeline" data-line="12">    for (const ch of word) {</span>
+<span class="codeline" data-line="13">      if (!node.children[ch]) node.children[ch] = new TrieNode(); // create branch if missing</span>
+<span class="codeline" data-line="14">      node = node.children[ch];   // descend into that branch</span>
+<span class="codeline" data-line="15">    }</span>
+<span class="codeline" data-line="16">    node.isEnd = true;   // mark the final node as a complete word</span>
+<span class="codeline" data-line="17">  }</span>
+<span class="codeline" data-line="18"></span>
+<span class="codeline" data-line="19">  startsWith(prefix) {</span>
+<span class="codeline" data-line="20">    let node = this.root;</span>
+<span class="codeline" data-line="21">    for (const ch of prefix) {</span>
+<span class="codeline" data-line="22">      if (!node.children[ch]) return [];   // prefix isn't in the trie at all</span>
+<span class="codeline" data-line="23">      node = node.children[ch];             // descend one letter at a time</span>
+<span class="codeline" data-line="24">    }</span>
+<span class="codeline" data-line="25">    return this.collect(node, prefix);   // gather every word below this point</span>
+<span class="codeline" data-line="26">  }</span>
+<span class="codeline" data-line="27"></span>
+<span class="codeline" data-line="28">  collect(node, prefix) {</span>
+<span class="codeline" data-line="29">    let words = node.isEnd ? [prefix] : [];   // this node itself might be a word</span>
+<span class="codeline" data-line="30">    for (const ch in node.children) {           // recurse into every branch</span>
+<span class="codeline" data-line="31">      words = words.concat(this.collect(node.children[ch], prefix + ch));</span>
+<span class="codeline" data-line="32">    }</span>
+<span class="codeline" data-line="33">    return words;</span>
+<span class="codeline" data-line="34">  }</span>
+<span class="codeline" data-line="35">}</span></code></pre>
+  <pre class="codeblock" data-lang="java" style="display:none"><code><span class="codeline" data-line="0">class TrieNode {</span>
+<span class="codeline" data-line="1">    Map&lt;Character, TrieNode&gt; children = new HashMap&lt;&gt;();   // letter -&gt; child node</span>
+<span class="codeline" data-line="2">    boolean isEnd = false;    // true if a word ends exactly at this node</span>
+<span class="codeline" data-line="3">}</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">class Trie {</span>
+<span class="codeline" data-line="6">    TrieNode root = new TrieNode();   // the empty-prefix starting point</span>
+<span class="codeline" data-line="7"></span>
+<span class="codeline" data-line="8">    void insert(String word) {</span>
+<span class="codeline" data-line="9">        TrieNode node = root;</span>
+<span class="codeline" data-line="10">        for (char ch : word.toCharArray()) {</span>
+<span class="codeline" data-line="11">            node = node.children.computeIfAbsent(ch, c -&gt; new TrieNode()); // create if missing</span>
+<span class="codeline" data-line="12">        }</span>
+<span class="codeline" data-line="13">        node.isEnd = true;   // mark the final node as a complete word</span>
+<span class="codeline" data-line="14">    }</span>
+<span class="codeline" data-line="15"></span>
+<span class="codeline" data-line="16">    List&lt;String&gt; startsWith(String prefix) {</span>
+<span class="codeline" data-line="17">        TrieNode node = root;</span>
+<span class="codeline" data-line="18">        for (char ch : prefix.toCharArray()) {</span>
+<span class="codeline" data-line="19">            if (!node.children.containsKey(ch)) return new ArrayList&lt;&gt;(); // not in the trie</span>
+<span class="codeline" data-line="20">            node = node.children.get(ch);   // descend one letter at a time</span>
+<span class="codeline" data-line="21">        }</span>
+<span class="codeline" data-line="22">        List&lt;String&gt; results = new ArrayList&lt;&gt;();</span>
+<span class="codeline" data-line="23">        collect(node, prefix, results);   // gather every word below this point</span>
+<span class="codeline" data-line="24">        return results;</span>
+<span class="codeline" data-line="25">    }</span>
+<span class="codeline" data-line="26"></span>
+<span class="codeline" data-line="27">    void collect(TrieNode node, String prefix, List&lt;String&gt; results) {</span>
+<span class="codeline" data-line="28">        if (node.isEnd) results.add(prefix);   // this node itself might be a word</span>
+<span class="codeline" data-line="29">        for (var entry : node.children.entrySet()) {   // recurse into every branch</span>
+<span class="codeline" data-line="30">            collect(entry.getValue(), prefix + entry.getKey(), results);</span>
+<span class="codeline" data-line="31">        }</span>
+<span class="codeline" data-line="32">    }</span>
+<span class="codeline" data-line="33">}</span></code></pre>
+  <pre class="codeblock" data-lang="cpp" style="display:none"><code><span class="codeline" data-line="0">struct TrieNode {</span>
+<span class="codeline" data-line="1">    unordered_map&lt;char, TrieNode*&gt; children;   // letter -&gt; child node</span>
+<span class="codeline" data-line="2">    bool isEnd = false;    // true if a word ends exactly at this node</span>
+<span class="codeline" data-line="3">};</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">class Trie {</span>
+<span class="codeline" data-line="6">    TrieNode* root = new TrieNode();   // the empty-prefix starting point</span>
+<span class="codeline" data-line="7"></span>
+<span class="codeline" data-line="8">    void collect(TrieNode* node, string prefix, vector&lt;string&gt;&amp; out) {</span>
+<span class="codeline" data-line="9">        if (node-&gt;isEnd) out.push_back(prefix);   // this node itself might be a word</span>
+<span class="codeline" data-line="10">        for (auto&amp; [ch, child] : node-&gt;children) {  // recurse into every branch</span>
+<span class="codeline" data-line="11">            collect(child, prefix + ch, out);</span>
+<span class="codeline" data-line="12">        }</span>
+<span class="codeline" data-line="13">    }</span>
+<span class="codeline" data-line="14"></span>
+<span class="codeline" data-line="15">public:</span>
+<span class="codeline" data-line="16">    void insert(const string&amp; word) {</span>
+<span class="codeline" data-line="17">        TrieNode* node = root;</span>
+<span class="codeline" data-line="18">        for (char ch : word) {</span>
+<span class="codeline" data-line="19">            if (!node-&gt;children.count(ch)) node-&gt;children[ch] = new TrieNode(); // create if missing</span>
+<span class="codeline" data-line="20">            node = node-&gt;children[ch];   // descend into that branch</span>
+<span class="codeline" data-line="21">        }</span>
+<span class="codeline" data-line="22">        node-&gt;isEnd = true;   // mark the final node as a complete word</span>
+<span class="codeline" data-line="23">    }</span>
+<span class="codeline" data-line="24"></span>
+<span class="codeline" data-line="25">    vector&lt;string&gt; startsWith(const string&amp; prefix) {</span>
+<span class="codeline" data-line="26">        TrieNode* node = root;</span>
+<span class="codeline" data-line="27">        for (char ch : prefix) {</span>
+<span class="codeline" data-line="28">            if (!node-&gt;children.count(ch)) return {};   // prefix isn't in the trie at all</span>
+<span class="codeline" data-line="29">            node = node-&gt;children[ch];                    // descend one letter at a time</span>
+<span class="codeline" data-line="30">        }</span>
+<span class="codeline" data-line="31">        vector&lt;string&gt; results;</span>
+<span class="codeline" data-line="32">        collect(node, prefix, results);   // gather every word below this point</span>
+<span class="codeline" data-line="33">        return results;</span>
+<span class="codeline" data-line="34">    }</span>
+<span class="codeline" data-line="35">};</span></code></pre>
+  <div class="code-explain" id="codeExplainBar"><span class="ico">💡</span><span id="codeExplainText"></span></div>
+</div>
 </main>
 </div>
 </div>
 <script>
+let __lastHighlightMap = null;
+
+function highlightLine(mapping) {
+  __lastHighlightMap = mapping;
+  applyHighlight();
+}
+
+function commentInLine(text) {
+  let idx = text.indexOf('//');
+  if (idx !== -1) return text.slice(idx + 2).trim();
+  idx = text.indexOf('#');
+  if (idx !== -1) return text.slice(idx + 1).trim();
+  return null;
+}
+
+function extractExplanation(target) {
+  const own = commentInLine(target.textContent);
+  if (own) return own;
+  const next = target.nextElementSibling;
+  if (next && next.classList.contains('codeline')) {
+    const fromNext = commentInLine(next.textContent);
+    if (fromNext) return fromNext;
+  }
+  const prev = target.previousElementSibling;
+  if (prev && prev.classList.contains('codeline')) {
+    const fromPrev = commentInLine(prev.textContent);
+    if (fromPrev) return fromPrev;
+  }
+  return null;
+}
+
+function applyHighlight() {
+  const box = document.querySelector('.codebox');
+  const bar = document.getElementById('codeExplainBar');
+  const barText = document.getElementById('codeExplainText');
+  if (!box || !__lastHighlightMap) { if (bar) bar.classList.remove('show'); return; }
+  const activeTab = box.querySelector('.codetab.active');
+  const lang = activeTab ? activeTab.dataset.lang : 'pseudo';
+  const lineNum = __lastHighlightMap[lang];
+  box.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  if (lineNum === undefined || lineNum === null) { if (bar) bar.classList.remove('show'); return; }
+  const activeBlock = box.querySelector('.codeblock[data-lang="' + lang + '"]');
+  if (!activeBlock) return;
+  const target = activeBlock.querySelector('.codeline[data-line="' + lineNum + '"]');
+  if (target) {
+    target.classList.add('active');
+    target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (bar && barText) {
+      const explanation = extractExplanation(target);
+      if (explanation) { barText.textContent = explanation; bar.classList.add('show'); }
+      else { bar.classList.remove('show'); }
+    }
+  }
+}
+
+function clearHighlight() {
+  __lastHighlightMap = null;
+  document.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  const bar = document.getElementById('codeExplainBar');
+  if (bar) bar.classList.remove('show');
+}
+
 document.querySelectorAll('.codetabs').forEach(tabs=>{
   tabs.addEventListener('click', e=>{
     const btn = e.target.closest('.codetab');
@@ -371,7 +459,27 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
     box.querySelectorAll('.codeblock').forEach(p=>{
       p.style.display = p.dataset.lang===btn.dataset.lang ? 'block' : 'none';
     });
+    applyHighlight();
   });
+});
+
+function syntaxHighlight(text) {
+  text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const pattern = /(\/\/.*$|#(?![a-zA-Z]).*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+\.?\d*n?\b)|(\b(?:function|def|return|if|else|elif|while|for|in|not|and|or|class|struct|new|const|let|var|async|await|import|from|export|default|static|public|private|protected|void|int|long|double|float|boolean|bool|char|string|String|true|false|True|False|None|null|nullptr|this|self|break|continue|switch|case|try|catch|throw|extends|implements|interface|enum|namespace|using|template|typename|auto|is|lambda|global|raise|except|finally|yield|del|pass|with|as|instanceof|typeof|super|package)\b)|(\b[A-Za-z_$][\w$]*)(?=\s*\()/gm;
+  return text.replace(pattern, (m, comment, str, num, kw, fn) => {
+    if (comment) return '<span class="tok-comment">'+comment+'</span>';
+    if (str) return '<span class="tok-string">'+str+'</span>';
+    if (num) return '<span class="tok-number">'+num+'</span>';
+    if (kw) return '<span class="tok-keyword">'+kw+'</span>';
+    if (fn) return '<span class="tok-function">'+fn+'</span>';
+    return m;
+  });
+}
+document.querySelectorAll('.codeline').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
+});
+document.querySelectorAll('.explain code').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
 });
 </script>
 <script>

@@ -47,6 +47,11 @@
   .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
   .explain li{margin-bottom:8px;}
   .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+  .example-box{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:14px;}
+  .example-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:8px;}
+  .example-box p{margin:0 0 8px;font-size:14px;color:var(--text);line-height:1.65;}
+  .example-box p:last-child{margin-bottom:0;}
+  .example-box code{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
 
   .controls{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:20px 0 20px;font-size:14px;}
   input, select{
@@ -111,22 +116,35 @@
     .sidebar a.navitem.overview{margin-bottom:0;}
   }
 
-  .codebox{background:#0d1117;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:20px 0;box-shadow:var(--shadow);}
-  .codetabs{display:flex;gap:2px;background:#161b22;padding:8px 8px 0;overflow-x:auto;}
-  .codetab{background:transparent;border:none;color:#8b949e;font-family:var(--mono);font-size:12.5px;font-weight:600;
-    padding:8px 14px;border-radius:6px 6px 0 0;cursor:pointer;white-space:nowrap;}
-  .codetab.active{background:#0d1117;color:#e6edf3;}
-  .codetab:hover:not(.active){color:#c9d1d9;}
-  pre.codeblock{margin:0;padding:18px 20px;overflow-x:auto;max-height:480px;}
-  pre.codeblock code{font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#e6edf3;white-space:pre;}
-  .code-heading{font-weight:700;font-size:16px;margin:28px 0 4px;color:var(--text);}
+  .codebox{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:16px 0 8px;box-shadow:var(--shadow);max-width:720px;}
+  .codetabs{display:flex;gap:2px;background:var(--bg-soft);padding:5px 6px 0;overflow-x:auto;}
+  .codetab{background:transparent;border:none;color:var(--dim);font-family:var(--mono);font-size:11.5px;font-weight:600;
+    padding:6px 11px;border-radius:5px 5px 0 0;cursor:pointer;white-space:nowrap;}
+  .codetab.active{background:var(--card);color:var(--text);}
+  .codetab:hover:not(.active){color:var(--text);}
+  pre.codeblock{margin:0;padding:12px 16px;overflow-x:auto;max-height:220px;}
+  pre.codeblock code{font-family:var(--mono);font-size:11.5px;line-height:1.55;color:var(--text);white-space:pre;}
+  .code-heading{font-weight:700;font-size:14px;margin:32px 0 8px;color:var(--text);}
 
   .speedctl{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:var(--muted);}
   .speedctl select{padding:8px 10px;}
   @media (max-width:640px){ .speedctl{margin-left:0;} }
 
   .codeline{display:block;}
-  .codeline.active{background:rgba(37,99,235,.22);border-left:3px solid #2563eb;margin-left:-23px;padding-left:20px;border-radius:2px;}
+  .tok-comment{color:#6a737d;}
+  .tok-string{color:#032f62;}
+  .tok-keyword{color:#d73a49;font-weight:600;}
+  .tok-number{color:#005cc5;}
+  .tok-function{color:#6f42c1;}
+  .code-explain{
+    display:none;align-items:flex-start;gap:8px;padding:10px 16px;
+    background:var(--accent-soft);color:var(--accent-dark);font-size:12.5px;
+    line-height:1.5;border-top:1px solid var(--border);font-family:var(--sans);
+  }
+  .code-explain.show{display:flex;}
+  .code-explain .ico{flex-shrink:0;}
+
+  .codeline.active{background:var(--accent-soft);border-left:3px solid var(--accent);margin-left:-23px;padding-left:20px;border-radius:2px;}
   .run-hint{font-size:12px;color:var(--dim);margin-top:-4px;margin-bottom:10px;}
 </style>
 </head>
@@ -178,15 +196,53 @@
 <main>
   <div class="explain">
     <h2>How it works</h2>
-    <p>A number stored as bits is just a row of 0s and 1s, each position worth double the one to its right (128, 64, 32, 16, 8, 4, 2, 1 for 8 bits). Every operation here works on <b style="color:var(--text)">one column at a time</b>, comparing only the two bits directly above each other — there's no carrying or borrowing like in normal addition.</p>
+    <p>A number stored in binary is just a row of 0s and 1s. Each column is worth double the one to its right — 128, 64, 32, 16, 8, 4, 2, 1 for 8 bits. Every operation below works one column at a time, comparing only the two bits directly above each other.</p>
     <ul>
-      <li><code>AND</code> — result bit is 1 only if <b style="color:var(--text)">both</b> input bits are 1. Useful for "masking," i.e. clearing bits you don't want while keeping the rest.</li>
-      <li><code>OR</code> — result bit is 1 if <b style="color:var(--text)">either</b> input bit is 1. Useful for turning specific bits on.</li>
-      <li><code>XOR</code> — result bit is 1 if the two input bits <b style="color:var(--text)">differ</b>. Useful for toggling bits, and for spotting which bits changed between two values.</li>
-      <li><code>NOT</code> — flips every bit of a single number: 0 becomes 1 and 1 becomes 0.</li>
-      <li><code>&lt;&lt;</code> / <code>&gt;&gt;</code> (shift left/right) — every bit slides one position over, and a fresh 0 fills the gap left behind. Shifting left by 1 doubles the number (same reason moving a decimal digit left multiplies by 10); shifting right by 1 halves it, discarding any remainder.</li>
+      <li><code>AND</code> — the result bit is 1 only when <b style="color:var(--text)">both</b> input bits are 1. Useful for clearing specific bits while keeping the rest.</li>
+      <li><code>OR</code> — the result bit is 1 when <b style="color:var(--text)">either</b> input bit is 1. Useful for turning specific bits on.</li>
+      <li><code>XOR</code> — the result bit is 1 when the two input bits are <b style="color:var(--text)">different</b>. Useful for flipping bits, or spotting what changed between two values.</li>
+      <li><code>NOT</code> — flips every bit: 0 becomes 1, and 1 becomes 0.</li>
+      <li><code>&lt;&lt;</code> and <code>&gt;&gt;</code> — shift every bit one spot left or right. Shifting left doubles the number; shifting right cuts it in half.</li>
     </ul>
+    <div class="example-box">
+      <div class="example-label">Example</div>
+      <p><code>5</code> is <code>0101</code> in binary, <code>3</code> is <code>0011</code>. Column by column: <code>0&amp;0=0</code>, <code>1&amp;0=0</code>, <code>0&amp;1=0</code>, <code>1&amp;1=1</code>. So <code>5 AND 3 = 0001</code>, which is <code>1</code> — only the last column had a 1 in both numbers.</p>
+    </div>
+
   </div>
+<div class="controls">
+    <label>A <input type="number" id="valA" value="203" min="0" max="255"></label>
+    <label>B <input type="number" id="valB" value="90" min="0" max="255"></label>
+    <select id="op">
+      <option value="and">AND</option>
+      <option value="or">OR</option>
+      <option value="xor">XOR</option>
+      <option value="not">NOT (A only)</option>
+      <option value="shl">A &lt;&lt; 1</option>
+      <option value="shr">A &gt;&gt; 1</option>
+    </select>
+    <button class="primary" id="run">▶ Compute</button>
+    <span class="speedctl">speed <select id="speedSelect"><option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option></select></span>
+  </div>
+
+  <div class="panel">
+    <div class="operand">
+      <div class="label">A</div>
+      <div class="bits" id="bitsA"></div>
+    </div>
+    <div class="operand" id="bRow">
+      <div class="label">B</div>
+      <div class="bits" id="bitsB"></div>
+    </div>
+    <div class="opline" id="opline">AND</div>
+    <hr class="divider">
+    <div class="operand">
+      <div class="label">result</div>
+      <div class="bits" id="bitsR"></div>
+    </div>
+    <div class="decimals" id="decimals"></div>
+  </div>
+  <div class="hint">click bits in A or B to edit them directly before computing</div>
 <div class="code-heading">Code</div>
 <div class="codebox">
   <div class="codetabs">
@@ -235,40 +291,8 @@
 <span class="codeline" data-line="5">~a;           // NOT -&gt; flip every bit (unsigned char wraps naturally at 8 bits)</span>
 <span class="codeline" data-line="6">a &lt;&lt; 1;       // shift left  -&gt; multiply by 2, a 0 fills the new low bit</span>
 <span class="codeline" data-line="7">a &gt;&gt; 1;       // shift right -&gt; divide by 2 (integer division), low bit is discarded</span></code></pre>
+  <div class="code-explain" id="codeExplainBar"><span class="ico">💡</span><span id="codeExplainText"></span></div>
 </div>
-<div class="controls">
-    <label>A <input type="number" id="valA" value="203" min="0" max="255"></label>
-    <label>B <input type="number" id="valB" value="90" min="0" max="255"></label>
-    <select id="op">
-      <option value="and">AND</option>
-      <option value="or">OR</option>
-      <option value="xor">XOR</option>
-      <option value="not">NOT (A only)</option>
-      <option value="shl">A &lt;&lt; 1</option>
-      <option value="shr">A &gt;&gt; 1</option>
-    </select>
-    <button class="primary" id="run">▶ Compute</button>
-    <span class="speedctl">speed <select id="speedSelect"><option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option></select></span>
-  </div>
-
-  <div class="panel">
-    <div class="operand">
-      <div class="label">A</div>
-      <div class="bits" id="bitsA"></div>
-    </div>
-    <div class="operand" id="bRow">
-      <div class="label">B</div>
-      <div class="bits" id="bitsB"></div>
-    </div>
-    <div class="opline" id="opline">AND</div>
-    <hr class="divider">
-    <div class="operand">
-      <div class="label">result</div>
-      <div class="bits" id="bitsR"></div>
-    </div>
-    <div class="decimals" id="decimals"></div>
-  </div>
-  <div class="hint">click bits in A or B to edit them directly before computing</div>
 </main>
 </div>
 </div>
@@ -280,26 +304,59 @@ function highlightLine(mapping) {
   applyHighlight();
 }
 
+function commentInLine(text) {
+  let idx = text.indexOf('//');
+  if (idx !== -1) return text.slice(idx + 2).trim();
+  idx = text.indexOf('#');
+  if (idx !== -1) return text.slice(idx + 1).trim();
+  return null;
+}
+
+function extractExplanation(target) {
+  const own = commentInLine(target.textContent);
+  if (own) return own;
+  const next = target.nextElementSibling;
+  if (next && next.classList.contains('codeline')) {
+    const fromNext = commentInLine(next.textContent);
+    if (fromNext) return fromNext;
+  }
+  const prev = target.previousElementSibling;
+  if (prev && prev.classList.contains('codeline')) {
+    const fromPrev = commentInLine(prev.textContent);
+    if (fromPrev) return fromPrev;
+  }
+  return null;
+}
+
 function applyHighlight() {
   const box = document.querySelector('.codebox');
-  if (!box || !__lastHighlightMap) return;
+  const bar = document.getElementById('codeExplainBar');
+  const barText = document.getElementById('codeExplainText');
+  if (!box || !__lastHighlightMap) { if (bar) bar.classList.remove('show'); return; }
   const activeTab = box.querySelector('.codetab.active');
   const lang = activeTab ? activeTab.dataset.lang : 'pseudo';
   const lineNum = __lastHighlightMap[lang];
   box.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
-  if (lineNum === undefined || lineNum === null) return;
+  if (lineNum === undefined || lineNum === null) { if (bar) bar.classList.remove('show'); return; }
   const activeBlock = box.querySelector('.codeblock[data-lang="' + lang + '"]');
   if (!activeBlock) return;
   const target = activeBlock.querySelector('.codeline[data-line="' + lineNum + '"]');
   if (target) {
     target.classList.add('active');
     target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (bar && barText) {
+      const explanation = extractExplanation(target);
+      if (explanation) { barText.textContent = explanation; bar.classList.add('show'); }
+      else { bar.classList.remove('show'); }
+    }
   }
 }
 
 function clearHighlight() {
   __lastHighlightMap = null;
   document.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  const bar = document.getElementById('codeExplainBar');
+  if (bar) bar.classList.remove('show');
 }
 
 document.querySelectorAll('.codetabs').forEach(tabs=>{
@@ -315,6 +372,25 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
     applyHighlight();
   });
 });
+
+function syntaxHighlight(text) {
+  text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const pattern = /(\/\/.*$|#(?![a-zA-Z]).*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+\.?\d*n?\b)|(\b(?:function|def|return|if|else|elif|while|for|in|not|and|or|class|struct|new|const|let|var|async|await|import|from|export|default|static|public|private|protected|void|int|long|double|float|boolean|bool|char|string|String|true|false|True|False|None|null|nullptr|this|self|break|continue|switch|case|try|catch|throw|extends|implements|interface|enum|namespace|using|template|typename|auto|is|lambda|global|raise|except|finally|yield|del|pass|with|as|instanceof|typeof|super|package)\b)|(\b[A-Za-z_$][\w$]*)(?=\s*\()/gm;
+  return text.replace(pattern, (m, comment, str, num, kw, fn) => {
+    if (comment) return '<span class="tok-comment">'+comment+'</span>';
+    if (str) return '<span class="tok-string">'+str+'</span>';
+    if (num) return '<span class="tok-number">'+num+'</span>';
+    if (kw) return '<span class="tok-keyword">'+kw+'</span>';
+    if (fn) return '<span class="tok-function">'+fn+'</span>';
+    return m;
+  });
+}
+document.querySelectorAll('.codeline').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
+});
+document.querySelectorAll('.explain code').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
+});
 </script>
 <script>
 let animSpeed = 1;
@@ -325,7 +401,7 @@ document.getElementById('speedSelect').addEventListener('change', (e) => {
 function toBits(n){ return n.toString(2).padStart(8,'0').split('').map(Number); }
 function fromBits(bits){ return parseInt(bits.join(''),2); }
 
-let A = 203, B = 90;
+let A = Math.floor(Math.random()*256), B = Math.floor(Math.random()*256);
 
 function renderOperand(id, value, editable){
   const el = document.getElementById(id);
@@ -403,6 +479,8 @@ async function compute(){
 }
 
 document.getElementById('run').onclick = compute;
+document.getElementById('valA').value = A;
+document.getElementById('valB').value = B;
 renderOperand('bitsA', A, true);
 renderOperand('bitsB', B, true);
 compute();

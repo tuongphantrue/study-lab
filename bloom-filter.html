@@ -49,6 +49,11 @@
   .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
   .explain li{margin-bottom:8px;}
   .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+  .example-box{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:14px;}
+  .example-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:8px;}
+  .example-box p{margin:0 0 8px;font-size:14px;color:var(--text);line-height:1.65;}
+  .example-box p:last-child{margin-bottom:0;}
+  .example-box code{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
 
   .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
   .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
@@ -118,22 +123,35 @@
     .sidebar a.navitem.overview{margin-bottom:0;}
   }
 
-  .codebox{background:#0d1117;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:20px 0;box-shadow:var(--shadow);}
-  .codetabs{display:flex;gap:2px;background:#161b22;padding:8px 8px 0;overflow-x:auto;}
-  .codetab{background:transparent;border:none;color:#8b949e;font-family:var(--mono);font-size:12.5px;font-weight:600;
-    padding:8px 14px;border-radius:6px 6px 0 0;cursor:pointer;white-space:nowrap;}
-  .codetab.active{background:#0d1117;color:#e6edf3;}
-  .codetab:hover:not(.active){color:#c9d1d9;}
-  pre.codeblock{margin:0;padding:18px 20px;overflow-x:auto;max-height:480px;}
-  pre.codeblock code{font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#e6edf3;white-space:pre;}
-  .code-heading{font-weight:700;font-size:16px;margin:28px 0 4px;color:var(--text);}
+  .codebox{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:16px 0 8px;box-shadow:var(--shadow);max-width:720px;}
+  .codetabs{display:flex;gap:2px;background:var(--bg-soft);padding:5px 6px 0;overflow-x:auto;}
+  .codetab{background:transparent;border:none;color:var(--dim);font-family:var(--mono);font-size:11.5px;font-weight:600;
+    padding:6px 11px;border-radius:5px 5px 0 0;cursor:pointer;white-space:nowrap;}
+  .codetab.active{background:var(--card);color:var(--text);}
+  .codetab:hover:not(.active){color:var(--text);}
+  pre.codeblock{margin:0;padding:12px 16px;overflow-x:auto;max-height:220px;}
+  pre.codeblock code{font-family:var(--mono);font-size:11.5px;line-height:1.55;color:var(--text);white-space:pre;}
+  .code-heading{font-weight:700;font-size:14px;margin:32px 0 8px;color:var(--text);}
 
   .speedctl{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:var(--muted);}
   .speedctl select{padding:8px 10px;}
   @media (max-width:640px){ .speedctl{margin-left:0;} }
 
   .codeline{display:block;}
-  .codeline.active{background:rgba(37,99,235,.22);border-left:3px solid #2563eb;margin-left:-23px;padding-left:20px;border-radius:2px;}
+  .tok-comment{color:#6a737d;}
+  .tok-string{color:#032f62;}
+  .tok-keyword{color:#d73a49;font-weight:600;}
+  .tok-number{color:#005cc5;}
+  .tok-function{color:#6f42c1;}
+  .code-explain{
+    display:none;align-items:flex-start;gap:8px;padding:10px 16px;
+    background:var(--accent-soft);color:var(--accent-dark);font-size:12.5px;
+    line-height:1.5;border-top:1px solid var(--border);font-family:var(--sans);
+  }
+  .code-explain.show{display:flex;}
+  .code-explain .ico{flex-shrink:0;}
+
+  .codeline.active{background:var(--accent-soft);border-left:3px solid var(--accent);margin-left:-23px;padding-left:20px;border-radius:2px;}
   .run-hint{font-size:12px;color:var(--dim);margin-top:-4px;margin-bottom:10px;}
 </style>
 </head>
@@ -185,12 +203,31 @@
 <main>
   <div class="explain">
     <h2>How it works</h2>
-    
-<p>A Bloom filter answers <b style="color:var(--text)">"have I possibly seen this before?"</b> using a fixed-size bit array and no stored keys at all — which is what makes it so memory-efficient. It trades certainty for space: it can say "definitely not present," but only ever "maybe present."</p>
-<p><b style="color:var(--text)">Inserting</b> a key runs it through several different hash functions, each producing a bit position, and sets all of those bits to 1. <b style="color:var(--text)">Checking</b> a key runs the same hash functions and checks whether every one of those positions is already 1.</p>
-<p>If even one of those bits is 0, the key was <b style="color:var(--text)">definitely never inserted</b> — no false negatives are possible. But if all the bits happen to be 1 (either because this exact key was inserted, or because other keys happened to set the same bits), the filter reports "maybe," which could be a <b style="color:var(--text)">false positive</b>. More inserted keys means more bits set, which means a rising false-positive rate — that's the core tradeoff.</p>
+    <p>A Bloom filter answers one question cheaply: <b style="color:var(--text)">"have I possibly seen this key before?"</b> It doesn't store the actual keys — just a row of bits — which is what makes it so small and fast. The tradeoff: it can say "definitely no," but it can only ever say "maybe yes."</p>
+    <p><b style="color:var(--text)">Inserting</b> a key runs it through a few different hash functions. Each one points to a bit position, and all of those bits get flipped on.</p>
+    <p><b style="color:var(--text)">Checking</b> a key runs it through the same hash functions and looks at those same bit positions.</p>
+    <ul>
+      <li>If any of those bits are off, the key was <b style="color:var(--text)">definitely never inserted.</b></li>
+      <li>If all of those bits are on, the key is <b style="color:var(--text)">probably present</b> — but it's also possible those bits just happened to get turned on by other keys. That's called a false positive.</li>
+    </ul>
+    <p>The more keys you insert, the more bits get turned on, and the more likely a false positive becomes. That's the core tradeoff of a Bloom filter: save space, but accept a small chance of being wrong in one direction.</p>
+    <div class="example-box">
+      <div class="example-label">Example</div>
+      <p>Inserting <code>"cat"</code> might flip bits 2, 5, and 9 on. Checking <code>"dog"</code> hashes to bits 2, 5, and 7 — bit 7 is off, so the filter correctly says <code>"dog"</code> was <b style="color:var(--text)">definitely never inserted</b>. Checking <code>"cat"</code> again hashes to the same bits 2, 5, 9, all of which are on — so it reports <code>"cat"</code> as <b style="color:var(--text)">probably present</b>.</p>
+    </div>
 
   </div>
+
+<div class="controls">
+    <input type="text" id="key" placeholder="key to add or check" value="apple">
+    <button class="primary" id="add">insert</button>
+    <button id="check">check membership</button>
+    <button id="reset">reset</button>
+    <span class="speedctl">speed <select id="speedSelect"><option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option></select></span>
+  </div>
+  <div class="bitsrow" id="bits"></div>
+  <div class="wordlist" id="wordlist"></div>
+  <div class="status" id="status">bit array of size 24, 3 hash functions</div>
 
 <div class="code-heading">Code</div>
 <div class="codebox">
@@ -317,18 +354,8 @@
 <span class="codeline" data-line="26">        return true;   // every relevant bit is on: maybe present</span>
 <span class="codeline" data-line="27">    }</span>
 <span class="codeline" data-line="28">};</span></code></pre>
+  <div class="code-explain" id="codeExplainBar"><span class="ico">💡</span><span id="codeExplainText"></span></div>
 </div>
-<div class="controls">
-    <input type="text" id="key" placeholder="key to add or check" value="apple">
-    <button class="primary" id="add">insert</button>
-    <button id="check">check membership</button>
-    <button id="reset">reset</button>
-    <span class="speedctl">speed <select id="speedSelect"><option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option></select></span>
-  </div>
-  <div class="bitsrow" id="bits"></div>
-  <div class="wordlist" id="wordlist"></div>
-  <div class="status" id="status">bit array of size 24, 3 hash functions</div>
-
 </main>
 </div>
 </div>
@@ -340,26 +367,59 @@ function highlightLine(mapping) {
   applyHighlight();
 }
 
+function commentInLine(text) {
+  let idx = text.indexOf('//');
+  if (idx !== -1) return text.slice(idx + 2).trim();
+  idx = text.indexOf('#');
+  if (idx !== -1) return text.slice(idx + 1).trim();
+  return null;
+}
+
+function extractExplanation(target) {
+  const own = commentInLine(target.textContent);
+  if (own) return own;
+  const next = target.nextElementSibling;
+  if (next && next.classList.contains('codeline')) {
+    const fromNext = commentInLine(next.textContent);
+    if (fromNext) return fromNext;
+  }
+  const prev = target.previousElementSibling;
+  if (prev && prev.classList.contains('codeline')) {
+    const fromPrev = commentInLine(prev.textContent);
+    if (fromPrev) return fromPrev;
+  }
+  return null;
+}
+
 function applyHighlight() {
   const box = document.querySelector('.codebox');
-  if (!box || !__lastHighlightMap) return;
+  const bar = document.getElementById('codeExplainBar');
+  const barText = document.getElementById('codeExplainText');
+  if (!box || !__lastHighlightMap) { if (bar) bar.classList.remove('show'); return; }
   const activeTab = box.querySelector('.codetab.active');
   const lang = activeTab ? activeTab.dataset.lang : 'pseudo';
   const lineNum = __lastHighlightMap[lang];
   box.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
-  if (lineNum === undefined || lineNum === null) return;
+  if (lineNum === undefined || lineNum === null) { if (bar) bar.classList.remove('show'); return; }
   const activeBlock = box.querySelector('.codeblock[data-lang="' + lang + '"]');
   if (!activeBlock) return;
   const target = activeBlock.querySelector('.codeline[data-line="' + lineNum + '"]');
   if (target) {
     target.classList.add('active');
     target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (bar && barText) {
+      const explanation = extractExplanation(target);
+      if (explanation) { barText.textContent = explanation; bar.classList.add('show'); }
+      else { bar.classList.remove('show'); }
+    }
   }
 }
 
 function clearHighlight() {
   __lastHighlightMap = null;
   document.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  const bar = document.getElementById('codeExplainBar');
+  if (bar) bar.classList.remove('show');
 }
 
 document.querySelectorAll('.codetabs').forEach(tabs=>{
@@ -374,6 +434,25 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
     });
     applyHighlight();
   });
+});
+
+function syntaxHighlight(text) {
+  text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const pattern = /(\/\/.*$|#(?![a-zA-Z]).*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+\.?\d*n?\b)|(\b(?:function|def|return|if|else|elif|while|for|in|not|and|or|class|struct|new|const|let|var|async|await|import|from|export|default|static|public|private|protected|void|int|long|double|float|boolean|bool|char|string|String|true|false|True|False|None|null|nullptr|this|self|break|continue|switch|case|try|catch|throw|extends|implements|interface|enum|namespace|using|template|typename|auto|is|lambda|global|raise|except|finally|yield|del|pass|with|as|instanceof|typeof|super|package)\b)|(\b[A-Za-z_$][\w$]*)(?=\s*\()/gm;
+  return text.replace(pattern, (m, comment, str, num, kw, fn) => {
+    if (comment) return '<span class="tok-comment">'+comment+'</span>';
+    if (str) return '<span class="tok-string">'+str+'</span>';
+    if (num) return '<span class="tok-number">'+num+'</span>';
+    if (kw) return '<span class="tok-keyword">'+kw+'</span>';
+    if (fn) return '<span class="tok-function">'+fn+'</span>';
+    return m;
+  });
+}
+document.querySelectorAll('.codeline').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
+});
+document.querySelectorAll('.explain code').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
 });
 </script>
 <script>
@@ -448,7 +527,11 @@ document.getElementById('reset').onclick = ()=>{
 };
 
 render();
-['apple','banana'].forEach((k,i)=>setTimeout(()=>add(k), i*700));
+(() => {
+  const pool = ['apple','banana','cherry','mango','grape','kiwi','plum','lemon'];
+  const shuffled = [...pool].sort(()=>Math.random()-0.5).slice(0, 2+Math.floor(Math.random()*2));
+  shuffled.forEach((k,i)=>setTimeout(()=>add(k), i*700));
+})();
 
 </script>
 </body>

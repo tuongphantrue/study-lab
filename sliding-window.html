@@ -49,6 +49,11 @@
   .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
   .explain li{margin-bottom:8px;}
   .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+  .example-box{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:14px;}
+  .example-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:8px;}
+  .example-box p{margin:0 0 8px;font-size:14px;color:var(--text);line-height:1.65;}
+  .example-box p:last-child{margin-bottom:0;}
+  .example-box code{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
 
   .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
   .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
@@ -119,19 +124,36 @@
     .sidebar a.navitem.overview{margin-bottom:0;}
   }
 
-  .codebox{background:#0d1117;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:20px 0;box-shadow:var(--shadow);}
-  .codetabs{display:flex;gap:2px;background:#161b22;padding:8px 8px 0;overflow-x:auto;}
-  .codetab{background:transparent;border:none;color:#8b949e;font-family:var(--mono);font-size:12.5px;font-weight:600;
-    padding:8px 14px;border-radius:6px 6px 0 0;cursor:pointer;white-space:nowrap;}
-  .codetab.active{background:#0d1117;color:#e6edf3;}
-  .codetab:hover:not(.active){color:#c9d1d9;}
-  pre.codeblock{margin:0;padding:18px 20px;overflow-x:auto;max-height:480px;}
-  pre.codeblock code{font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#e6edf3;white-space:pre;}
-  .code-heading{font-weight:700;font-size:16px;margin:28px 0 4px;color:var(--text);}
+  .codebox{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:16px 0 8px;box-shadow:var(--shadow);max-width:720px;}
+  .codetabs{display:flex;gap:2px;background:var(--bg-soft);padding:5px 6px 0;overflow-x:auto;}
+  .codetab{background:transparent;border:none;color:var(--dim);font-family:var(--mono);font-size:11.5px;font-weight:600;
+    padding:6px 11px;border-radius:5px 5px 0 0;cursor:pointer;white-space:nowrap;}
+  .codetab.active{background:var(--card);color:var(--text);}
+  .codetab:hover:not(.active){color:var(--text);}
+  pre.codeblock{margin:0;padding:12px 16px;overflow-x:auto;max-height:220px;}
+  pre.codeblock code{font-family:var(--mono);font-size:11.5px;line-height:1.55;color:var(--text);white-space:pre;}
+  .code-heading{font-weight:700;font-size:14px;margin:32px 0 8px;color:var(--text);}
 
   .speedctl{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:var(--muted);}
   .speedctl select{padding:8px 10px;}
   @media (max-width:640px){ .speedctl{margin-left:0;} }
+
+  .codeline{display:block;}
+  .tok-comment{color:#6a737d;}
+  .tok-string{color:#032f62;}
+  .tok-keyword{color:#d73a49;font-weight:600;}
+  .tok-number{color:#005cc5;}
+  .tok-function{color:#6f42c1;}
+  .code-explain{
+    display:none;align-items:flex-start;gap:8px;padding:10px 16px;
+    background:var(--accent-soft);color:var(--accent-dark);font-size:12.5px;
+    line-height:1.5;border-top:1px solid var(--border);font-family:var(--sans);
+  }
+  .code-explain.show{display:flex;}
+  .code-explain .ico{flex-shrink:0;}
+
+  .codeline.active{background:var(--accent-soft);border-left:3px solid var(--accent);margin-left:-23px;padding-left:20px;border-radius:2px;}
+  .run-hint{font-size:12px;color:var(--dim);margin-top:-4px;margin-bottom:10px;}
 </style>
 </head>
 <body>
@@ -182,94 +204,21 @@
 <main>
   <div class="explain">
     <h2>How it works</h2>
-    
-<p>Sliding window keeps two pointers, <code>left</code> and <code>right</code>, marking the edges of a "window" over the array or string — instead of checking every possible substring from scratch (which would be <code>O(n²)</code> or worse), the window only ever moves forward.</p>
-<p>This page solves <b style="color:var(--text)">"longest substring without repeating characters."</b> <code>right</code> expands the window one character at a time. If the new character is already inside the window, <code>left</code> jumps forward past that character's previous occurrence — shrinking the window just enough to remove the duplicate, not resetting it entirely.</p>
-<p>Because <code>left</code> and <code>right</code> each only ever move forward and never backward, the whole string gets scanned in <code>O(n)</code> total — each character is added to the window once and removed at most once.</p>
+    <p>Sliding window uses two pointers, <code>left</code> and <code>right</code>, to mark the edges of a "window" over the string. Instead of checking every possible piece of the string from scratch, the window only ever moves forward — never backward.</p>
+    <p>This page solves: <b style="color:var(--text)">what's the longest stretch of the string with no repeated characters?</b> Here's how it works:</p>
+    <ol style="margin:0;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;">
+      <li><code>right</code> moves forward one character at a time, growing the window.</li>
+      <li>If the new character is already inside the window, <code>left</code> jumps forward to just past where that character last appeared — shrinking the window just enough to remove the repeat.</li>
+      <li>After each step, check if the current window is the longest one seen so far.</li>
+    </ol>
+    <p>Since <code>left</code> and <code>right</code> only ever move forward, the whole string only gets scanned once — much faster than checking every possible substring separately.</p>
+    <div class="example-box">
+      <div class="example-label">Example</div>
+      <p>String <code>"abcabcbb"</code>: the window grows through <code>a, b, c</code> (length 3, no repeats). Adding the next <code>a</code> would repeat, so the window's left edge jumps forward past the first <code>a</code>. The longest repeat-free stretch found along the way is <code>"abc"</code>, length 3.</p>
+    </div>
 
   </div>
 
-<div class="code-heading">Code</div>
-<div class="codebox">
-  <div class="codetabs">
-    <button class="codetab active" data-lang="pseudo">Pseudocode</button>
-    <button class="codetab" data-lang="python">Python</button>
-    <button class="codetab" data-lang="js">JavaScript</button>
-    <button class="codetab" data-lang="java">Java</button>
-    <button class="codetab" data-lang="cpp">C++</button>
-  </div>
-  <pre class="codeblock" data-lang="pseudo"><code>function longestUniqueSubstring(s):
-    left &lt;- 0                          // left edge of the current window
-    seen &lt;- {}                          // character -&gt; last index it was seen at
-    best &lt;- 0                          // longest window length found so far
-
-    for right from 0 to length(s) - 1:               // right edge expands one step at a time
-        c &lt;- s[right]
-        if c in seen and seen[c] &gt;= left:               // duplicate found inside the window
-            left &lt;- seen[c] + 1                            // jump left past the duplicate
-        seen[c] &lt;- right                                // record this character's newest position
-        best &lt;- max(best, right - left + 1)              // update the best length seen so far
-
-    return best</code></pre>
-  <pre class="codeblock" data-lang="python" style="display:none"><code>def longest_unique_substring(s):
-    left = 0                # left edge of the current window
-    seen = {}                # character -&gt; last index it was seen at
-    best = 0                # longest window length found so far
-
-    for right, c in enumerate(s):           # right edge expands one character at a time
-        if c in seen and seen[c] &gt;= left:     # duplicate found inside the current window
-            left = seen[c] + 1                  # jump left past the duplicate
-        seen[c] = right                       # record this character's newest position
-        best = max(best, right - left + 1)    # update the best length seen so far
-
-    return best</code></pre>
-  <pre class="codeblock" data-lang="js" style="display:none"><code>function longestUniqueSubstring(s) {
-  let left = 0;               // left edge of the current window
-  const seen = new Map();      // character -&gt; last index it was seen at
-  let best = 0;                // longest window length found so far
-
-  for (let right = 0; right &lt; s.length; right++) {   // right edge expands one step at a time
-    const c = s[right];
-    if (seen.has(c) &amp;&amp; seen.get(c) &gt;= left) {          // duplicate found inside the window
-      left = seen.get(c) + 1;                            // jump left past the duplicate
-    }
-    seen.set(c, right);                                // record this character's newest position
-    best = Math.max(best, right - left + 1);           // update the best length seen so far
-  }
-
-  return best;
-}</code></pre>
-  <pre class="codeblock" data-lang="java" style="display:none"><code>static int longestUniqueSubstring(String s) {
-    int left = 0, best = 0;               // left edge of window; longest length found so far
-    Map&lt;Character, Integer&gt; seen = new HashMap&lt;&gt;();   // character -&gt; last index seen at
-
-    for (int right = 0; right &lt; s.length(); right++) {  // right edge expands one step at a time
-        char c = s.charAt(right);
-        if (seen.containsKey(c) &amp;&amp; seen.get(c) &gt;= left) {  // duplicate inside current window
-            left = seen.get(c) + 1;                          // jump left past the duplicate
-        }
-        seen.put(c, right);                                // record newest position of c
-        best = Math.max(best, right - left + 1);           // update best length seen so far
-    }
-
-    return best;
-}</code></pre>
-  <pre class="codeblock" data-lang="cpp" style="display:none"><code>int longestUniqueSubstring(string s) {
-    int left = 0, best = 0;                    // left edge of window; best length so far
-    unordered_map&lt;char, int&gt; seen;              // character -&gt; last index it was seen at
-
-    for (int right = 0; right &lt; (int)s.size(); right++) {  // right edge expands one step
-        char c = s[right];
-        if (seen.count(c) &amp;&amp; seen[c] &gt;= left) {               // duplicate inside the window
-            left = seen[c] + 1;                                 // jump left past the duplicate
-        }
-        seen[c] = right;                                      // record newest position of c
-        best = max(best, right - left + 1);                  // update best length seen so far
-    }
-
-    return best;
-}</code></pre>
-</div>
 <div class="controls">
     <input type="text" id="text" value="abcabcbb" placeholder="string">
     <button class="primary" id="run">▶ Slide the window</button>
@@ -282,10 +231,154 @@
     <div class="bestwindow" id="best"></div>
   </div>
 
+<div class="code-heading">Code</div>
+<div class="codebox">
+  <div class="codetabs">
+    <button class="codetab active" data-lang="pseudo">Pseudocode</button>
+    <button class="codetab" data-lang="python">Python</button>
+    <button class="codetab" data-lang="js">JavaScript</button>
+    <button class="codetab" data-lang="java">Java</button>
+    <button class="codetab" data-lang="cpp">C++</button>
+  </div>
+  <pre class="codeblock" data-lang="pseudo"><code><span class="codeline" data-line="0">function longestUniqueSubstring(s):</span>
+<span class="codeline" data-line="1">    left &lt;- 0                          // left edge of the current window</span>
+<span class="codeline" data-line="2">    seen &lt;- {}                          // character -&gt; last index it was seen at</span>
+<span class="codeline" data-line="3">    best &lt;- 0                          // longest window length found so far</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">    for right from 0 to length(s) - 1:               // right edge expands one step at a time</span>
+<span class="codeline" data-line="6">        c &lt;- s[right]</span>
+<span class="codeline" data-line="7">        if c in seen and seen[c] &gt;= left:               // duplicate found inside the window</span>
+<span class="codeline" data-line="8">            left &lt;- seen[c] + 1                            // jump left past the duplicate</span>
+<span class="codeline" data-line="9">        seen[c] &lt;- right                                // record this character's newest position</span>
+<span class="codeline" data-line="10">        best &lt;- max(best, right - left + 1)              // update the best length seen so far</span>
+<span class="codeline" data-line="11"></span>
+<span class="codeline" data-line="12">    return best</span></code></pre>
+  <pre class="codeblock" data-lang="python" style="display:none"><code><span class="codeline" data-line="0">def longest_unique_substring(s):</span>
+<span class="codeline" data-line="1">    left = 0                # left edge of the current window</span>
+<span class="codeline" data-line="2">    seen = {}                # character -&gt; last index it was seen at</span>
+<span class="codeline" data-line="3">    best = 0                # longest window length found so far</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">    for right, c in enumerate(s):           # right edge expands one character at a time</span>
+<span class="codeline" data-line="6">        if c in seen and seen[c] &gt;= left:     # duplicate found inside the current window</span>
+<span class="codeline" data-line="7">            left = seen[c] + 1                  # jump left past the duplicate</span>
+<span class="codeline" data-line="8">        seen[c] = right                       # record this character's newest position</span>
+<span class="codeline" data-line="9">        best = max(best, right - left + 1)    # update the best length seen so far</span>
+<span class="codeline" data-line="10"></span>
+<span class="codeline" data-line="11">    return best</span></code></pre>
+  <pre class="codeblock" data-lang="js" style="display:none"><code><span class="codeline" data-line="0">function longestUniqueSubstring(s) {</span>
+<span class="codeline" data-line="1">  let left = 0;               // left edge of the current window</span>
+<span class="codeline" data-line="2">  const seen = new Map();      // character -&gt; last index it was seen at</span>
+<span class="codeline" data-line="3">  let best = 0;                // longest window length found so far</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">  for (let right = 0; right &lt; s.length; right++) {   // right edge expands one step at a time</span>
+<span class="codeline" data-line="6">    const c = s[right];</span>
+<span class="codeline" data-line="7">    if (seen.has(c) &amp;&amp; seen.get(c) &gt;= left) {          // duplicate found inside the window</span>
+<span class="codeline" data-line="8">      left = seen.get(c) + 1;                            // jump left past the duplicate</span>
+<span class="codeline" data-line="9">    }</span>
+<span class="codeline" data-line="10">    seen.set(c, right);                                // record this character's newest position</span>
+<span class="codeline" data-line="11">    best = Math.max(best, right - left + 1);           // update the best length seen so far</span>
+<span class="codeline" data-line="12">  }</span>
+<span class="codeline" data-line="13"></span>
+<span class="codeline" data-line="14">  return best;</span>
+<span class="codeline" data-line="15">}</span></code></pre>
+  <pre class="codeblock" data-lang="java" style="display:none"><code><span class="codeline" data-line="0">static int longestUniqueSubstring(String s) {</span>
+<span class="codeline" data-line="1">    int left = 0, best = 0;               // left edge of window; longest length found so far</span>
+<span class="codeline" data-line="2">    Map&lt;Character, Integer&gt; seen = new HashMap&lt;&gt;();   // character -&gt; last index seen at</span>
+<span class="codeline" data-line="3"></span>
+<span class="codeline" data-line="4">    for (int right = 0; right &lt; s.length(); right++) {  // right edge expands one step at a time</span>
+<span class="codeline" data-line="5">        char c = s.charAt(right);</span>
+<span class="codeline" data-line="6">        if (seen.containsKey(c) &amp;&amp; seen.get(c) &gt;= left) {  // duplicate inside current window</span>
+<span class="codeline" data-line="7">            left = seen.get(c) + 1;                          // jump left past the duplicate</span>
+<span class="codeline" data-line="8">        }</span>
+<span class="codeline" data-line="9">        seen.put(c, right);                                // record newest position of c</span>
+<span class="codeline" data-line="10">        best = Math.max(best, right - left + 1);           // update best length seen so far</span>
+<span class="codeline" data-line="11">    }</span>
+<span class="codeline" data-line="12"></span>
+<span class="codeline" data-line="13">    return best;</span>
+<span class="codeline" data-line="14">}</span></code></pre>
+  <pre class="codeblock" data-lang="cpp" style="display:none"><code><span class="codeline" data-line="0">int longestUniqueSubstring(string s) {</span>
+<span class="codeline" data-line="1">    int left = 0, best = 0;                    // left edge of window; best length so far</span>
+<span class="codeline" data-line="2">    unordered_map&lt;char, int&gt; seen;              // character -&gt; last index it was seen at</span>
+<span class="codeline" data-line="3"></span>
+<span class="codeline" data-line="4">    for (int right = 0; right &lt; (int)s.size(); right++) {  // right edge expands one step</span>
+<span class="codeline" data-line="5">        char c = s[right];</span>
+<span class="codeline" data-line="6">        if (seen.count(c) &amp;&amp; seen[c] &gt;= left) {               // duplicate inside the window</span>
+<span class="codeline" data-line="7">            left = seen[c] + 1;                                 // jump left past the duplicate</span>
+<span class="codeline" data-line="8">        }</span>
+<span class="codeline" data-line="9">        seen[c] = right;                                      // record newest position of c</span>
+<span class="codeline" data-line="10">        best = max(best, right - left + 1);                  // update best length seen so far</span>
+<span class="codeline" data-line="11">    }</span>
+<span class="codeline" data-line="12"></span>
+<span class="codeline" data-line="13">    return best;</span>
+<span class="codeline" data-line="14">}</span></code></pre>
+  <div class="code-explain" id="codeExplainBar"><span class="ico">💡</span><span id="codeExplainText"></span></div>
+</div>
 </main>
 </div>
 </div>
 <script>
+let __lastHighlightMap = null;
+
+function highlightLine(mapping) {
+  __lastHighlightMap = mapping;
+  applyHighlight();
+}
+
+function commentInLine(text) {
+  let idx = text.indexOf('//');
+  if (idx !== -1) return text.slice(idx + 2).trim();
+  idx = text.indexOf('#');
+  if (idx !== -1) return text.slice(idx + 1).trim();
+  return null;
+}
+
+function extractExplanation(target) {
+  const own = commentInLine(target.textContent);
+  if (own) return own;
+  const next = target.nextElementSibling;
+  if (next && next.classList.contains('codeline')) {
+    const fromNext = commentInLine(next.textContent);
+    if (fromNext) return fromNext;
+  }
+  const prev = target.previousElementSibling;
+  if (prev && prev.classList.contains('codeline')) {
+    const fromPrev = commentInLine(prev.textContent);
+    if (fromPrev) return fromPrev;
+  }
+  return null;
+}
+
+function applyHighlight() {
+  const box = document.querySelector('.codebox');
+  const bar = document.getElementById('codeExplainBar');
+  const barText = document.getElementById('codeExplainText');
+  if (!box || !__lastHighlightMap) { if (bar) bar.classList.remove('show'); return; }
+  const activeTab = box.querySelector('.codetab.active');
+  const lang = activeTab ? activeTab.dataset.lang : 'pseudo';
+  const lineNum = __lastHighlightMap[lang];
+  box.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  if (lineNum === undefined || lineNum === null) { if (bar) bar.classList.remove('show'); return; }
+  const activeBlock = box.querySelector('.codeblock[data-lang="' + lang + '"]');
+  if (!activeBlock) return;
+  const target = activeBlock.querySelector('.codeline[data-line="' + lineNum + '"]');
+  if (target) {
+    target.classList.add('active');
+    target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (bar && barText) {
+      const explanation = extractExplanation(target);
+      if (explanation) { barText.textContent = explanation; bar.classList.add('show'); }
+      else { bar.classList.remove('show'); }
+    }
+  }
+}
+
+function clearHighlight() {
+  __lastHighlightMap = null;
+  document.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  const bar = document.getElementById('codeExplainBar');
+  if (bar) bar.classList.remove('show');
+}
+
 document.querySelectorAll('.codetabs').forEach(tabs=>{
   tabs.addEventListener('click', e=>{
     const btn = e.target.closest('.codetab');
@@ -296,7 +389,27 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
     box.querySelectorAll('.codeblock').forEach(p=>{
       p.style.display = p.dataset.lang===btn.dataset.lang ? 'block' : 'none';
     });
+    applyHighlight();
   });
+});
+
+function syntaxHighlight(text) {
+  text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const pattern = /(\/\/.*$|#(?![a-zA-Z]).*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+\.?\d*n?\b)|(\b(?:function|def|return|if|else|elif|while|for|in|not|and|or|class|struct|new|const|let|var|async|await|import|from|export|default|static|public|private|protected|void|int|long|double|float|boolean|bool|char|string|String|true|false|True|False|None|null|nullptr|this|self|break|continue|switch|case|try|catch|throw|extends|implements|interface|enum|namespace|using|template|typename|auto|is|lambda|global|raise|except|finally|yield|del|pass|with|as|instanceof|typeof|super|package)\b)|(\b[A-Za-z_$][\w$]*)(?=\s*\()/gm;
+  return text.replace(pattern, (m, comment, str, num, kw, fn) => {
+    if (comment) return '<span class="tok-comment">'+comment+'</span>';
+    if (str) return '<span class="tok-string">'+str+'</span>';
+    if (num) return '<span class="tok-number">'+num+'</span>';
+    if (kw) return '<span class="tok-keyword">'+kw+'</span>';
+    if (fn) return '<span class="tok-function">'+fn+'</span>';
+    return m;
+  });
+}
+document.querySelectorAll('.codeline').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
+});
+document.querySelectorAll('.explain code').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
 });
 </script>
 <script>
@@ -326,24 +439,28 @@ function renderBest(text, bestL, bestR){
 async function run(){
   const text = document.getElementById('text').value || 'abcabcbb';
   document.getElementById('run').disabled = true;
+  clearHighlight();
   let left = 0, bestLen = 0, bestL=0, bestR=-1;
   const seen = {};
   for(let right=0; right<text.length; right++){
     const ch = text[right];
     renderArr(text, left, right);
     document.getElementById('status').innerHTML = `right moves to index ${right} ('${ch}')`;
+    highlightLine({pseudo:6, python:5, js:6, java:5, cpp:5});
     await sleep(500);
     if(seen[ch]!==undefined && seen[ch]>=left){
       const oldLeft = left;
       left = seen[ch]+1;
       renderArr(text, left, right);
       document.getElementById('status').innerHTML = `'${ch}' already in window at index ${seen[ch]} — left jumps from ${oldLeft} to ${left}`;
+      highlightLine({pseudo:8, python:7, js:8, java:7, cpp:7});
       await sleep(500);
     }
     seen[ch] = right;
     const len = right-left+1;
     if(len>bestLen){ bestLen=len; bestL=left; bestR=right; renderBest(text,bestL,bestR); }
     document.getElementById('status').innerHTML = `window [${left}, ${right}] has length ${len} — best so far: ${bestLen}`;
+    highlightLine({pseudo:10, python:9, js:11, java:10, cpp:10});
     await sleep(250);
   }
   document.getElementById('status').innerHTML = `done — longest substring without repeats: "<b>${text.slice(bestL,bestR+1)}</b>" (length ${bestLen})`;
@@ -351,6 +468,10 @@ async function run(){
 }
 
 document.getElementById('run').onclick = run;
+(() => {
+  const presets = ['abcabcbb', 'pwwkew', 'dvdf', 'anviaj', 'tmmzuxt', 'bbbbb', 'abcdefg'];
+  document.getElementById('text').value = presets[Math.floor(Math.random()*presets.length)];
+})();
 renderArr(document.getElementById('text').value, 0, -1);
 
 </script>

@@ -49,6 +49,11 @@
   .explain ul{margin:0 0 12px;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;}
   .explain li{margin-bottom:8px;}
   .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+  .example-box{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:14px;}
+  .example-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:8px;}
+  .example-box p{margin:0 0 8px;font-size:14px;color:var(--text);line-height:1.65;}
+  .example-box p:last-child{margin-bottom:0;}
+  .example-box code{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
 
   .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
   .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
@@ -114,22 +119,35 @@
     .sidebar a.navitem.overview{margin-bottom:0;}
   }
 
-  .codebox{background:#0d1117;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:20px 0;box-shadow:var(--shadow);}
-  .codetabs{display:flex;gap:2px;background:#161b22;padding:8px 8px 0;overflow-x:auto;}
-  .codetab{background:transparent;border:none;color:#8b949e;font-family:var(--mono);font-size:12.5px;font-weight:600;
-    padding:8px 14px;border-radius:6px 6px 0 0;cursor:pointer;white-space:nowrap;}
-  .codetab.active{background:#0d1117;color:#e6edf3;}
-  .codetab:hover:not(.active){color:#c9d1d9;}
-  pre.codeblock{margin:0;padding:18px 20px;overflow-x:auto;max-height:480px;}
-  pre.codeblock code{font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#e6edf3;white-space:pre;}
-  .code-heading{font-weight:700;font-size:16px;margin:28px 0 4px;color:var(--text);}
+  .codebox{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:16px 0 8px;box-shadow:var(--shadow);max-width:720px;}
+  .codetabs{display:flex;gap:2px;background:var(--bg-soft);padding:5px 6px 0;overflow-x:auto;}
+  .codetab{background:transparent;border:none;color:var(--dim);font-family:var(--mono);font-size:11.5px;font-weight:600;
+    padding:6px 11px;border-radius:5px 5px 0 0;cursor:pointer;white-space:nowrap;}
+  .codetab.active{background:var(--card);color:var(--text);}
+  .codetab:hover:not(.active){color:var(--text);}
+  pre.codeblock{margin:0;padding:12px 16px;overflow-x:auto;max-height:220px;}
+  pre.codeblock code{font-family:var(--mono);font-size:11.5px;line-height:1.55;color:var(--text);white-space:pre;}
+  .code-heading{font-weight:700;font-size:14px;margin:32px 0 8px;color:var(--text);}
 
   .speedctl{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:var(--muted);}
   .speedctl select{padding:8px 10px;}
   @media (max-width:640px){ .speedctl{margin-left:0;} }
 
   .codeline{display:block;}
-  .codeline.active{background:rgba(37,99,235,.22);border-left:3px solid #2563eb;margin-left:-23px;padding-left:20px;border-radius:2px;}
+  .tok-comment{color:#6a737d;}
+  .tok-string{color:#032f62;}
+  .tok-keyword{color:#d73a49;font-weight:600;}
+  .tok-number{color:#005cc5;}
+  .tok-function{color:#6f42c1;}
+  .code-explain{
+    display:none;align-items:flex-start;gap:8px;padding:10px 16px;
+    background:var(--accent-soft);color:var(--accent-dark);font-size:12.5px;
+    line-height:1.5;border-top:1px solid var(--border);font-family:var(--sans);
+  }
+  .code-explain.show{display:flex;}
+  .code-explain .ico{flex-shrink:0;}
+
+  .codeline.active{background:var(--accent-soft);border-left:3px solid var(--accent);margin-left:-23px;padding-left:20px;border-radius:2px;}
   .run-hint{font-size:12px;color:var(--dim);margin-top:-4px;margin-bottom:10px;}
 </style>
 </head>
@@ -181,11 +199,32 @@
 <main>
   <div class="explain">
     <h2>How it works</h2>
-    
-<p>Computing <code>base^exp</code> the naive way multiplies <code>base</code> by itself <code>exp</code> times — <code>O(exp)</code> multiplications. For large exponents (cryptography routinely uses exponents hundreds of digits long) that's hopelessly slow.</p>
-<p><b style="color:var(--text)">Exponentiation by squaring</b> uses one observation: <code>base^exp</code> can be built from <code>base^(exp/2)</code> squared, cutting the exponent in half at every step instead of subtracting one. That turns <code>O(exp)</code> multiplications into <code>O(log exp)</code>.</p>
-<p>In practice this is done by walking the exponent's <b style="color:var(--text)">binary representation</b> bit by bit. Start with <code>result = 1</code>, and repeatedly square a running "base" value. Every time the current bit of the exponent is 1, multiply that squared value into the result. This mirrors exactly how binary numbers represent a sum of powers of two — each bit says "should <code>base</code> raised to this power of two contribute to the answer?"</p>
+    <p>Computing <code>base^exponent</code> the obvious way means multiplying <code>base</code> by itself, over and over, <code>exponent</code> times. For small exponents that's fine, but for huge ones (cryptography routinely uses exponents hundreds of digits long) it's far too slow.</p>
+    <p><b style="color:var(--text)">Exponentiation by squaring</b> is a much faster way to get the same answer:</p>
+    <ol style="margin:0;padding-left:20px;color:var(--muted);font-size:15px;line-height:1.75;">
+      <li>Look at the exponent's binary digits, one at a time.</li>
+      <li>Keep a running "squared base" value, and square it again after every digit.</li>
+      <li>Whenever a digit is 1, multiply that squared value into the answer. Whenever it's 0, skip it.</li>
+    </ol>
+    <p>Since the exponent's binary form only has about <code>log(exponent)</code> digits, this only takes that many steps — dramatically fewer than multiplying one at a time.</p>
+    <div class="example-box">
+      <div class="example-label">Example</div>
+      <p>Computing <code>3^5</code>: 5 in binary is <code>101</code>. Starting with result <code>1</code> and base <code>3</code> — bit 1 (rightmost): multiply in, result becomes <code>3</code>, square the base to <code>9</code>. Bit 0: skip, square the base to <code>81</code>. Bit 1: multiply in, result becomes <code>3 × 81 = 243</code> — matching <code>3^5 = 243</code>, using only 3 multiplications instead of 5.</p>
+    </div>
 
+  </div>
+
+<div class="controls">
+    <label>base <input type="number" id="base" value="3" style="width:70px"></label>
+    <label>exponent <input type="number" id="exp" value="13" style="width:70px" min="0" max="30"></label>
+    <button class="primary" id="run">▶ Compute by squaring</button>
+    <span class="speedctl">speed <select id="speedSelect"><option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option></select></span>
+  </div>
+  <div class="panel">
+    <div style="font-size:13px;color:var(--dim);margin-bottom:6px;">exponent in binary (read right to left, least significant bit first):</div>
+    <div class="bitsrow" id="bits"></div>
+    <div class="steps" id="steps"></div>
+    <div class="bigresult" id="result"></div>
   </div>
 
 <div class="code-heading">Code</div>
@@ -258,20 +297,8 @@
 <span class="codeline" data-line="11">    return result;</span>
 <span class="codeline" data-line="12">    // for arbitrarily large results, use a bignum library</span>
 <span class="codeline" data-line="13">}</span></code></pre>
+  <div class="code-explain" id="codeExplainBar"><span class="ico">💡</span><span id="codeExplainText"></span></div>
 </div>
-<div class="controls">
-    <label>base <input type="number" id="base" value="3" style="width:70px"></label>
-    <label>exponent <input type="number" id="exp" value="13" style="width:70px" min="0" max="30"></label>
-    <button class="primary" id="run">▶ Compute by squaring</button>
-    <span class="speedctl">speed <select id="speedSelect"><option value="0.25">0.25x</option><option value="0.5">0.5x</option><option value="1" selected>1x</option><option value="2">2x</option><option value="4">4x</option></select></span>
-  </div>
-  <div class="panel">
-    <div style="font-size:13px;color:var(--dim);margin-bottom:6px;">exponent in binary (read right to left, least significant bit first):</div>
-    <div class="bitsrow" id="bits"></div>
-    <div class="steps" id="steps"></div>
-    <div class="bigresult" id="result"></div>
-  </div>
-
 </main>
 </div>
 </div>
@@ -283,26 +310,59 @@ function highlightLine(mapping) {
   applyHighlight();
 }
 
+function commentInLine(text) {
+  let idx = text.indexOf('//');
+  if (idx !== -1) return text.slice(idx + 2).trim();
+  idx = text.indexOf('#');
+  if (idx !== -1) return text.slice(idx + 1).trim();
+  return null;
+}
+
+function extractExplanation(target) {
+  const own = commentInLine(target.textContent);
+  if (own) return own;
+  const next = target.nextElementSibling;
+  if (next && next.classList.contains('codeline')) {
+    const fromNext = commentInLine(next.textContent);
+    if (fromNext) return fromNext;
+  }
+  const prev = target.previousElementSibling;
+  if (prev && prev.classList.contains('codeline')) {
+    const fromPrev = commentInLine(prev.textContent);
+    if (fromPrev) return fromPrev;
+  }
+  return null;
+}
+
 function applyHighlight() {
   const box = document.querySelector('.codebox');
-  if (!box || !__lastHighlightMap) return;
+  const bar = document.getElementById('codeExplainBar');
+  const barText = document.getElementById('codeExplainText');
+  if (!box || !__lastHighlightMap) { if (bar) bar.classList.remove('show'); return; }
   const activeTab = box.querySelector('.codetab.active');
   const lang = activeTab ? activeTab.dataset.lang : 'pseudo';
   const lineNum = __lastHighlightMap[lang];
   box.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
-  if (lineNum === undefined || lineNum === null) return;
+  if (lineNum === undefined || lineNum === null) { if (bar) bar.classList.remove('show'); return; }
   const activeBlock = box.querySelector('.codeblock[data-lang="' + lang + '"]');
   if (!activeBlock) return;
   const target = activeBlock.querySelector('.codeline[data-line="' + lineNum + '"]');
   if (target) {
     target.classList.add('active');
     target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (bar && barText) {
+      const explanation = extractExplanation(target);
+      if (explanation) { barText.textContent = explanation; bar.classList.add('show'); }
+      else { bar.classList.remove('show'); }
+    }
   }
 }
 
 function clearHighlight() {
   __lastHighlightMap = null;
   document.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  const bar = document.getElementById('codeExplainBar');
+  if (bar) bar.classList.remove('show');
 }
 
 document.querySelectorAll('.codetabs').forEach(tabs=>{
@@ -317,6 +377,25 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
     });
     applyHighlight();
   });
+});
+
+function syntaxHighlight(text) {
+  text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const pattern = /(\/\/.*$|#(?![a-zA-Z]).*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+\.?\d*n?\b)|(\b(?:function|def|return|if|else|elif|while|for|in|not|and|or|class|struct|new|const|let|var|async|await|import|from|export|default|static|public|private|protected|void|int|long|double|float|boolean|bool|char|string|String|true|false|True|False|None|null|nullptr|this|self|break|continue|switch|case|try|catch|throw|extends|implements|interface|enum|namespace|using|template|typename|auto|is|lambda|global|raise|except|finally|yield|del|pass|with|as|instanceof|typeof|super|package)\b)|(\b[A-Za-z_$][\w$]*)(?=\s*\()/gm;
+  return text.replace(pattern, (m, comment, str, num, kw, fn) => {
+    if (comment) return '<span class="tok-comment">'+comment+'</span>';
+    if (str) return '<span class="tok-string">'+str+'</span>';
+    if (num) return '<span class="tok-number">'+num+'</span>';
+    if (kw) return '<span class="tok-keyword">'+kw+'</span>';
+    if (fn) return '<span class="tok-function">'+fn+'</span>';
+    return m;
+  });
+}
+document.querySelectorAll('.codeline').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
+});
+document.querySelectorAll('.explain code').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
 });
 </script>
 <script>
@@ -376,6 +455,10 @@ async function run(){
 }
 
 document.getElementById('run').onclick = run;
+(() => {
+  document.getElementById('base').value = 2 + Math.floor(Math.random()*8);
+  document.getElementById('exp').value = 5 + Math.floor(Math.random()*20);
+})();
 renderBits(+document.getElementById('exp').value||13, -1);
 
 </script>

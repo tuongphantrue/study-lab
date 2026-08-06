@@ -45,6 +45,11 @@
   .explain p{color:var(--muted);font-size:15px;line-height:1.75;margin:0 0 12px;}
   .explain p:last-child{margin-bottom:0;}
   .explain code{background:var(--accent-soft);border-radius:5px;padding:2px 7px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
+  .example-box{background:var(--bg-soft);border:1px solid var(--border);border-radius:10px;padding:14px 16px;margin-top:14px;}
+  .example-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.06em;color:var(--dim);margin-bottom:8px;}
+  .example-box p{margin:0 0 8px;font-size:14px;color:var(--text);line-height:1.65;}
+  .example-box p:last-child{margin-bottom:0;}
+  .example-box code{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:1px 6px;font-family:var(--mono);font-size:13px;color:var(--accent-dark);}
 
   .tabs{display:flex;gap:8px;margin:20px 0 16px;font-size:14px;flex-wrap:wrap;}
   .tab{background:var(--card);border:1px solid var(--border);color:var(--muted);font-weight:600;padding:10px 16px;border-radius:100px;cursor:pointer;box-shadow:var(--shadow);transition:all .15s ease;}
@@ -107,19 +112,36 @@
     .sidebar a.navitem.overview{margin-bottom:0;}
   }
 
-  .codebox{background:#0d1117;border:1px solid var(--border);border-radius:14px;overflow:hidden;margin:20px 0;box-shadow:var(--shadow);}
-  .codetabs{display:flex;gap:2px;background:#161b22;padding:8px 8px 0;overflow-x:auto;}
-  .codetab{background:transparent;border:none;color:#8b949e;font-family:var(--mono);font-size:12.5px;font-weight:600;
-    padding:8px 14px;border-radius:6px 6px 0 0;cursor:pointer;white-space:nowrap;}
-  .codetab.active{background:#0d1117;color:#e6edf3;}
-  .codetab:hover:not(.active){color:#c9d1d9;}
-  pre.codeblock{margin:0;padding:18px 20px;overflow-x:auto;max-height:480px;}
-  pre.codeblock code{font-family:var(--mono);font-size:12.5px;line-height:1.65;color:#e6edf3;white-space:pre;}
-  .code-heading{font-weight:700;font-size:16px;margin:28px 0 4px;color:var(--text);}
+  .codebox{background:var(--card);border:1px solid var(--border);border-radius:12px;overflow:hidden;margin:16px 0 8px;box-shadow:var(--shadow);max-width:720px;}
+  .codetabs{display:flex;gap:2px;background:var(--bg-soft);padding:5px 6px 0;overflow-x:auto;}
+  .codetab{background:transparent;border:none;color:var(--dim);font-family:var(--mono);font-size:11.5px;font-weight:600;
+    padding:6px 11px;border-radius:5px 5px 0 0;cursor:pointer;white-space:nowrap;}
+  .codetab.active{background:var(--card);color:var(--text);}
+  .codetab:hover:not(.active){color:var(--text);}
+  pre.codeblock{margin:0;padding:12px 16px;overflow-x:auto;max-height:220px;}
+  pre.codeblock code{font-family:var(--mono);font-size:11.5px;line-height:1.55;color:var(--text);white-space:pre;}
+  .code-heading{font-weight:700;font-size:14px;margin:32px 0 8px;color:var(--text);}
 
   .speedctl{display:flex;align-items:center;gap:8px;margin-left:auto;font-size:13px;color:var(--muted);}
   .speedctl select{padding:8px 10px;}
   @media (max-width:640px){ .speedctl{margin-left:0;} }
+
+  .codeline{display:block;}
+  .tok-comment{color:#6a737d;}
+  .tok-string{color:#032f62;}
+  .tok-keyword{color:#d73a49;font-weight:600;}
+  .tok-number{color:#005cc5;}
+  .tok-function{color:#6f42c1;}
+  .code-explain{
+    display:none;align-items:flex-start;gap:8px;padding:10px 16px;
+    background:var(--accent-soft);color:var(--accent-dark);font-size:12.5px;
+    line-height:1.5;border-top:1px solid var(--border);font-family:var(--sans);
+  }
+  .code-explain.show{display:flex;}
+  .code-explain .ico{flex-shrink:0;}
+
+  .codeline.active{background:var(--accent-soft);border-left:3px solid var(--accent);margin-left:-23px;padding-left:20px;border-radius:2px;}
+  .run-hint{font-size:12px;color:var(--dim);margin-top:-4px;margin-bottom:10px;}
 </style>
 </head>
 <body>
@@ -170,95 +192,18 @@
 <main>
   <div class="explain">
     <h2>How it works</h2>
-    <p>DP applies when a problem has two properties: <b style="color:var(--text)">overlapping subproblems</b> (the same smaller calculation would otherwise get repeated many times — see the plain recursion on the recursion page) and an <b style="color:var(--text)">optimal substructure</b> (the best answer to the big problem can be built directly from the best answers to smaller versions of it). Instead of recomputing, each subproblem's answer gets stored in a table exactly once, and every later cell just looks up what it needs rather than recursing again.</p>
-    <p><b style="color:var(--text)">Fibonacci</b>: each cell is just the sum of the two before it — <code>dp[i] = dp[i-1] + dp[i-2]</code> — filled left to right starting from the two base cases.</p>
-    <p><b style="color:var(--text)">0/1 knapsack</b>: each cell <code>dp[i][c]</code> answers "best value using only the first i items, with capacity c." For each new item, the cell takes the better of two choices: skip the item (carry forward <code>dp[i-1][c]</code>), or take it (its value plus whatever capacity remains: <code>dp[i-1][c-weight] + value</code>) — but only if it fits.</p>
-    <p><b style="color:var(--text)">Edit distance</b>: each cell <code>dp[i][j]</code> is the fewest single-character edits (insert, delete, replace) to turn the first <code>i</code> letters of one word into the first <code>j</code> letters of the other. If the current letters already match, the cost is free — just copy the diagonal cell. Otherwise it's 1 plus the cheapest of the three neighboring cells, since a mismatch always costs exactly one edit however it's resolved.</p>
-    <p>In every case, the table only needs to be filled once, in an order where each cell's dependencies are already computed — that single pass is what makes DP fast.</p>
+    <p>Dynamic programming (DP) is useful when a problem breaks down into smaller versions of itself, and those smaller versions repeat. Instead of solving the same smaller problem over and over (like plain recursion does), DP solves each one <b style="color:var(--text)">exactly once</b> and saves the answer in a table for later.</p>
+    <p><b style="color:var(--text)">Fibonacci:</b> each cell is just the sum of the two cells before it — <code>dp[i] = dp[i-1] + dp[i-2]</code>. Fill the table left to right, starting from two known base values.</p>
+    <p><b style="color:var(--text)">0/1 knapsack:</b> each cell <code>dp[i][c]</code> answers "what's the best value I can get, using only the first <code>i</code> items, with <code>c</code> capacity left?" For each item, there are two choices: skip it, or take it if it fits. The cell stores whichever choice gives the better result.</p>
+    <p><b style="color:var(--text)">Edit distance:</b> each cell asks "how many single-letter changes turn one prefix into the other?" If the current letters already match, no extra work is needed — just copy the answer from the diagonal cell. Otherwise, add one edit to whichever neighboring cell is cheapest.</p>
+    <p>In every case, the table only needs to be filled once, and each cell only depends on cells that were already computed earlier.</p>
+    <div class="example-box">
+      <div class="example-label">Example</div>
+      <p><b style="color:var(--text)">Knapsack example:</b> capacity 5, one item weighs 3 and is worth 4, another weighs 2 and is worth 3. Taking both fits exactly (<code>3 + 2 = 5</code>) for a total value of <code>4 + 3 = 7</code> — better than taking just one item alone.</p>
+      <p><b style="color:var(--text)">Fibonacci example:</b> <code>dp[5] = dp[4] + dp[3] = 3 + 2 = 5</code>, filled in directly from two already-known cells.</p>
+    </div>
+
   </div>
-<div class="code-heading">Code</div>
-<div class="codebox">
-  <div class="codetabs">
-    <button class="codetab active" data-lang="pseudo">Pseudocode</button>
-    <button class="codetab" data-lang="python">Python</button>
-    <button class="codetab" data-lang="js">JavaScript</button>
-    <button class="codetab" data-lang="java">Java</button>
-    <button class="codetab" data-lang="cpp">C++</button>
-  </div>
-  <pre class="codeblock" data-lang="pseudo"><code>function knapsack(weights[], values[], capacity):
-    n &lt;- length(weights)
-    dp &lt;- table of size (n+1) x (capacity+1), filled with 0   // dp[i][c] = best value
-
-    for i from 1 to n:                       // consider items one at a time
-        for c from 0 to capacity:             // for every possible capacity so far
-            dp[i][c] &lt;- dp[i-1][c]              // option 1: skip item i, carry forward
-            if weights[i-1] &lt;= c:                // item i actually fits in capacity c
-                dp[i][c] &lt;- max(dp[i][c], dp[i-1][c-weights[i-1]] + values[i-1])
-                // option 2: take item i, add its value to the best value with less capacity
-
-    return dp[n][capacity]   // best value achievable using all items within the capacity</code></pre>
-  <pre class="codeblock" data-lang="python" style="display:none"><code>def knapsack(weights, values, capacity):
-    n = len(weights)
-    dp = [[0] * (capacity + 1) for _ in range(n + 1)]  # dp[i][c] = best value so far
-
-    for i in range(1, n + 1):            # consider items one at a time
-        for c in range(capacity + 1):     # for every possible capacity so far
-            dp[i][c] = dp[i - 1][c]         # option 1: skip item i, carry forward
-            if weights[i - 1] &lt;= c:          # item i actually fits in capacity c
-                dp[i][c] = max(dp[i][c], dp[i - 1][c - weights[i - 1]] + values[i - 1])
-                # option 2: take item i, add its value to the best value with less capacity
-
-    return dp[n][capacity]   # best value achievable using all items within the capacity</code></pre>
-  <pre class="codeblock" data-lang="js" style="display:none"><code>function knapsack(weights, values, capacity) {
-  const n = weights.length;
-  const dp = Array.from({ length: n + 1 }, () =&gt; new Array(capacity + 1).fill(0));
-  // dp[i][c] = best value achievable using the first i items with capacity c
-
-  for (let i = 1; i &lt;= n; i++) {          // consider items one at a time
-    for (let c = 0; c &lt;= capacity; c++) {  // for every possible capacity so far
-      dp[i][c] = dp[i - 1][c];              // option 1: skip item i, carry forward
-      if (weights[i - 1] &lt;= c) {             // item i actually fits in capacity c
-        dp[i][c] = Math.max(dp[i][c], dp[i - 1][c - weights[i - 1]] + values[i - 1]);
-        // option 2: take item i, add its value to the best value with less capacity
-      }
-    }
-  }
-
-  return dp[n][capacity]; // best value achievable using all items within the capacity
-}</code></pre>
-  <pre class="codeblock" data-lang="java" style="display:none"><code>static int knapsack(int[] weights, int[] values, int capacity) {
-    int n = weights.length;
-    int[][] dp = new int[n + 1][capacity + 1];  // dp[i][c] = best value so far
-
-    for (int i = 1; i &lt;= n; i++) {            // consider items one at a time
-        for (int c = 0; c &lt;= capacity; c++) {  // for every possible capacity so far
-            dp[i][c] = dp[i - 1][c];             // option 1: skip item i, carry forward
-            if (weights[i - 1] &lt;= c) {            // item i actually fits in capacity c
-                dp[i][c] = Math.max(dp[i][c], dp[i - 1][c - weights[i - 1]] + values[i - 1]);
-                // option 2: take item i, add its value to best value with less capacity
-            }
-        }
-    }
-
-    return dp[n][capacity]; // best value achievable using all items within the capacity
-}</code></pre>
-  <pre class="codeblock" data-lang="cpp" style="display:none"><code>int knapsack(vector&lt;int&gt;&amp; weights, vector&lt;int&gt;&amp; values, int capacity) {
-    int n = weights.size();
-    vector&lt;vector&lt;int&gt;&gt; dp(n + 1, vector&lt;int&gt;(capacity + 1, 0)); // dp[i][c] = best value
-
-    for (int i = 1; i &lt;= n; i++) {            // consider items one at a time
-        for (int c = 0; c &lt;= capacity; c++) {  // for every possible capacity so far
-            dp[i][c] = dp[i - 1][c];             // option 1: skip item i, carry forward
-            if (weights[i - 1] &lt;= c) {            // item i actually fits in capacity c
-                dp[i][c] = max(dp[i][c], dp[i - 1][c - weights[i - 1]] + values[i - 1]);
-                // option 2: take item i, add its value to best value with less capacity
-            }
-        }
-    }
-
-    return dp[n][capacity]; // best value achievable using all items within the capacity
-}</code></pre>
-</div>
 <div class="tabs">
     <div class="tab active" data-tab="fib">fibonacci (memoized)</div>
     <div class="tab" data-tab="knapsack">0/1 knapsack</div>
@@ -280,7 +225,7 @@
       <label>capacity <input type="number" id="cap" value="8" min="4" max="14"></label>
       <button class="primary" id="runKnapsack">▶ Fill table</button>
     </div>
-    <p style="font-size:13px;color:var(--dim);">items (weight/value): 2/3, 3/4, 4/5, 5/6</p>
+    <p style="font-size:13px;color:var(--dim);" id="itemsDisplay">items (weight/value): 2/3, 3/4, 4/5, 5/6</p>
     <div class="panel"><table id="knapsackTable"></table></div>
     <div class="status" id="knapsackStatus"></div>
   </div>
@@ -294,10 +239,156 @@
     <div class="panel"><table id="editTable"></table></div>
     <div class="status" id="editStatus"></div>
   </div>
+<div class="code-heading">Code</div>
+<div class="codebox">
+  <div class="codetabs">
+    <button class="codetab active" data-lang="pseudo">Pseudocode</button>
+    <button class="codetab" data-lang="python">Python</button>
+    <button class="codetab" data-lang="js">JavaScript</button>
+    <button class="codetab" data-lang="java">Java</button>
+    <button class="codetab" data-lang="cpp">C++</button>
+  </div>
+  <pre class="codeblock" data-lang="pseudo"><code><span class="codeline" data-line="0">function knapsack(weights[], values[], capacity):</span>
+<span class="codeline" data-line="1">    n &lt;- length(weights)</span>
+<span class="codeline" data-line="2">    dp &lt;- table of size (n+1) x (capacity+1), filled with 0   // dp[i][c] = best value</span>
+<span class="codeline" data-line="3"></span>
+<span class="codeline" data-line="4">    for i from 1 to n:                       // consider items one at a time</span>
+<span class="codeline" data-line="5">        for c from 0 to capacity:             // for every possible capacity so far</span>
+<span class="codeline" data-line="6">            dp[i][c] &lt;- dp[i-1][c]              // option 1: skip item i, carry forward</span>
+<span class="codeline" data-line="7">            if weights[i-1] &lt;= c:                // item i actually fits in capacity c</span>
+<span class="codeline" data-line="8">                dp[i][c] &lt;- max(dp[i][c], dp[i-1][c-weights[i-1]] + values[i-1])</span>
+<span class="codeline" data-line="9">                // option 2: take item i, add its value to the best value with less capacity</span>
+<span class="codeline" data-line="10"></span>
+<span class="codeline" data-line="11">    return dp[n][capacity]   // best value achievable using all items within the capacity</span></code></pre>
+  <pre class="codeblock" data-lang="python" style="display:none"><code><span class="codeline" data-line="0">def knapsack(weights, values, capacity):</span>
+<span class="codeline" data-line="1">    n = len(weights)</span>
+<span class="codeline" data-line="2">    dp = [[0] * (capacity + 1) for _ in range(n + 1)]  # dp[i][c] = best value so far</span>
+<span class="codeline" data-line="3"></span>
+<span class="codeline" data-line="4">    for i in range(1, n + 1):            # consider items one at a time</span>
+<span class="codeline" data-line="5">        for c in range(capacity + 1):     # for every possible capacity so far</span>
+<span class="codeline" data-line="6">            dp[i][c] = dp[i - 1][c]         # option 1: skip item i, carry forward</span>
+<span class="codeline" data-line="7">            if weights[i - 1] &lt;= c:          # item i actually fits in capacity c</span>
+<span class="codeline" data-line="8">                dp[i][c] = max(dp[i][c], dp[i - 1][c - weights[i - 1]] + values[i - 1])</span>
+<span class="codeline" data-line="9">                # option 2: take item i, add its value to the best value with less capacity</span>
+<span class="codeline" data-line="10"></span>
+<span class="codeline" data-line="11">    return dp[n][capacity]   # best value achievable using all items within the capacity</span></code></pre>
+  <pre class="codeblock" data-lang="js" style="display:none"><code><span class="codeline" data-line="0">function knapsack(weights, values, capacity) {</span>
+<span class="codeline" data-line="1">  const n = weights.length;</span>
+<span class="codeline" data-line="2">  const dp = Array.from({ length: n + 1 }, () =&gt; new Array(capacity + 1).fill(0));</span>
+<span class="codeline" data-line="3">  // dp[i][c] = best value achievable using the first i items with capacity c</span>
+<span class="codeline" data-line="4"></span>
+<span class="codeline" data-line="5">  for (let i = 1; i &lt;= n; i++) {          // consider items one at a time</span>
+<span class="codeline" data-line="6">    for (let c = 0; c &lt;= capacity; c++) {  // for every possible capacity so far</span>
+<span class="codeline" data-line="7">      dp[i][c] = dp[i - 1][c];              // option 1: skip item i, carry forward</span>
+<span class="codeline" data-line="8">      if (weights[i - 1] &lt;= c) {             // item i actually fits in capacity c</span>
+<span class="codeline" data-line="9">        dp[i][c] = Math.max(dp[i][c], dp[i - 1][c - weights[i - 1]] + values[i - 1]);</span>
+<span class="codeline" data-line="10">        // option 2: take item i, add its value to the best value with less capacity</span>
+<span class="codeline" data-line="11">      }</span>
+<span class="codeline" data-line="12">    }</span>
+<span class="codeline" data-line="13">  }</span>
+<span class="codeline" data-line="14"></span>
+<span class="codeline" data-line="15">  return dp[n][capacity]; // best value achievable using all items within the capacity</span>
+<span class="codeline" data-line="16">}</span></code></pre>
+  <pre class="codeblock" data-lang="java" style="display:none"><code><span class="codeline" data-line="0">static int knapsack(int[] weights, int[] values, int capacity) {</span>
+<span class="codeline" data-line="1">    int n = weights.length;</span>
+<span class="codeline" data-line="2">    int[][] dp = new int[n + 1][capacity + 1];  // dp[i][c] = best value so far</span>
+<span class="codeline" data-line="3"></span>
+<span class="codeline" data-line="4">    for (int i = 1; i &lt;= n; i++) {            // consider items one at a time</span>
+<span class="codeline" data-line="5">        for (int c = 0; c &lt;= capacity; c++) {  // for every possible capacity so far</span>
+<span class="codeline" data-line="6">            dp[i][c] = dp[i - 1][c];             // option 1: skip item i, carry forward</span>
+<span class="codeline" data-line="7">            if (weights[i - 1] &lt;= c) {            // item i actually fits in capacity c</span>
+<span class="codeline" data-line="8">                dp[i][c] = Math.max(dp[i][c], dp[i - 1][c - weights[i - 1]] + values[i - 1]);</span>
+<span class="codeline" data-line="9">                // option 2: take item i, add its value to best value with less capacity</span>
+<span class="codeline" data-line="10">            }</span>
+<span class="codeline" data-line="11">        }</span>
+<span class="codeline" data-line="12">    }</span>
+<span class="codeline" data-line="13"></span>
+<span class="codeline" data-line="14">    return dp[n][capacity]; // best value achievable using all items within the capacity</span>
+<span class="codeline" data-line="15">}</span></code></pre>
+  <pre class="codeblock" data-lang="cpp" style="display:none"><code><span class="codeline" data-line="0">int knapsack(vector&lt;int&gt;&amp; weights, vector&lt;int&gt;&amp; values, int capacity) {</span>
+<span class="codeline" data-line="1">    int n = weights.size();</span>
+<span class="codeline" data-line="2">    vector&lt;vector&lt;int&gt;&gt; dp(n + 1, vector&lt;int&gt;(capacity + 1, 0)); // dp[i][c] = best value</span>
+<span class="codeline" data-line="3"></span>
+<span class="codeline" data-line="4">    for (int i = 1; i &lt;= n; i++) {            // consider items one at a time</span>
+<span class="codeline" data-line="5">        for (int c = 0; c &lt;= capacity; c++) {  // for every possible capacity so far</span>
+<span class="codeline" data-line="6">            dp[i][c] = dp[i - 1][c];             // option 1: skip item i, carry forward</span>
+<span class="codeline" data-line="7">            if (weights[i - 1] &lt;= c) {            // item i actually fits in capacity c</span>
+<span class="codeline" data-line="8">                dp[i][c] = max(dp[i][c], dp[i - 1][c - weights[i - 1]] + values[i - 1]);</span>
+<span class="codeline" data-line="9">                // option 2: take item i, add its value to best value with less capacity</span>
+<span class="codeline" data-line="10">            }</span>
+<span class="codeline" data-line="11">        }</span>
+<span class="codeline" data-line="12">    }</span>
+<span class="codeline" data-line="13"></span>
+<span class="codeline" data-line="14">    return dp[n][capacity]; // best value achievable using all items within the capacity</span>
+<span class="codeline" data-line="15">}</span></code></pre>
+  <div class="code-explain" id="codeExplainBar"><span class="ico">💡</span><span id="codeExplainText"></span></div>
+</div>
 </main>
 </div>
 </div>
 <script>
+let __lastHighlightMap = null;
+
+function highlightLine(mapping) {
+  __lastHighlightMap = mapping;
+  applyHighlight();
+}
+
+function commentInLine(text) {
+  let idx = text.indexOf('//');
+  if (idx !== -1) return text.slice(idx + 2).trim();
+  idx = text.indexOf('#');
+  if (idx !== -1) return text.slice(idx + 1).trim();
+  return null;
+}
+
+function extractExplanation(target) {
+  const own = commentInLine(target.textContent);
+  if (own) return own;
+  const next = target.nextElementSibling;
+  if (next && next.classList.contains('codeline')) {
+    const fromNext = commentInLine(next.textContent);
+    if (fromNext) return fromNext;
+  }
+  const prev = target.previousElementSibling;
+  if (prev && prev.classList.contains('codeline')) {
+    const fromPrev = commentInLine(prev.textContent);
+    if (fromPrev) return fromPrev;
+  }
+  return null;
+}
+
+function applyHighlight() {
+  const box = document.querySelector('.codebox');
+  const bar = document.getElementById('codeExplainBar');
+  const barText = document.getElementById('codeExplainText');
+  if (!box || !__lastHighlightMap) { if (bar) bar.classList.remove('show'); return; }
+  const activeTab = box.querySelector('.codetab.active');
+  const lang = activeTab ? activeTab.dataset.lang : 'pseudo';
+  const lineNum = __lastHighlightMap[lang];
+  box.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  if (lineNum === undefined || lineNum === null) { if (bar) bar.classList.remove('show'); return; }
+  const activeBlock = box.querySelector('.codeblock[data-lang="' + lang + '"]');
+  if (!activeBlock) return;
+  const target = activeBlock.querySelector('.codeline[data-line="' + lineNum + '"]');
+  if (target) {
+    target.classList.add('active');
+    target.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+    if (bar && barText) {
+      const explanation = extractExplanation(target);
+      if (explanation) { barText.textContent = explanation; bar.classList.add('show'); }
+      else { bar.classList.remove('show'); }
+    }
+  }
+}
+
+function clearHighlight() {
+  __lastHighlightMap = null;
+  document.querySelectorAll('.codeline').forEach(l => l.classList.remove('active'));
+  const bar = document.getElementById('codeExplainBar');
+  if (bar) bar.classList.remove('show');
+}
+
 document.querySelectorAll('.codetabs').forEach(tabs=>{
   tabs.addEventListener('click', e=>{
     const btn = e.target.closest('.codetab');
@@ -308,7 +399,27 @@ document.querySelectorAll('.codetabs').forEach(tabs=>{
     box.querySelectorAll('.codeblock').forEach(p=>{
       p.style.display = p.dataset.lang===btn.dataset.lang ? 'block' : 'none';
     });
+    applyHighlight();
   });
+});
+
+function syntaxHighlight(text) {
+  text = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const pattern = /(\/\/.*$|#(?![a-zA-Z]).*$)|("(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*'|`(?:[^`\\]|\\.)*`)|(\b\d+\.?\d*n?\b)|(\b(?:function|def|return|if|else|elif|while|for|in|not|and|or|class|struct|new|const|let|var|async|await|import|from|export|default|static|public|private|protected|void|int|long|double|float|boolean|bool|char|string|String|true|false|True|False|None|null|nullptr|this|self|break|continue|switch|case|try|catch|throw|extends|implements|interface|enum|namespace|using|template|typename|auto|is|lambda|global|raise|except|finally|yield|del|pass|with|as|instanceof|typeof|super|package)\b)|(\b[A-Za-z_$][\w$]*)(?=\s*\()/gm;
+  return text.replace(pattern, (m, comment, str, num, kw, fn) => {
+    if (comment) return '<span class="tok-comment">'+comment+'</span>';
+    if (str) return '<span class="tok-string">'+str+'</span>';
+    if (num) return '<span class="tok-number">'+num+'</span>';
+    if (kw) return '<span class="tok-keyword">'+kw+'</span>';
+    if (fn) return '<span class="tok-function">'+fn+'</span>';
+    return m;
+  });
+}
+document.querySelectorAll('.codeline').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
+});
+document.querySelectorAll('.explain code').forEach(el => {
+  el.innerHTML = syntaxHighlight(el.textContent);
 });
 </script>
 <script>
@@ -358,8 +469,10 @@ async function runFib(){
 }
 
 // ---------- Knapsack ----------
+let knapsackItems = [{w:2,v:3},{w:3,v:4},{w:4,v:5},{w:5,v:6}];
 async function runKnapsack(){
-  const items = [{w:2,v:3},{w:3,v:4},{w:4,v:5},{w:5,v:6}];
+  clearHighlight();
+  const items = knapsackItems;
   const cap = Math.max(4, Math.min(14, +document.getElementById('cap').value||8));
   const table = document.getElementById('knapsackTable');
   const rows = items.length;
@@ -388,10 +501,12 @@ async function runKnapsack(){
         const takeVal = dp[i-1][c-w]+v;
         if(takeVal>best){ best=takeVal; usedTake=true; }
         document.getElementById('knapsackStatus').innerHTML = `item ${i} (w${w}/v${v}), cap ${c}: max(skip=${dp[i-1][c]}, take=${takeVal})`;
+        highlightLine({pseudo:8, python:8, js:9, java:8, cpp:8});
         await sleep(180);
         takeCell.classList.remove('source');
       } else {
         document.getElementById('knapsackStatus').innerHTML = `item ${i} (w${w}/v${v}), cap ${c}: too heavy, carry forward ${dp[i-1][c]}`;
+        highlightLine({pseudo:6, python:6, js:7, java:6, cpp:6});
         await sleep(140);
       }
       dp[i][c]=best;
@@ -450,6 +565,27 @@ async function runEdit(){
 document.getElementById('runFib').onclick = runFib;
 document.getElementById('runKnapsack').onclick = runKnapsack;
 document.getElementById('runEdit').onclick = runEdit;
+
+(() => {
+  document.getElementById('fibN').value = 7 + Math.floor(Math.random()*7);
+
+  knapsackItems = Array.from({length: 4}, () => ({
+    w: 2 + Math.floor(Math.random()*5),
+    v: 2 + Math.floor(Math.random()*8)
+  }));
+  document.getElementById('itemsDisplay').textContent =
+    'items (weight/value): ' + knapsackItems.map(it => it.w+'/'+it.v).join(', ');
+  document.getElementById('cap').value = 8 + Math.floor(Math.random()*6);
+
+  const wordPairs = [
+    ['kitten','sitting'], ['sunday','saturday'], ['flaw','lawn'],
+    ['intention','execution'], ['horse','ros'], ['abc','yabd']
+  ];
+  const [wa, wb] = wordPairs[Math.floor(Math.random()*wordPairs.length)];
+  document.getElementById('wordA').value = wa;
+  document.getElementById('wordB').value = wb;
+})();
+
 runFib();
 </script>
 </body></html>
