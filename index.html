@@ -57,8 +57,8 @@
     font-weight:600;color:var(--accent-dark);background:var(--card);border:1px solid var(--accent);
     padding:6px 12px;border-radius:100px;margin-bottom:20px;
   }
-  h1{font-weight:800;font-size:clamp(34px,6vw,56px);letter-spacing:-0.035em;line-height:1.05;margin:0 0 18px;color:var(--accent-dark);}
-  h1 span{color:var(--text);}
+  h1{font-weight:800;font-size:clamp(34px,6vw,56px);letter-spacing:-0.035em;line-height:1.05;margin:0 0 18px;color:var(--text);}
+  h1 span{color:var(--accent);}
   .lede{color:var(--muted);max-width:60ch;line-height:1.65;font-size:18px;margin:0 0 28px;}
   .hero-actions{display:flex;gap:12px;flex-wrap:wrap;}
   .btn{
@@ -102,7 +102,22 @@
   footer a{color:var(--muted);text-decoration:underline;text-underline-offset:2px;}
   footer a:hover{color:var(--accent);}
 
-  .layout{display:flex;align-items:flex-start;}
+  .layout{display:flex;align-items:flex-start;position:relative;}
+  .sidebar{transition:width .18s ease, padding .18s ease, opacity .18s ease;}
+  .sidebar.collapsed{width:0;padding:0;opacity:0;overflow:hidden;border-right:none;}
+  .sidebar::-webkit-scrollbar{width:6px;}
+  .sidebar::-webkit-scrollbar-track{background:transparent;}
+  .sidebar::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px;}
+  .sidebar::-webkit-scrollbar-thumb:hover{background:var(--dim);}
+  .sidebar{scrollbar-width:thin;scrollbar-color:var(--border) transparent;}
+  .navtoggle{
+    background:transparent;border:1px solid var(--border);border-radius:7px;
+    width:28px;height:28px;display:flex;align-items:center;justify-content:center;
+    cursor:pointer;color:var(--muted);font-size:13px;flex-shrink:0;margin-right:2px;
+    transition:color .15s ease,border-color .15s ease,background .15s ease;
+  }
+  .navtoggle:hover{color:var(--accent-dark);border-color:var(--accent);background:var(--accent-soft);}
+  .navtoggle.active{color:var(--accent-dark);border-color:var(--accent);background:var(--accent-soft);}
   .sidebar{
     width:230px;flex-shrink:0;background:var(--card);border-right:1px solid var(--border);
     padding:18px 12px 40px;position:sticky;top:0;height:100vh;overflow-y:auto;
@@ -122,9 +137,14 @@
     display:flex;align-items:center;justify-content:space-between;
   }
   .navgroup-label .chev{font-size:11px;font-weight:400;color:var(--dim);text-transform:none;letter-spacing:0;}
+  .navgroup-label{cursor:pointer;user-select:none;}
+  .navgroup-label .chev{transition:transform .15s ease;display:inline-block;}
+  .navgroup.collapsed .navitem{display:none;}
+  .navgroup.collapsed .chev{transform:rotate(-90deg);}
   .main-content{flex:1;min-width:0;}
   @media (max-width:820px){
     .layout{flex-direction:column;}
+    .navtoggle{display:none;}
     .sidebar{width:100%;height:auto;position:relative;border-right:none;border-bottom:1px solid var(--border);
       display:flex;flex-wrap:wrap;gap:4px;padding:12px;}
     .navgroup{display:flex;flex-wrap:wrap;gap:4px;align-items:center;margin-bottom:8px;}
@@ -136,6 +156,7 @@
 <body>
 <div class="navbar-outer">
 <nav>
+  <button class="navtoggle" id="sidebarToggle" title="Toggle sidebar">☰</button>
   <a class="logo" href="index.html"><span class="tile">◆</span><span class="pill">study://lab</span></a>
   <span class="navsearch">⌕ Search topics... <span class="kbd">Ctrl K</span></span>
   <a class="ghlink" href="https://github.com/tuongphantrue" target="_blank" rel="noopener">GitHub ↗</a>
@@ -362,5 +383,29 @@
 </footer>
 </div>
 </div>
+<script>
+document.querySelectorAll('.navgroup-label').forEach(label => {
+  label.addEventListener('click', () => {
+    label.parentElement.classList.toggle('collapsed');
+  });
+});
+
+(() => {
+  const layout = document.querySelector('.layout');
+  const sidebar = document.querySelector('.sidebar');
+  const toggle = document.getElementById('sidebarToggle');
+  if (!layout || !sidebar || !toggle) return;
+  const KEY = 'studylab-sidebar-collapsed';
+  if (localStorage.getItem(KEY) === '1') {
+    sidebar.classList.add('collapsed');
+    toggle.classList.add('active');
+  }
+  toggle.addEventListener('click', () => {
+    const collapsed = sidebar.classList.toggle('collapsed');
+    toggle.classList.toggle('active', collapsed);
+    localStorage.setItem(KEY, collapsed ? '1' : '0');
+  });
+})();
+</script>
 </body>
 </html>
